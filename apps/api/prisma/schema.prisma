@@ -51,6 +51,7 @@ model UnitType {
   doorType String?
   features String[]
   site     Site     @relation(fields: [siteId], references: [id])
+  units    Unit[]
 }
 
 model Unit {
@@ -71,8 +72,9 @@ model Unit {
   updatedAt        DateTime   @updatedAt
   deletedAt        DateTime?
 
-  site Site  @relation(fields: [siteId], references: [id])
-  zone Zone? @relation(fields: [zoneId], references: [id])
+  site     Site     @relation(fields: [siteId], references: [id])
+  zone     Zone?    @relation(fields: [zoneId], references: [id])
+  unitType UnitType @relation(fields: [unitTypeId], references: [id])
 
   @@unique([siteId, unitCode])
 }
@@ -125,7 +127,7 @@ model RateRule {
   priceBookId  String
   unitTypeId   String
   amountMinor  Int
-  billingCycle String
+  billingCycle BillingCycle
   conditions   Json?
   createdAt    DateTime @default(now())
 
@@ -241,6 +243,8 @@ model Contact {
   createdAt  DateTime @default(now())
 
   customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([customerId])
 }
 
 model Activity {
@@ -343,6 +347,8 @@ model AgreementAmendment {
   createdAt     DateTime @default(now())
 
   agreement Agreement @relation(fields: [agreementId], references: [id])
+
+  @@index([agreementId])
 }
 
 model Signatory {
@@ -354,6 +360,8 @@ model Signatory {
   createdAt   DateTime       @default(now())
 
   agreement Agreement @relation(fields: [agreementId], references: [id])
+
+  @@index([agreementId])
 }
 
 enum SignatoryStatus {
@@ -395,6 +403,7 @@ model Invoice {
   credits   CreditNote[]
 
   @@unique([agreementId, periodStart])
+  @@index([siteId])
 }
 
 enum InvoiceStatus {
@@ -415,6 +424,8 @@ model InvoiceLine {
   vatRate     Float?
 
   invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId])
 }
 
 model Mandate {
@@ -432,6 +443,8 @@ model Mandate {
   updatedAt     DateTime      @updatedAt
 
   customer Customer @relation(fields: [customerId], references: [id])
+
+  @@index([customerId])
 }
 
 enum MandateScheme {
@@ -472,6 +485,8 @@ model CreditNote {
   createdAt   DateTime @default(now())
 
   invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId])
 }
 
 // ─── Payments & Accounting ────────────────────────────────────────────────────
@@ -488,6 +503,8 @@ model Payment {
 
   invoice  Invoice          @relation(fields: [invoiceId], references: [id])
   attempts PaymentAttempt[]
+
+  @@index([invoiceId])
 }
 
 enum PaymentStatus {
@@ -508,6 +525,8 @@ model PaymentAttempt {
   createdAt   DateTime @default(now())
 
   payment Payment @relation(fields: [paymentId], references: [id])
+
+  @@index([paymentId])
 }
 
 model LedgerEntry {
@@ -823,6 +842,8 @@ model UserSession {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
 
 model OrganisationMembership {
@@ -916,4 +937,6 @@ model WebhookDelivery {
   deliveredAt DateTime?
 
   endpoint WebhookEndpoint @relation(fields: [endpointId], references: [id])
+
+  @@index([endpointId])
 }
