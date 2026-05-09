@@ -1,0 +1,919 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Site & Inventory ────────────────────────────────────────────────────────
+
+model Site {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  timezone    String     @default("Europe/Berlin")
+  currency    String     @default("EUR")
+  address     Json
+  accessHours Json?
+  status      SiteStatus @default(active)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?
+
+  zones     Zone[]
+  unitTypes UnitType[]
+  units     Unit[]
+}
+
+enum SiteStatus {
+  active
+  inactive
+}
+
+model Zone {
+  id            String  @id @default(cuid())
+  siteId        String
+  name          String
+  mapPolygon    Json?
+  vehicleAccess Boolean @default(false)
+  site          Site    @relation(fields: [siteId], references: [id])
+  units         Unit[]
+}
+
+model UnitType {
+  id       String   @id @default(cuid())
+  siteId   String
+  name     String
+  sizeSqm  Float
+  sizeCbm  Float?
+  doorType String?
+  features String[]
+  site     Site     @relation(fields: [siteId], references: [id])
+}
+
+model Unit {
+  id               String     @id @default(cuid())
+  siteId           String
+  zoneId           String?
+  unitCode         String
+  unitTypeId       String
+  kind             UnitKind   @default(self_storage)
+  status           UnitStatus @default(available)
+  driveUp          Boolean    @default(false)
+  position         Json?
+  photoUrl         String?
+  conditionState   String?
+  lastInspectionId String?
+  auditVersion     Int        @default(1)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  deletedAt        DateTime?
+
+  site Site  @relation(fields: [siteId], references: [id])
+  zone Zone? @relation(fields: [zoneId], references: [id])
+
+  @@unique([siteId, unitCode])
+}
+
+enum UnitKind {
+  container
+  self_storage
+}
+
+enum UnitStatus {
+  available
+  reserved
+  occupied
+  maintenance
+  out_of_service
+}
+
+model InventoryEvent {
+  id        String   @id @default(cuid())
+  unitId    String
+  oldStatus String
+  newStatus String
+  reason    String?
+  actorId   String?
+  createdAt DateTime @default(now())
+}
+
+// ─── Pricing ─────────────────────────────────────────────────────────────────
+
+model PriceBook {
+  id            String          @id @default(cuid())
+  siteId        String
+  name          String
+  status        PriceBookStatus @default(draft)
+  effectiveFrom DateTime
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  rules RateRule[]
+}
+
+enum PriceBookStatus {
+  draft
+  published
+  archived
+}
+
+model RateRule {
+  id           String   @id @default(cuid())
+  priceBookId  String
+  unitTypeId   String
+  amountMinor  Int
+  billingCycle String
+  conditions   Json?
+  createdAt    DateTime @default(now())
+
+  priceBook PriceBook @relation(fields: [priceBookId], references: [id])
+}
+
+model Promotion {
+  id             String    @id @default(cuid())
+  siteId         String
+  code           String
+  discountType   String
+  value          Int
+  stackingPolicy String    @default("none")
+  validFrom      DateTime
+  validTo        DateTime?
+  createdAt      DateTime  @default(now())
+}
+
+model FeeSchedule {
+  id            String @id @default(cuid())
+  siteId        String @unique
+  depositMinor  Int    @default(0)
+  lateFeePolicy Json?
+  adminFeeMinor Int    @default(0)
+}
+
+model TaxProfile {
+  id      String @id @default(cuid())
+  siteId  String
+  taxCode String
+  vatRate Float
+}
+
+// ─── Storefront ───────────────────────────────────────────────────────────────
+
+model LandingPageConfig {
+  id          String   @id @default(cuid())
+  siteId      String   @unique
+  heroContent Json?
+  faqBlocks   Json?
+  seoMeta     Json?
+  updatedAt   DateTime @updatedAt
+}
+
+model CheckoutSession {
+  id         String   @id @default(cuid())
+  siteId     String
+  unitTypeId String
+  state      String   @default("started")
+  metadata   Json?
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+}
+
+model QuoteRequest {
+  id           String   @id @default(cuid())
+  siteId       String
+  contact      Json
+  requirements Json?
+  status       String   @default("new")
+  createdAt    DateTime @default(now())
+}
+
+// ─── CRM & Leads ─────────────────────────────────────────────────────────────
+
+model Lead {
+  id         String     @id @default(cuid())
+  siteId     String
+  source     String
+  status     LeadStatus @default(new)
+  intent     String?
+  moveInDate DateTime?
+  notes      String?
+  customerId String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  deletedAt  DateTime?
+}
+
+enum LeadStatus {
+  new
+  contacted
+  qualified
+  converted
+  lost
+}
+
+model Customer {
+  id               String       @id @default(cuid())
+  type             CustomerType @default(private)
+  personOrOrgData  Json
+  marketingConsent Boolean      @default(false)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  deletedAt        DateTime?
+
+  contacts   Contact[]
+  agreements Agreement[]
+  mandates   Mandate[]
+}
+
+enum CustomerType {
+  private
+  business
+}
+
+model Contact {
+  id         String   @id @default(cuid())
+  customerId String
+  role       String   @default("primary")
+  email      String
+  phone      String?
+  createdAt  DateTime @default(now())
+
+  customer Customer @relation(fields: [customerId], references: [id])
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  subjectType String
+  subjectId   String
+  channel     String
+  body        String
+  actorId     String?
+  createdAt   DateTime @default(now())
+}
+
+// ─── Reservations ────────────────────────────────────────────────────────────
+
+model Reservation {
+  id         String            @id @default(cuid())
+  siteId     String
+  unitId     String
+  unitTypeId String
+  customerId String
+  status     ReservationStatus @default(pending)
+  startDate  DateTime
+  expiresAt  DateTime
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+}
+
+enum ReservationStatus {
+  pending
+  pending_signature
+  confirmed
+  expired
+  cancelled
+  converted
+}
+
+model ReservationHold {
+  id            String   @id @default(cuid())
+  unitId        String
+  reservationId String?
+  lockToken     String   @unique @default(cuid())
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+}
+
+// ─── Agreements ──────────────────────────────────────────────────────────────
+
+model AgreementTemplate {
+  id        String   @id @default(cuid())
+  siteId    String
+  version   String
+  language  String
+  body      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@unique([siteId, language, version])
+}
+
+model Agreement {
+  id               String          @id @default(cuid())
+  reservationId    String          @unique
+  tenantId         String
+  unitId           String
+  siteId           String
+  status           AgreementStatus @default(draft)
+  billingCycle     BillingCycle    @default(monthly)
+  effectiveFrom    DateTime?
+  terminationRules Json
+  pricingSnapshot  Json
+  language         String          @default("de")
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  customer    Customer             @relation(fields: [tenantId], references: [id])
+  amendments  AgreementAmendment[]
+  signatories Signatory[]
+  invoices    Invoice[]
+}
+
+enum AgreementStatus {
+  draft
+  pending_signature
+  signed
+  active
+  terminated
+}
+
+enum BillingCycle {
+  monthly
+  fixed_term
+}
+
+model AgreementAmendment {
+  id            String   @id @default(cuid())
+  agreementId   String
+  type          String
+  effectiveFrom DateTime
+  data          Json?
+  createdAt     DateTime @default(now())
+
+  agreement Agreement @relation(fields: [agreementId], references: [id])
+}
+
+model Signatory {
+  id          String         @id @default(cuid())
+  agreementId String
+  personId    String
+  status      SignatoryStatus @default(pending)
+  signedAt    DateTime?
+  createdAt   DateTime       @default(now())
+
+  agreement Agreement @relation(fields: [agreementId], references: [id])
+}
+
+enum SignatoryStatus {
+  pending
+  signed
+  declined
+}
+
+model TerminationRequest {
+  id            String   @id @default(cuid())
+  agreementId   String
+  requestedDate DateTime
+  status        String   @default("pending")
+  operatorNote  String?
+  createdAt     DateTime @default(now())
+}
+
+// ─── Billing & Mandates ───────────────────────────────────────────────────────
+
+model Invoice {
+  id                 String        @id @default(cuid())
+  agreementId        String
+  siteId             String
+  status             InvoiceStatus @default(pending)
+  invoiceDate        DateTime
+  dueDate            DateTime
+  currency           String        @default("EUR")
+  totalMinor         Int
+  periodStart        DateTime
+  periodEnd          DateTime
+  einvoicePayload    Json?
+  einvoiceStorageKey String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  agreement Agreement     @relation(fields: [agreementId], references: [id])
+  lines     InvoiceLine[]
+  payments  Payment[]
+  credits   CreditNote[]
+
+  @@unique([agreementId, periodStart])
+}
+
+enum InvoiceStatus {
+  pending
+  sent
+  paid
+  overdue
+  void
+}
+
+model InvoiceLine {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  kind        String
+  description String
+  amountMinor Int
+  taxCode     String?
+  vatRate     Float?
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+}
+
+model Mandate {
+  id            String        @id @default(cuid())
+  customerId    String
+  scheme        MandateScheme @default(sepa_core)
+  reference     String        @unique
+  creditorId    String?
+  status        MandateStatus @default(pending)
+  ibanLast4     String?
+  consentSource String?
+  stripeSetupId String?
+  signedAt      DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id])
+}
+
+enum MandateScheme {
+  sepa_core
+  sepa_b2b
+  card
+  manual_invoice
+  cash
+  bank_transfer
+}
+
+enum MandateStatus {
+  pending
+  active
+  cancelled
+  failed
+}
+
+model ReminderPolicy {
+  id     String @id @default(cuid())
+  siteId String @unique
+  steps  Json
+}
+
+model DelinquencyPolicy {
+  id             String  @id @default(cuid())
+  siteId         String  @unique
+  overdueDays    Int     @default(14)
+  lockoutEnabled Boolean @default(true)
+  lateFeeRules   Json?
+}
+
+model CreditNote {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  amountMinor Int
+  reason      String
+  createdAt   DateTime @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+}
+
+// ─── Payments & Accounting ────────────────────────────────────────────────────
+
+model Payment {
+  id          String        @id @default(cuid())
+  invoiceId   String
+  method      MandateScheme
+  status      PaymentStatus @default(pending)
+  amountMinor Int
+  reference   String        @unique
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  invoice  Invoice          @relation(fields: [invoiceId], references: [id])
+  attempts PaymentAttempt[]
+}
+
+enum PaymentStatus {
+  pending
+  pending_settlement
+  succeeded
+  failed
+  refunded
+}
+
+model PaymentAttempt {
+  id          String   @id @default(cuid())
+  paymentId   String
+  provider    String
+  status      String
+  providerRef String   @unique
+  errorCode   String?
+  createdAt   DateTime @default(now())
+
+  payment Payment @relation(fields: [paymentId], references: [id])
+}
+
+model LedgerEntry {
+  id            String   @id @default(cuid())
+  type          String
+  refType       String
+  refId         String
+  debitAccount  String
+  creditAccount String
+  amountMinor   Int
+  siteId        String?
+  createdAt     DateTime @default(now())
+
+  @@index([refType, refId])
+  @@index([siteId, createdAt])
+}
+
+model ExportJob {
+  id          String    @id @default(cuid())
+  kind        String
+  scope       Json
+  status      String    @default("queued")
+  downloadUrl String?
+  checksum    String?
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+}
+
+model AccountingMapping {
+  id             String   @id @default(cuid())
+  siteId         String
+  revenueAccount String
+  taxCode        String
+  costCenter     String?
+  effectiveFrom  DateTime
+}
+
+// ─── Access Control ───────────────────────────────────────────────────────────
+
+model AccessVendor {
+  id          String   @id @default(cuid())
+  name        String
+  adapterType String
+  siteIds     String[]
+  config      Json?
+}
+
+model AccessPoint {
+  id       String @id @default(cuid())
+  siteId   String
+  vendorId String
+  kind     String
+  name     String
+  state    String @default("unknown")
+}
+
+model AccessGroup {
+  id     String @id @default(cuid())
+  siteId String
+  rules  Json
+}
+
+model AccessCredential {
+  id             String   @id @default(cuid())
+  agreementId    String   @unique
+  credentialType String
+  externalRef    String?
+  maskedValue    String?
+  status         String   @default("active")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model AccessEvent {
+  id            String   @id @default(cuid())
+  accessPointId String
+  credentialId  String?
+  eventType     String
+  result        String
+  occurredAt    DateTime
+  createdAt     DateTime @default(now())
+
+  @@index([accessPointId, occurredAt])
+}
+
+model LockoutState {
+  id          String   @id @default(cuid())
+  agreementId String   @unique
+  reason      String
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Operations ───────────────────────────────────────────────────────────────
+
+model Task {
+  id         String     @id @default(cuid())
+  siteId     String
+  assigneeId String?
+  status     TaskStatus @default(open)
+  dueAt      DateTime?
+  subjectRef String?
+  title      String
+  notes      String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+enum TaskStatus {
+  open
+  in_progress
+  completed
+  cancelled
+}
+
+model InspectionTemplate {
+  id        String @id @default(cuid())
+  siteId    String
+  kind      String
+  checklist Json
+}
+
+model InspectionRun {
+  id          String    @id @default(cuid())
+  unitId      String
+  templateId  String?
+  kind        String
+  result      String?
+  photoIds    String[]
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model Incident {
+  id                  String         @id @default(cuid())
+  siteId              String
+  severity            String
+  type                String
+  status              IncidentStatus @default(open)
+  linkedAccessEventId String?
+  resolutionNote      String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+}
+
+enum IncidentStatus {
+  open
+  investigating
+  resolved
+}
+
+model MaintenanceOrder {
+  id            String   @id @default(cuid())
+  unitId        String
+  status        String   @default("open")
+  vendorContact String?
+  createdAt     DateTime @default(now())
+}
+
+model Transfer {
+  id            String   @id @default(cuid())
+  fromUnitId    String
+  toUnitId      String
+  agreementId   String
+  effectiveDate DateTime
+  status        String   @default("pending")
+  createdAt     DateTime @default(now())
+}
+
+// ─── Documents & Signatures ───────────────────────────────────────────────────
+
+model Document {
+  id          String   @id @default(cuid())
+  subjectType String
+  subjectId   String
+  kind        String
+  storageKey  String
+  hash        String
+  locale      String?
+  createdAt   DateTime @default(now())
+}
+
+model DocumentTemplate {
+  id      String  @id @default(cuid())
+  name    String
+  locale  String
+  version String
+  body    String
+  active  Boolean @default(true)
+}
+
+model SignatureEnvelope {
+  id         String   @id @default(cuid())
+  documentId String
+  provider   String   @default("internal")
+  status     String   @default("pending")
+  events     Json?
+  hash       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model EvidencePack {
+  id         String   @id @default(cuid())
+  documentId String
+  events     Json
+  hash       String
+  createdAt  DateTime @default(now())
+}
+
+// ─── Reporting ────────────────────────────────────────────────────────────────
+
+model MetricSnapshot {
+  id        String   @id @default(cuid())
+  siteId    String
+  metric    String
+  value     Float
+  bucketAt  DateTime
+  createdAt DateTime @default(now())
+
+  @@index([siteId, metric, bucketAt])
+}
+
+model ReportRun {
+  id        String   @id @default(cuid())
+  kind      String
+  params    Json
+  status    String   @default("queued")
+  result    Json?
+  createdAt DateTime @default(now())
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+model NotificationTemplate {
+  id        String  @id @default(cuid())
+  channel   String
+  locale    String
+  eventType String
+  subject   String?
+  body      String
+  active    Boolean @default(true)
+
+  @@unique([channel, locale, eventType])
+}
+
+model NotificationPreference {
+  id      String  @id @default(cuid())
+  userId  String
+  channel String
+  enabled Boolean @default(true)
+}
+
+model OutboundMessage {
+  id          String    @id @default(cuid())
+  eventType   String
+  channel     String
+  status      String    @default("queued")
+  providerRef String?
+  recipientId String
+  subjectRef  String?
+  createdAt   DateTime  @default(now())
+  sentAt      DateTime?
+}
+
+// ─── Auth & RBAC ──────────────────────────────────────────────────────────────
+
+model User {
+  id         String   @id @default(cuid())
+  type       UserType
+  email      String   @unique
+  mfaState   String   @default("disabled")
+  status     String   @default("active")
+  keycloakId String?  @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  assignments PermissionAssignment[]
+  sessions    UserSession[]
+}
+
+enum UserType {
+  owner
+  operator
+  tenant
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  permissions String[]
+  createdAt   DateTime @default(now())
+
+  assignments PermissionAssignment[]
+}
+
+model PermissionAssignment {
+  id      String   @id @default(cuid())
+  userId  String
+  roleId  String
+  siteIds String[]
+
+  user User @relation(fields: [userId], references: [id])
+  role Role @relation(fields: [roleId], references: [id])
+}
+
+model UserSession {
+  id        String   @id @default(cuid())
+  userId    String
+  device    String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model OrganisationMembership {
+  id             String @id @default(cuid())
+  organisationId String
+  contactId      String
+  portalRole     String @default("member")
+}
+
+// ─── Audit & Security ────────────────────────────────────────────────────────
+
+model AuditEvent {
+  id          String   @id @default(cuid())
+  actorId     String?
+  actorType   String?
+  action      String
+  subjectType String
+  subjectId   String
+  changes     Json?
+  siteId      String?
+  requestId   String?
+  createdAt   DateTime @default(now())
+
+  @@index([subjectType, subjectId])
+  @@index([actorId, createdAt])
+  @@index([siteId, createdAt])
+}
+
+model LegalHold {
+  id         String   @id @default(cuid())
+  subjectRef String
+  reason     String
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+}
+
+model SecurityEvent {
+  id        String   @id @default(cuid())
+  type      String
+  severity  String
+  details   Json
+  createdAt DateTime @default(now())
+}
+
+// ─── Webhooks & API ───────────────────────────────────────────────────────────
+
+model ApiClient {
+  id      String   @id @default(cuid())
+  name    String
+  scopes  String[]
+  siteIds String[]
+
+  keys      ApiKey[]
+  endpoints WebhookEndpoint[]
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  clientId   String
+  keyHash    String    @unique
+  status     String    @default("active")
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  client ApiClient @relation(fields: [clientId], references: [id])
+}
+
+model WebhookEndpoint {
+  id            String   @id @default(cuid())
+  clientId      String
+  url           String
+  secret        String
+  subscriptions String[]
+  status        String   @default("active")
+  createdAt     DateTime @default(now())
+
+  client     ApiClient         @relation(fields: [clientId], references: [id])
+  deliveries WebhookDelivery[]
+}
+
+model WebhookDelivery {
+  id          String    @id @default(cuid())
+  endpointId  String
+  eventType   String
+  payload     Json
+  status      String    @default("pending")
+  attempts    Int       @default(0)
+  lastError   String?
+  createdAt   DateTime  @default(now())
+  deliveredAt DateTime?
+
+  endpoint WebhookEndpoint @relation(fields: [endpointId], references: [id])
+}
