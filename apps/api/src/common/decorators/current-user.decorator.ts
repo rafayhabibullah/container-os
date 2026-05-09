@@ -4,6 +4,7 @@ export interface AuthenticatedUser {
   id: string;
   type: 'owner' | 'operator' | 'tenant';
   email: string;
+  workspaceId: string;
   siteIds: string[];
   permissions: string[];
 }
