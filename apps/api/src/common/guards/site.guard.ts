@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { DomainException, ErrorCodes } from '@container-os/domain-types';
 import { RbacService } from '../../modules/auth/rbac.service';
 
@@ -12,9 +12,14 @@ export class SiteGuard implements CanActivate {
     const siteId = request.params.siteId ?? request.body?.siteId;
 
     if (!siteId) return true;
-    if (user?.type === 'owner') return true;
 
-    if (!user || !this.rbac.hasSiteAccess(user.siteIds, siteId)) {
+    if (!user) {
+      throw new UnauthorizedException('Authentication required');
+    }
+
+    if (user.type === 'owner') return true;
+
+    if (!this.rbac.hasSiteAccess(user.siteIds, siteId)) {
       throw new DomainException(
         ErrorCodes.SITE_SCOPE_VIOLATION,
         `User does not have access to site ${siteId}`,

@@ -27,4 +27,12 @@ describe('RbacService', () => {
     );
     expect(result).toBe(true);
   });
+
+  it('does NOT match bare namespace without colon using wildcard', () => {
+    const result = rbac.hasPermission(
+      { permissions: ['invoices:*'] },
+      'invoices',  // no colon — should NOT match
+    );
+    expect(result).toBe(false);
+  });
 });
