@@ -4,6 +4,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { EventBusModule } from './events/event-bus.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { AuditModule } from './modules/audit/audit.module';
     EventBusModule,
     AuthModule,
     AuditModule,
+    HealthModule,
   ],
 })
 export class AppModule {}
