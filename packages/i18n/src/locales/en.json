@@ -1,0 +1,23 @@
+{
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+  "invoice": {
+    "subject": "Invoice {{number}} — {{siteName}}",
+    "overdue_notice": "Your payment is overdue. Please settle the outstanding amount to maintain access to your storage unit.",
+    "lockout_warning": "Your access will be suspended if payment remains outstanding.",
+    "access_restored": "Your access has been restored."
+  },
+  "agreement": {
+    "sign_prompt": "Please sign your rental agreement digitally.",
+    "activated": "Your rental agreement is active. Welcome to {{siteName}}."
+  },
+  "access": {
+    "credential_issued": "Your access credentials: {{credential}}",
+    "lockout_active": "Your access has been suspended due to outstanding payments."
+  }
+}

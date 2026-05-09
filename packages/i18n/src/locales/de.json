@@ -1,0 +1,23 @@
+{
+  "common": {
+    "yes": "Ja",
+    "no": "Nein",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "confirm": "Bestätigen"
+  },
+  "invoice": {
+    "subject": "Rechnung {{number}} — {{siteName}}",
+    "overdue_notice": "Ihre Zahlung ist überfällig. Bitte begleichen Sie den ausstehenden Betrag, um den Zugang zu Ihrem Lager zu erhalten.",
+    "lockout_warning": "Ihr Zugang wird bei weiterhin ausstehender Zahlung gesperrt.",
+    "access_restored": "Ihr Zugang wurde wiederhergestellt."
+  },
+  "agreement": {
+    "sign_prompt": "Bitte unterzeichnen Sie Ihren Mietvertrag digital.",
+    "activated": "Ihr Mietvertrag ist aktiv. Willkommen bei {{siteName}}."
+  },
+  "access": {
+    "credential_issued": "Ihre Zugangsdaten: {{credential}}",
+    "lockout_active": "Ihr Zugang wurde aufgrund ausstehender Zahlungen gesperrt."
+  }
+}
