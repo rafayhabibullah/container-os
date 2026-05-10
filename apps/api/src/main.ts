@@ -15,7 +15,10 @@ async function bootstrap() {
   );
 
   app.enableShutdownHooks();
-  app.enableCors({ origin: process.env.FRONTEND_URL ?? 'http://localhost:3001' });
+  const corsOrigins = (process.env.FRONTEND_URL ?? 'http://localhost:3001')
+    .split(',')
+    .map((o) => o.trim());
+  app.enableCors({ origin: corsOrigins });
   app.setGlobalPrefix('api');
 
   // Swagger — only in non-production

@@ -1,0 +1,136 @@
+# docker-compose.full.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# Full stack: all 5 infrastructure services + 4 application containers.
+#
+# Usage:
+#   docker compose -f docker-compose.full.yml up --build
+#
+# Requires Docker Compose v2.20+ (for the `include:` directive).
+# Infra-only dev workflow is unchanged:
+#   docker compose up -d   (uses docker-compose.yml only)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Pull in the existing infrastructure definitions (postgres, redis, minio,
+# keycloak, mailhog) without duplicating them.
+include:
+  - docker-compose.yml
+
+networks:
+  # Shared bridge network. Services from the included file join automatically
+  # because Docker Compose merges network namespaces across included files.
+  container-os-net:
+    driver: bridge
+
+services:
+
+  # ─── NestJS API ─────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: container-os/api:local
+    container_name: container_os_api
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    networks:
+      - container-os-net
+    # Load secrets (Stripe keys, Keycloak client secret) from .env on the host.
+    # The .dockerignore prevents .env from being baked into the image.
+    env_file:
+      - .env
+    environment:
+      # These override matching keys from .env, replacing localhost with service names.
+      NODE_ENV: production
+      PORT: '3000'
+      DATABASE_URL: postgresql://container_os:container_os_dev@postgres:5432/container_os
+      REDIS_URL: redis://redis:6379
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: '9000'
+      MINIO_USE_SSL: 'false'
+      MINIO_ACCESS_KEY: container_os_minio
+      MINIO_SECRET_KEY: container_os_minio_dev
+      MINIO_BUCKET: container-os-dev
+      # Keycloak is server-to-server from the API — use the Docker service name.
+      KEYCLOAK_URL: http://keycloak:8080
+      SMTP_HOST: mailhog
+      SMTP_PORT: '1025'
+      # Comma-separated list — CORS allows all three portals.
+      FRONTEND_URL: http://localhost:3001,http://localhost:3002,http://localhost:3003
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:3000/api/healthz || exit 1']
+      interval: 15s
+      timeout: 5s
+      start_period: 60s   # allow time for migrations to run
+      retries: 5
+
+  # ─── Owner portal (port 3001) ─────────────────────────────────────────────
+  web-owner:
+    build:
+      context: .
+      dockerfile: apps/web-owner/Dockerfile
+      args:
+        # Must be the browser-visible URL (baked into the JS bundle at build time).
+        NEXT_PUBLIC_API_URL: http://localhost:3000/api
+    image: container-os/web-owner:local
+    container_name: container_os_web_owner
+    restart: unless-stopped
+    ports:
+      - '3001:3001'
+    networks:
+      - container-os-net
+    environment:
+      NODE_ENV: production
+      PORT: '3001'
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # ─── Operator portal (port 3002) ──────────────────────────────────────────
+  web-operator:
+    build:
+      context: .
+      dockerfile: apps/web-operator/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:3000/api
+    image: container-os/web-operator:local
+    container_name: container_os_web_operator
+    restart: unless-stopped
+    ports:
+      - '3002:3002'
+    networks:
+      - container-os-net
+    environment:
+      NODE_ENV: production
+      PORT: '3002'
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # ─── Tenant portal (port 3003) ────────────────────────────────────────────
+  web-tenant:
+    build:
+      context: .
+      dockerfile: apps/web-tenant/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:3000/api
+    image: container-os/web-tenant:local
+    container_name: container_os_web_tenant
+    restart: unless-stopped
+    ports:
+      - '3003:3003'
+    networks:
+      - container-os-net
+    environment:
+      NODE_ENV: production
+      PORT: '3003'
+    depends_on:
+      api:
+        condition: service_healthy

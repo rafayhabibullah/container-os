@@ -37,7 +37,39 @@ corepack enable       # activates pnpm from package.json engines field
 
 ---
 
-## Quick start
+## Running with Docker (recommended)
+
+The entire stack can be started with a single command. Docker must be running.
+
+```bash
+# Copy and edit environment file (add Stripe keys, Keycloak client secret)
+cp .env.example .env
+
+# Build all images and start everything
+docker compose -f docker-compose.full.yml up --build
+```
+
+**Startup order (automatic):** postgres → redis → minio → keycloak → mailhog → api (runs migrations) → web-owner → web-operator → web-tenant
+
+Once healthy, all services are available at the same ports as the dev workflow (see [Key URLs](#key-urls-local) below). First boot takes ~3–5 minutes to build images. Subsequent starts (without `--build`) are under 30 seconds.
+
+```bash
+# Rebuild only one service
+docker compose -f docker-compose.full.yml build api
+docker compose -f docker-compose.full.yml up -d api
+
+# View logs
+docker compose -f docker-compose.full.yml logs -f api
+
+# Stop everything
+docker compose -f docker-compose.full.yml down
+```
+
+**Requires:** Docker Desktop with Compose v2.20+ (`docker compose version`).
+
+---
+
+## Quick start (manual / dev mode)
 
 ### 1. Install dependencies
 
@@ -45,10 +77,10 @@ corepack enable       # activates pnpm from package.json engines field
 pnpm install          # installs all workspaces from repo root
 ```
 
-### 2. Start Docker services
+### 2. Start Docker services (infra only)
 
 ```bash
-docker compose up -d
+docker compose up -d   # postgres, redis, minio, keycloak, mailhog only
 ```
 
 Services started:
@@ -245,6 +277,33 @@ POST /api/public/v1/leads                           Capture lead (deduplicates b
 | Payments | Stripe | SEPA Core mandate support; webhook-based reconciliation |
 | Access control | Vendor-agnostic adapter + stub | Actual vendor (Noke/PTI/etc.) unknown — pluggable without touching billing/credential logic |
 | Invoice language | de (default) + en | Both from day one; template-driven with locale fallback |
+| Docker images | Multi-stage builds + pnpm deploy | `pnpm deploy` flattens workspace symlinks; Next.js standalone mode cuts image size to ~150 MB |
+
+---
+
+## Docker file structure
+
+```
+.dockerignore                        Excludes node_modules, .env, dist from build context
+
+apps/
+  api/
+    Dockerfile                       3-stage: deps (pnpm deploy) → build (tsc) → runtime (Alpine)
+    entrypoint.sh                    Wait for Postgres, run migrations, start server
+  web-tenant/Dockerfile              3-stage: deps → Next.js standalone build → runtime (Alpine)
+  web-operator/Dockerfile            Same pattern, port 3002
+  web-owner/Dockerfile               Same pattern, port 3001
+
+docker-compose.yml                   Infra only: postgres, redis, minio, keycloak, mailhog
+docker-compose.full.yml              Full stack: infra + all 4 app containers
+```
+
+**Key Docker design decisions:**
+
+- `pnpm deploy --prod` — flattens pnpm workspace symlinks into a real `node_modules` for the API runtime image. Without this, Docker cannot follow the symlinks pnpm creates for workspace packages.
+- `output: 'standalone'` in `next.config.js` — Next.js produces `.next/standalone/` with only the minimal Node.js server and its dependencies bundled. The runtime image carries no separate `node_modules`.
+- `binaryTargets = ["native", "linux-musl-openssl-3.0.x"]` in `schema.prisma` — generates both the macOS engine (for local dev) and the Alpine/musl engine (for the container). Without this, Prisma fails at runtime inside Alpine Linux.
+- `NEXT_PUBLIC_API_URL` is a Docker build ARG, not a runtime env var — Next.js bakes `NEXT_PUBLIC_*` variables into the JavaScript bundle at build time.
 
 ---
 
