@@ -1,3 +1,4 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Controller, Get, Post, Param, Body, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { SiteGuard } from '../../common/guards/site.guard';
@@ -5,6 +6,7 @@ import { CurrentUser, AuthenticatedUser } from '../../common/decorators/current-
 import { SiteInventoryService } from './site-inventory.service';
 import { AvailabilityService } from './availability.service';
 
+@ApiTags('public', 'operator')
 @Controller()
 export class SiteInventoryController {
   constructor(private siteInventory: SiteInventoryService, private availability: AvailabilityService) {}

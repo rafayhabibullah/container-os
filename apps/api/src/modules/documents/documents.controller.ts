@@ -1,8 +1,10 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Controller, Post, Get, Param, Body, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { CurrentUser, AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { DocumentsService } from './documents.service';
 
+@ApiTags('operator', 'tenant')
 @Controller()
 export class DocumentsController {
   constructor(private documents: DocumentsService) {}

@@ -1,7 +1,9 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { CrmLeadsService } from './crm-leads.service';
 
+@ApiTags('public', 'operator')
 @Controller()
 export class CrmLeadsController {
   constructor(private crmLeads: CrmLeadsService) {}

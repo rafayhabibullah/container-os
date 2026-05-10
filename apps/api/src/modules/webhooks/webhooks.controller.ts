@@ -1,7 +1,9 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { WebhooksService } from './webhooks.service';
 
+@ApiTags('operator')
 @Controller('operator/v1/developer')
 @UseGuards(JwtAuthGuard)
 export class WebhooksController {

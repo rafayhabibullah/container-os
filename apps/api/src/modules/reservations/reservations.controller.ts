@@ -1,6 +1,8 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Controller, Post, Param, Body } from '@nestjs/common';
 import { ReservationsService } from './reservations.service';
 
+@ApiTags('public')
 @Controller()
 export class ReservationsController {
   constructor(private reservations: ReservationsService) {}

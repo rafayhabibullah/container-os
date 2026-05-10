@@ -1,6 +1,8 @@
 import { Controller, Get } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { PrismaClient } from '@prisma/client';
 
+@ApiTags('health')
 @Controller()
 export class HealthController {
   constructor(private prisma: PrismaClient) {}

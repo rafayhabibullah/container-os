@@ -1,8 +1,10 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { BillingService } from './billing.service';
 import { MandateService } from './mandate.service';
 
+@ApiTags('operator', 'tenant')
 @Controller()
 export class BillingController {
   constructor(private billing: BillingService, private mandate: MandateService) {}

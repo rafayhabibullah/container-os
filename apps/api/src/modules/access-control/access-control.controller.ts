@@ -1,8 +1,10 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { CurrentUser, AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { AccessControlService } from './access-control.service';
 
+@ApiTags('operator')
 @Controller()
 export class AccessControlController {
   constructor(private accessControl: AccessControlService) {}

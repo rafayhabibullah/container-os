@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@container-os/ui';
 
 export default function ExportsPage() {
   const [from, setFrom] = useState('');
@@ -11,7 +10,11 @@ export default function ExportsPage() {
   async function handleExport() {
     setLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/operator/v1/exports/datev`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ siteIds: ['site_01', 'site_02'], from, to }) });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/operator/v1/exports/datev`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteIds: ['site_01', 'site_02'], from, to }),
+      });
       const data = await res.json();
       setDownloadUrl(data.downloadUrl);
     } finally { setLoading(false); }
@@ -19,16 +22,35 @@ export default function ExportsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">DATEV-Export</h1>
-      <Card className="max-w-md">
-        <CardHeader><CardTitle>Buchungsstapel exportieren</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div><label className="block text-sm font-medium mb-1">Von</label><input type="date" className="w-full border rounded px-3 py-2" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
-          <div><label className="block text-sm font-medium mb-1">Bis</label><input type="date" className="w-full border rounded px-3 py-2" value={to} onChange={(e) => setTo(e.target.value)} /></div>
-          <Button className="w-full" onClick={handleExport} disabled={loading || !from || !to}>{loading ? 'Exportiere...' : 'Export starten'}</Button>
-          {downloadUrl && <a href={downloadUrl} download className="block text-center text-blue-600 text-sm underline mt-2">CSV herunterladen</a>}
-        </CardContent>
-      </Card>
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold text-gray-900">DATEV Export</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Generate accounting export for your accountant</p>
+      </div>
+      <div className="max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h2 className="text-sm font-semibold text-gray-700 mb-4">Export booking journal</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="label">From</label>
+            <input type="date" className="input" value={from} onChange={(e) => setFrom(e.target.value)} />
+          </div>
+          <div>
+            <label className="label">To</label>
+            <input type="date" className="input" value={to} onChange={(e) => setTo(e.target.value)} />
+          </div>
+          <button
+            onClick={handleExport}
+            disabled={loading || !from || !to}
+            className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? 'Generating…' : 'Start export'}
+          </button>
+          {downloadUrl && (
+            <a href={downloadUrl} download className="block text-center text-sm text-blue-600 underline hover:text-blue-800">
+              Download CSV
+            </a>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

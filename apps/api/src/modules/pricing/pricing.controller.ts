@@ -1,9 +1,11 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Controller, Get, Post, Param, Body, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { CurrentUser, AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { QuoteService } from './quote.service';
 import { PricingService } from './pricing.service';
 
+@ApiTags('public', 'operator')
 @Controller()
 export class PricingController {
   constructor(private quoteService: QuoteService, private pricingService: PricingService) {}

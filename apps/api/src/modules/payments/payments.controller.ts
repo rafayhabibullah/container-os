@@ -1,9 +1,11 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Controller, Get, Post, Param, Body, Query, Request, Headers, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { PaymentsService } from './payments.service';
 import { LedgerService } from './ledger.service';
 import { DatevExportService } from './datev-export.service';
 
+@ApiTags('operator', 'tenant', 'system')
 @Controller()
 export class PaymentsController {
   constructor(private payments: PaymentsService, private ledger: LedgerService, private datevExport: DatevExportService) {}

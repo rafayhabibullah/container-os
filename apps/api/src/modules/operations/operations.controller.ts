@@ -1,8 +1,10 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { OperationsService } from './operations.service';
 import { InspectionService } from './inspection.service';
 
+@ApiTags('operator')
 @Controller('operator/v1')
 @UseGuards(JwtAuthGuard)
 export class OperationsController {

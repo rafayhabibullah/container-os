@@ -1,6 +1,8 @@
+import { ApiTags } from '@nestjs/swagger';
 import { Controller, Post, Body } from '@nestjs/common';
 import { StorefrontService } from './storefront.service';
 
+@ApiTags('public')
 @Controller('public/v1')
 export class StorefrontController {
   constructor(private storefront: StorefrontService) {}
