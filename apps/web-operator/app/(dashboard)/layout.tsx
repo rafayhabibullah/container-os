@@ -1,17 +1,24 @@
 import Link from 'next/link';
+import { getLocale } from '../../lib/locale';
+import { LanguageSwitcher } from '../../components/LanguageSwitcher';
 
-const nav = [
-  { label: 'Today', href: '/' },
-  { label: 'Leads', href: '/leads' },
-  { label: 'Reservations', href: '/reservations' },
-  { label: 'Agreements', href: '/agreements' },
-  { label: 'Invoices', href: '/billing' },
-  { label: 'Inspections', href: '/inspections' },
-  { label: 'Incidents', href: '/incidents' },
-  { label: 'Units', href: '/units' },
+const navEn = [
+  { label: 'Today', href: '/' }, { label: 'Leads', href: '/leads' },
+  { label: 'Reservations', href: '/reservations' }, { label: 'Agreements', href: '/agreements' },
+  { label: 'Invoices', href: '/billing' }, { label: 'Inspections', href: '/inspections' },
+  { label: 'Incidents', href: '/incidents' }, { label: 'Units', href: '/units' },
+];
+const navDe = [
+  { label: 'Heute', href: '/' }, { label: 'Leads', href: '/leads' },
+  { label: 'Reservierungen', href: '/reservations' }, { label: 'Verträge', href: '/agreements' },
+  { label: 'Rechnungen', href: '/billing' }, { label: 'Inspektionen', href: '/inspections' },
+  { label: 'Vorfälle', href: '/incidents' }, { label: 'Einheiten', href: '/units' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const locale = getLocale();
+  const nav = locale === 'de' ? navDe : navEn;
+
   return (
     <div className="flex min-h-screen">
       <aside className="w-56 border-r bg-white p-4 flex flex-col shadow-sm">
@@ -27,11 +34,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Link>
           ))}
         </nav>
+        <div className="mt-auto pt-4 border-t border-gray-100">
+          <LanguageSwitcher current={locale} />
+        </div>
       </aside>
       <div className="flex-1 flex flex-col">
         <header className="border-b border-gray-200 bg-white px-6 py-3 flex items-center justify-between">
-          <span className="text-sm text-gray-500">Operator Dashboard</span>
-          <span className="text-xs text-gray-400">All sites</span>
+          <span className="text-sm text-gray-500">{locale === 'de' ? 'Operator-Dashboard' : 'Operator Dashboard'}</span>
+          <span className="text-xs text-gray-400">{locale === 'de' ? 'Alle Standorte' : 'All sites'}</span>
         </header>
         <main className="flex-1 p-6 bg-gray-50">{children}</main>
       </div>

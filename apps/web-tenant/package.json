@@ -2,11 +2,16 @@
   "name": "@container-os/web-tenant",
   "version": "0.1.0",
   "private": true,
-  "scripts": { "dev": "next dev -p 3003", "build": "next build", "start": "next start -p 3003" },
+  "scripts": {
+    "dev": "next dev -p 3003",
+    "build": "next build",
+    "start": "next start -p 3003"
+  },
   "dependencies": {
-    "@container-os/ui": "workspace:*",
     "@container-os/i18n": "workspace:*",
+    "@container-os/ui": "workspace:*",
     "next": "^14.2.0",
+    "next-intl": "^4.11.1",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
   },
