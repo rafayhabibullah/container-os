@@ -15,11 +15,6 @@
 include:
   - docker-compose.yml
 
-networks:
-  # Shared bridge network. Services from the included file join automatically
-  # because Docker Compose merges network namespaces across included files.
-  container-os-net:
-    driver: bridge
 
 services:
 
@@ -33,8 +28,6 @@ services:
     restart: unless-stopped
     ports:
       - '3000:3000'
-    networks:
-      - container-os-net
     # Load secrets (Stripe keys, Keycloak client secret) from .env on the host.
     # The .dockerignore prevents .env from being baked into the image.
     env_file:
@@ -84,8 +77,6 @@ services:
     restart: unless-stopped
     ports:
       - '3001:3001'
-    networks:
-      - container-os-net
     environment:
       NODE_ENV: production
       PORT: '3001'
@@ -105,8 +96,6 @@ services:
     restart: unless-stopped
     ports:
       - '3002:3002'
-    networks:
-      - container-os-net
     environment:
       NODE_ENV: production
       PORT: '3002'
@@ -126,8 +115,6 @@ services:
     restart: unless-stopped
     ports:
       - '3003:3003'
-    networks:
-      - container-os-net
     environment:
       NODE_ENV: production
       PORT: '3003'

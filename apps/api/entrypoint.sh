@@ -11,8 +11,6 @@ if [ -z "$DATABASE_URL" ]; then
 fi
 
 # Wait for Postgres TCP to be reachable.
-# depends_on: service_healthy guarantees the Postgres healthcheck passed, but
-# the TCP path from this container can still be briefly unavailable.
 echo "[entrypoint] Waiting for Postgres at postgres:5432..."
 MAX=30; COUNT=0
 until nc -z postgres 5432 2>/dev/null; do
@@ -26,9 +24,19 @@ until nc -z postgres 5432 2>/dev/null; do
 done
 echo "[entrypoint] Postgres is ready."
 
-# Run pending migrations. Idempotent — safe to run on every boot.
-echo "[entrypoint] Running Prisma migrations..."
-node_modules/.bin/prisma migrate deploy --schema=./prisma/schema.prisma
+# Find the Prisma CLI inside the pnpm content-addressable store.
+# prisma is a devDependency of apps/api — pnpm does not hoist it to the
+# workspace root node_modules/.bin/, so we find it in the .pnpm store directly.
+PRISMA_JS=$(find ./node_modules/.pnpm -maxdepth 6 \
+  -name "index.js" -path "*/prisma/build/index.js" 2>/dev/null | head -1)
+
+if [ -z "$PRISMA_JS" ]; then
+  echo "[entrypoint] ERROR: Prisma CLI not found in node_modules/.pnpm"
+  exit 1
+fi
+
+echo "[entrypoint] Running Prisma migrations (using $PRISMA_JS)..."
+node "$PRISMA_JS" migrate deploy --schema=./prisma/schema.prisma
 echo "[entrypoint] Migrations complete."
 
 # exec replaces the shell so Node.js becomes PID 1 and receives SIGTERM directly.
