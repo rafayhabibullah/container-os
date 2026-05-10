@@ -13,8 +13,11 @@ export class SiteInventoryController {
   getSites() { return this.siteInventory.getSites(); }
 
   @Get('public/v1/sites/:slug/availability')
-  getAvailability(@Param('slug') slug: string, @Query('startDate') startDate?: string) {
-    return this.availability.getAvailability(slug, startDate ? new Date(startDate) : new Date());
+  async getAvailability(@Param('slug') slug: string, @Query('startDate') startDate?: string) {
+    // Resolve slug → siteId before querying units
+    const site = await this.siteInventory.getSiteBySlug(slug);
+    if (!site) return [];
+    return this.availability.getAvailability(site.id, startDate ? new Date(startDate) : new Date());
   }
 
   @Post('operator/v1/sites/:siteId/units')

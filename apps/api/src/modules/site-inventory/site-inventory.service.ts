@@ -24,6 +24,10 @@ export class SiteInventoryService {
     return this.prisma.site.findMany({ where: { deletedAt: null } });
   }
 
+  async getSiteBySlug(slug: string) {
+    return this.prisma.site.findFirst({ where: { slug, deletedAt: null } });
+  }
+
   async createUnit(data: { siteId: string; unitCode: string; unitTypeId: string; kind: string; driveUp: boolean; zoneId?: string; position?: object }) {
     try {
       const unit = await this.prisma.unit.create({ data: { ...data, kind: data.kind as any, status: 'available' } });
