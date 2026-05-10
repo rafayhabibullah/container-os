@@ -2,12 +2,9 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
+    "rootDir": "src",
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "paths": {
-      "@container-os/domain-types": ["../../packages/domain-types/src"],
-      "@container-os/i18n": ["../../packages/i18n/src"]
-    }
+    "emitDecoratorMetadata": true
   },
-  "include": ["src", "prisma"]
+  "include": ["src"]
 }

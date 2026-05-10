@@ -3,10 +3,10 @@ import Stripe from 'stripe';
 
 @Injectable()
 export class StripeAdapter {
-  private stripe: Stripe;
+  protected stripe: Stripe;
 
-  constructor(stripeClient?: any) {
-    this.stripe = stripeClient ?? new Stripe(process.env.STRIPE_SECRET_KEY ?? '', { apiVersion: '2023-10-16' });
+  constructor() {
+    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? 'sk_test_placeholder', { apiVersion: '2023-10-16' });
   }
 
   async createSetupIntent(stripeCustomerId: string, paymentMethodType: 'sepa_debit' | 'card') {

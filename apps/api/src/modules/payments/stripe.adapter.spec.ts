@@ -6,7 +6,8 @@ const mockStripe = {
   setupIntents: { create: vi.fn() },
   webhooks: { constructEvent: vi.fn() },
 };
-const adapter = new StripeAdapter(mockStripe as any);
+const adapter = new StripeAdapter();
+(adapter as any).stripe = mockStripe; // inject mock after construction
 
 describe('StripeAdapter', () => {
   it('creates setup intent for SEPA Core', async () => {
