@@ -5,11 +5,12 @@ import { SiteInventoryController } from './site-inventory.controller';
 import { AuthModule } from '../auth/auth.module';
 import { AuditModule } from '../audit/audit.module';
 import { PrismaClient } from '@prisma/client';
+import { SiteGuard } from '../../common/guards/site.guard';
 
 @Module({
   imports: [AuthModule, AuditModule],
   controllers: [SiteInventoryController],
-  providers: [SiteInventoryService, AvailabilityService, { provide: PrismaClient, useValue: new PrismaClient() }],
+  providers: [SiteInventoryService, AvailabilityService, SiteGuard, { provide: PrismaClient, useValue: new PrismaClient() }],
   exports: [SiteInventoryService, AvailabilityService],
 })
 export class SiteInventoryModule {}
