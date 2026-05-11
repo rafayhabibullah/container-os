@@ -1,22 +1,32 @@
 import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
-import { JwtStrategy } from './strategies/jwt.strategy';
-import { RbacService } from './rbac.service';
-import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { SiteGuard } from '../../common/guards/site.guard';
+import { AuthController, OrganisationInviteController } from './auth.controller';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { OrganisationGuard } from '../../common/guards/organisation.guard';
 
 @Module({
-  imports: [PassportModule],
-  controllers: [AuthController],
-  providers: [
-    JwtStrategy,
-    RbacService,
-    SiteGuard,
-    AuthService,
-    { provide: PrismaClient, useValue: new PrismaClient() },
+  imports: [
+    PassportModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        secret: config.getOrThrow('JWT_SECRET'),
+        signOptions: { expiresIn: '15m' },
+      }),
+    }),
   ],
-  exports: [RbacService, SiteGuard, PrismaClient],
+  providers: [
+    { provide: PrismaClient, useValue: new PrismaClient() },
+    AuthService,
+    JwtStrategy,
+    OrganisationGuard,
+  ],
+  controllers: [AuthController, OrganisationInviteController],
+  exports: [AuthService, OrganisationGuard],
 })
 export class AuthModule {}
