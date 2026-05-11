@@ -11,7 +11,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Pull in the existing infrastructure definitions (postgres, redis, minio,
-# keycloak, mailhog) without duplicating them.
+# mailhog) without duplicating them.
 include:
   - docker-compose.yml
 
@@ -28,7 +28,7 @@ services:
     restart: unless-stopped
     ports:
       - '3000:3000'
-    # Load secrets (Stripe keys, Keycloak client secret) from .env on the host.
+    # Load secrets (Stripe keys, JWT secret) from .env on the host.
     # The .dockerignore prevents .env from being baked into the image.
     env_file:
       - .env
@@ -44,8 +44,6 @@ services:
       MINIO_ACCESS_KEY: container_os_minio
       MINIO_SECRET_KEY: container_os_minio_dev
       MINIO_BUCKET: container-os-dev
-      # Keycloak is server-to-server from the API — use the Docker service name.
-      KEYCLOAK_URL: http://keycloak:8080
       SMTP_HOST: mailhog
       SMTP_PORT: '1025'
       # Comma-separated list — CORS allows all three portals.
