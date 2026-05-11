@@ -96,10 +96,13 @@ export class AuthService {
     });
     if (!session) throw new UnauthorizedException('INVALID_REFRESH_TOKEN');
 
-    const member = (session.user as any).memberships[0];
-    if (!member) throw new UnauthorizedException('NO_ORGANISATION');
+    const userWithMemberships = session.user as typeof session.user & {
+      memberships: Array<{ organisationId: string; role: string; userId: string }>;
+    };
+    const memberships = userWithMemberships.memberships;
+    if (!memberships?.length) throw new UnauthorizedException('NO_ORGANISATION');
 
-    return this.issueTokens(session.user, member);
+    return this.issueTokens(session.user, memberships[0]);
   }
 
   async invite(

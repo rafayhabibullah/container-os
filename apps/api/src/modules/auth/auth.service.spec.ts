@@ -100,4 +100,61 @@ describe('AuthService', () => {
       expect(result.role).toBe('owner');
     });
   });
+
+  describe('refresh', () => {
+    it('throws UnauthorizedException for invalid or expired token', async () => {
+      mockPrisma.userSession.findFirst.mockResolvedValue(null);
+      await expect(
+        service.refresh({ refreshToken: 'invalid-token' }),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('returns new tokens for valid refresh token', async () => {
+      const user = { id: 'u1', type: 'owner', memberships: [{ organisationId: 'org1', role: 'owner', userId: 'u1' }] };
+      mockPrisma.userSession.findFirst.mockResolvedValue({ user });
+      mockPrisma.userSession.create.mockResolvedValue({});
+
+      const result = await service.refresh({ refreshToken: 'valid-raw-token' });
+
+      expect(result.accessToken).toBe('access.token.here');
+      expect(result.refreshToken).toBeDefined();
+    });
+  });
+
+  describe('invite', () => {
+    it('creates an invitation and returns invitationId', async () => {
+      mockPrisma.invitation.create.mockResolvedValue({ id: 'inv1' });
+
+      const result = await service.invite('org1', 'u1', { email: 'op@test.de', role: 'operator' as any });
+
+      expect(result.invitationId).toBe('inv1');
+      expect(mockPrisma.invitation.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ email: 'op@test.de', organisationId: 'org1' }),
+        }),
+      );
+    });
+  });
+
+  describe('validateInviteToken', () => {
+    it('returns valid:false for unknown token', async () => {
+      mockPrisma.invitation.findFirst.mockResolvedValue(null);
+      const result = await service.validateInviteToken('bad-token');
+      expect(result.valid).toBe(false);
+    });
+
+    it('returns valid:true with metadata for a pending non-expired invitation', async () => {
+      mockPrisma.invitation.findFirst.mockResolvedValue({
+        email: 'x@test.de',
+        role: 'operator',
+        status: 'pending',
+        acceptedAt: null,
+        expiresAt: new Date(Date.now() + 100_000),
+        organisation: { legalName: 'Test GmbH' },
+      });
+      const result = await service.validateInviteToken('good-token');
+      expect(result.valid).toBe(true);
+      expect(result.email).toBe('x@test.de');
+    });
+  });
 });
