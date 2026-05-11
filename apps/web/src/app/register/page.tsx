@@ -57,6 +57,7 @@ export default function RegisterPage() {
               name="organisationName"
               type="text"
               required
+              maxLength={100}
               placeholder="Alpha Storage GmbH"
               autoComplete="organization"
               className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -68,6 +69,7 @@ export default function RegisterPage() {
               name="ownerName"
               type="text"
               required
+              maxLength={100}
               autoComplete="name"
               className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -78,6 +80,7 @@ export default function RegisterPage() {
               name="email"
               type="email"
               required
+              maxLength={255}
               autoComplete="email"
               className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -92,6 +95,7 @@ export default function RegisterPage() {
               type="password"
               required
               minLength={8}
+              maxLength={128}
               autoComplete="new-password"
               className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
