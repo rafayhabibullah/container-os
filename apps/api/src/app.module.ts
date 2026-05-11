@@ -19,6 +19,7 @@ import { OperationsModule } from './modules/operations/operations.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ReportingModule } from './modules/reporting/reporting.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
+import { OrganisationModule } from './modules/organisations/organisations.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     AuthModule,
     AuditModule,
     HealthModule,
+    OrganisationModule,
     // Domain modules — Track A
     SiteInventoryModule,
     PricingModule,
