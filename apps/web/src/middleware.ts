@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 
 const PUBLIC_PATHS = ['/login', '/register', '/accept-invite', '/api/auth'];
 
+// Edge Runtime cannot import from src/lib/auth — JWT decode is intentionally duplicated here.
 function decodeJwtExpiry(token: string): number {
   try {
     const [, payload] = token.split('.');
