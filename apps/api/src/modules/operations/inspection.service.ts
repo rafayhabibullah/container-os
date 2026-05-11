@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { DomainException, ErrorCodes } from '@container-os/domain-types';
+import { DomainException, ErrorCodes } from '@sitelager/domain-types';
 
 interface ChecklistItem { code: string; result: 'pass' | 'fail' | 'na'; note?: string; }
 

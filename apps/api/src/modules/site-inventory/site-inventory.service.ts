@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { DomainException, ErrorCodes } from '@container-os/domain-types';
+import { DomainException, ErrorCodes } from '@sitelager/domain-types';
 import { AuditService } from '../audit/audit.service';
 import { EventBusService } from '../../events/event-bus.service';
 

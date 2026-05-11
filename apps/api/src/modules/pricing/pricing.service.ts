@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
-import { DomainException, ErrorCodes } from '@container-os/domain-types';
+import { DomainException, ErrorCodes } from '@sitelager/domain-types';
 
 @Injectable()
 export class PricingService {

@@ -1,8 +1,10 @@
 # Container OS — Multi-Tenant SaaS Design Spec
 
+> **SUPERSEDED** — This document has been merged into `SITE_LAGER_MASTER_BUILD_SPEC.md` v0.5.0, which is the single source of truth. Do not update this file.
+
 **Date:** 2026-05-11
 **Version:** 0.2.0
-**Status:** Approved for implementation planning
+**Status:** Superseded by SITE_LAGER_MASTER_BUILD_SPEC.md v0.5.0
 **Supersedes:** `2026-05-10-container-os-saas-design.md` (v0.1.0 — single-operator model)
 **Scope:** Multi-tenant SaaS — any number of independent storage businesses, each with full data isolation
 

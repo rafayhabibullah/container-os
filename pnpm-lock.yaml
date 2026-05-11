@@ -26,12 +26,6 @@ importers:
 
   apps/api:
     dependencies:
-      '@container-os/domain-types':
-        specifier: workspace:*
-        version: link:../../packages/domain-types
-      '@container-os/i18n':
-        specifier: workspace:*
-        version: link:../../packages/i18n
       '@nestjs/common':
         specifier: ^10.3.0
         version: 10.4.22(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -59,6 +53,12 @@ importers:
       '@prisma/client':
         specifier: ^5.12.0
         version: 5.22.0(prisma@5.22.0)
+      '@sitelager/domain-types':
+        specifier: workspace:*
+        version: link:../../packages/domain-types
+      '@sitelager/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
       bcryptjs:
         specifier: ^3.0.3
         version: 3.0.3
@@ -150,10 +150,10 @@ importers:
 
   apps/web:
     dependencies:
-      '@container-os/i18n':
+      '@sitelager/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
-      '@container-os/ui':
+      '@sitelager/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       clsx:
@@ -196,10 +196,10 @@ importers:
 
   apps/web-operator:
     dependencies:
-      '@container-os/i18n':
+      '@sitelager/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
-      '@container-os/ui':
+      '@sitelager/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       next:
@@ -236,10 +236,10 @@ importers:
 
   apps/web-owner:
     dependencies:
-      '@container-os/i18n':
+      '@sitelager/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
-      '@container-os/ui':
+      '@sitelager/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       next:
@@ -276,10 +276,10 @@ importers:
 
   apps/web-tenant:
     dependencies:
-      '@container-os/i18n':
+      '@sitelager/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
-      '@container-os/ui':
+      '@sitelager/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       next:

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ReservationsService } from './reservations.service';
-import { DomainException } from '@container-os/domain-types';
+import { DomainException } from '@sitelager/domain-types';
 
 const mockPrisma = {
   reservation: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },

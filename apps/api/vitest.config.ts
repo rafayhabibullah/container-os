@@ -11,8 +11,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@container-os/domain-types': resolve(__dirname, '../../packages/domain-types/src'),
-      '@container-os/i18n': resolve(__dirname, '../../packages/i18n/src'),
+      '@sitelager/domain-types': resolve(__dirname, '../../packages/domain-types/src'),
+      '@sitelager/i18n': resolve(__dirname, '../../packages/i18n/src'),
     },
   },
 });

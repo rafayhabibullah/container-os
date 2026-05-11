@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding Container OS database...');
+  console.log('Seeding SiteLager database...');
 
   // ─── Sites ────────────────────────────────────────────────────────────────
 
@@ -345,8 +345,8 @@ async function main() {
 
   const notificationTemplates = [
     // invoice.overdue
-    { channel: 'email', locale: 'de', eventType: 'invoice.overdue', subject: 'Zahlungserinnerung — Rechnung {{number}}', body: '<p>Sehr geehrte/r {{name}},</p><p>Ihre Rechnung <strong>{{number}}</strong> ist überfällig. Bitte begleichen Sie den ausstehenden Betrag, um den Zugang zu Ihrem Lagerraum zu erhalten.</p><p>Mit freundlichen Grüßen,<br>Container OS</p>' },
-    { channel: 'email', locale: 'en', eventType: 'invoice.overdue', subject: 'Payment reminder — Invoice {{number}}', body: '<p>Dear {{name}},</p><p>Your invoice <strong>{{number}}</strong> is overdue. Please settle the outstanding amount to maintain access to your storage unit.</p><p>Best regards,<br>Container OS</p>' },
+    { channel: 'email', locale: 'de', eventType: 'invoice.overdue', subject: 'Zahlungserinnerung — Rechnung {{number}}', body: '<p>Sehr geehrte/r {{name}},</p><p>Ihre Rechnung <strong>{{number}}</strong> ist überfällig. Bitte begleichen Sie den ausstehenden Betrag, um den Zugang zu Ihrem Lagerraum zu erhalten.</p><p>Mit freundlichen Grüßen,<br>SiteLager</p>' },
+    { channel: 'email', locale: 'en', eventType: 'invoice.overdue', subject: 'Payment reminder — Invoice {{number}}', body: '<p>Dear {{name}},</p><p>Your invoice <strong>{{number}}</strong> is overdue. Please settle the outstanding amount to maintain access to your storage unit.</p><p>Best regards,<br>SiteLager</p>' },
     // invoice.paid
     { channel: 'email', locale: 'de', eventType: 'invoice.paid', subject: 'Zahlung eingegangen — Rechnung {{number}}', body: '<p>Ihre Zahlung wurde erfolgreich verarbeitet. Ihr Zugang ist wiederhergestellt.</p>' },
     { channel: 'email', locale: 'en', eventType: 'invoice.paid', subject: 'Payment received — Invoice {{number}}', body: '<p>Your payment has been successfully processed. Your access has been restored.</p>' },

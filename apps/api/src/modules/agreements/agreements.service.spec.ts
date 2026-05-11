@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AgreementsService } from './agreements.service';
-import { DomainException } from '@container-os/domain-types';
+import { DomainException } from '@sitelager/domain-types';
 
 const mockPrisma = {
   agreement: { create: vi.fn(), findUniqueOrThrow: vi.fn(), update: vi.fn() },

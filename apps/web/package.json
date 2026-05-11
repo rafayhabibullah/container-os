@@ -9,8 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@container-os/i18n": "workspace:*",
-    "@container-os/ui": "workspace:*",
+    "@sitelager/i18n": "workspace:*",
+    "@sitelager/ui": "workspace:*",
     "next": "14.2.3",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",

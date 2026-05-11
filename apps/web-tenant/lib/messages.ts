@@ -15,7 +15,7 @@ const messages = {
       from: 'from',
       perMonth: '/ month',
       checkAvailability: 'Check availability →',
-      whyTitle: 'Why Container OS?',
+      whyTitle: 'Why SiteLager?',
       features: [
         { icon: '🔐', title: 'Digital access', desc: 'PIN code or app — no key required.' },
         { icon: '📅', title: 'Flexible contracts', desc: '30-day notice, monthly billing.' },
@@ -59,7 +59,7 @@ const messages = {
       from: 'ab',
       perMonth: '/ Monat',
       checkAvailability: 'Verfügbarkeit prüfen →',
-      whyTitle: 'Warum Container OS?',
+      whyTitle: 'Warum SiteLager?',
       features: [
         { icon: '🔐', title: 'Digitaler Zugang', desc: 'PIN-Code oder App — ganz ohne Schlüssel.' },
         { icon: '📅', title: 'Flexibel kündbar', desc: '30 Tage Kündigungsfrist, monatliche Abrechnung.' },

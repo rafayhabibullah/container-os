@@ -1,5 +1,5 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import { DomainException, ErrorCodes } from '@container-os/domain-types';
+import { DomainException, ErrorCodes } from '@sitelager/domain-types';
 import { RbacService } from '../../modules/auth/rbac.service';
 
 @Injectable()

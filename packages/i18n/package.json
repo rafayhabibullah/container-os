@@ -1,5 +1,5 @@
 {
-  "name": "@container-os/i18n",
+  "name": "@sitelager/i18n",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",

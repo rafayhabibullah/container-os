@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { SiteInventoryService } from './site-inventory.service';
-import { DomainException } from '@container-os/domain-types';
+import { DomainException } from '@sitelager/domain-types';
 
 const mockPrisma = {
   unit: { findUniqueOrThrow: vi.fn(), update: vi.fn(), create: vi.fn(), findMany: vi.fn() },

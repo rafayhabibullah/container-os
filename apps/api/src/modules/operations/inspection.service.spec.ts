@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { InspectionService } from './inspection.service';
-import { DomainException } from '@container-os/domain-types';
+import { DomainException } from '@sitelager/domain-types';
 
 const mockPrisma = {
   inspectionTemplate: { findFirst: vi.fn() },

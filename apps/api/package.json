@@ -1,5 +1,5 @@
 {
-  "name": "@container-os/api",
+  "name": "@sitelager/api",
   "version": "0.1.0",
   "private": true,
   "prisma": {
@@ -14,8 +14,8 @@
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
-    "@container-os/domain-types": "workspace:*",
-    "@container-os/i18n": "workspace:*",
+    "@sitelager/domain-types": "workspace:*",
+    "@sitelager/i18n": "workspace:*",
     "@nestjs/common": "^10.3.0",
     "@nestjs/config": "^3.2.0",
     "@nestjs/core": "^10.3.0",

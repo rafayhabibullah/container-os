@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
 import { EventBusService } from '../../events/event-bus.service';
 import { Events } from '../../events/domain-events';
-import { DomainException, ErrorCodes } from '@container-os/domain-types';
+import { DomainException, ErrorCodes } from '@sitelager/domain-types';
 
 @Injectable()
 export class OperationsService {

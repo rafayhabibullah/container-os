@@ -27,6 +27,6 @@ export class HealthController {
 
   @Get('metrics')
   metrics() {
-    return '# HELP container_os_up Application is up\n# TYPE container_os_up gauge\ncontainer_os_up 1\n';
+    return '# HELP sitelager_up Application is up\n# TYPE sitelager_up gauge\nsitelager_up 1\n';
   }
 }

@@ -24,7 +24,7 @@ async function bootstrap() {
   // Swagger — only in non-production
   if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
-      .setTitle('Container OS API')
+      .setTitle('SiteLager API')
       .setDescription(
         'German multi-site container/self-storage SaaS — REST API v1.\n\n' +
         '**Namespaces:** `/api/public/v1/*` (unauthenticated) · ' +
@@ -36,7 +36,7 @@ async function bootstrap() {
         'All POST endpoints require `Idempotency-Key` header.',
       )
       .setVersion('0.1.0')
-      .setContact('Container OS', '', '')
+      .setContact('SiteLager', '', '')
       .setLicense('Proprietary', '')
       .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT', description: 'Keycloak JWT (Owner/Operator, MFA required)' }, 'keycloak')
       .addTag('public', 'Unauthenticated — storefront, availability, quotes, lead capture')
@@ -54,7 +54,7 @@ async function bootstrap() {
         filter: true,
         displayRequestDuration: true,
       },
-      customSiteTitle: 'Container OS — API Docs',
+      customSiteTitle: 'SiteLager — API Docs',
     });
 
     Logger.log('Swagger UI available at http://localhost:' + (process.env.PORT ?? '3000') + '/docs', 'Bootstrap');
@@ -62,7 +62,7 @@ async function bootstrap() {
 
   const port = parseInt(process.env.PORT ?? '3000', 10);
   await app.listen(port);
-  Logger.log(`Container OS API running on port ${port}`, 'Bootstrap');
+  Logger.log(`SiteLager API running on port ${port}`, 'Bootstrap');
 }
 
 bootstrap();

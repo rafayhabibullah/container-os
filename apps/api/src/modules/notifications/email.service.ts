@@ -10,7 +10,7 @@ export class EmailService {
   }
 
   async send(params: { to: string; subject: string; html: string; from?: string }): Promise<{ messageId: string }> {
-    const info = await this.transporter.sendMail({ from: params.from ?? 'noreply@container-os.de', to: params.to, subject: params.subject, html: params.html });
+    const info = await this.transporter.sendMail({ from: params.from ?? 'noreply@sitelager.com', to: params.to, subject: params.subject, html: params.html });
     return { messageId: info.messageId };
   }
 }

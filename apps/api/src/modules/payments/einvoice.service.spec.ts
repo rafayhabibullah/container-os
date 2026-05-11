@@ -4,7 +4,7 @@ import { EInvoiceService } from './einvoice.service';
 const service = new EInvoiceService();
 const invoiceData = {
   invoiceNumber: 'INV-2026-001', invoiceDate: new Date('2026-06-01'), dueDate: new Date('2026-06-15'),
-  seller: { name: 'Container OS GmbH', address: 'Musterstraße 1', taxId: 'DE123456789' },
+  seller: { name: 'SiteLager GmbH', address: 'Musterstraße 1', taxId: 'DE123456789' },
   buyer: { name: 'Acme GmbH', address: 'Beispielweg 2', taxId: 'DE987654321' },
   lines: [{ description: 'Containermiete Juni 2026', amountMinor: 14900, vatRate: 0.19, taxCode: 'DE_STD' }],
   currency: 'EUR',

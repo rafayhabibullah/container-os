@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { DomainException, ErrorCodes } from '@container-os/domain-types';
+import { DomainException, ErrorCodes } from '@sitelager/domain-types';
 
 interface QuoteInput { siteId: string; unitTypeId: string; startDate: Date; customerType: string; promoCode?: string; }
 
