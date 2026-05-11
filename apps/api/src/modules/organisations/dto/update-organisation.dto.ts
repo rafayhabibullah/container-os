@@ -2,11 +2,38 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class UpdateOrganisationDto {
-  @ApiPropertyOptional() @IsOptional() @IsString() tradingName?: string;
-  @ApiPropertyOptional() @IsOptional() @IsEmail() billingEmail?: string;
-  @ApiPropertyOptional() @IsOptional() @IsEmail() supportEmail?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() phone?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() website?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() vatId?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() taxNumber?: string;
+  @ApiPropertyOptional({ example: 'Alpha Storage' })
+  @IsOptional()
+  @IsString()
+  tradingName?: string;
+
+  @ApiPropertyOptional({ example: 'billing@company.de' })
+  @IsOptional()
+  @IsEmail()
+  billingEmail?: string;
+
+  @ApiPropertyOptional({ example: 'support@company.de' })
+  @IsOptional()
+  @IsEmail()
+  supportEmail?: string;
+
+  @ApiPropertyOptional({ example: '+49 30 12345678' })
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @ApiPropertyOptional({ example: 'https://company.de' })
+  @IsOptional()
+  @IsString()
+  website?: string;
+
+  @ApiPropertyOptional({ example: 'DE123456789' })
+  @IsOptional()
+  @IsString()
+  vatId?: string;
+
+  @ApiPropertyOptional({ example: '123/456/78901' })
+  @IsOptional()
+  @IsString()
+  taxNumber?: string;
 }
