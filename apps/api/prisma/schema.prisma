@@ -11,21 +11,25 @@ datasource db {
 // ─── Site & Inventory ────────────────────────────────────────────────────────
 
 model Site {
-  id          String     @id @default(cuid())
-  name        String
-  slug        String     @unique
-  timezone    String     @default("Europe/Berlin")
-  currency    String     @default("EUR")
-  address     Json
-  accessHours Json?
-  status      SiteStatus @default(active)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  deletedAt   DateTime?
+  id             String     @id @default(cuid())
+  organisationId String?
+  name           String
+  slug           String     @unique
+  timezone       String     @default("Europe/Berlin")
+  currency       String     @default("EUR")
+  address        Json
+  accessHours    Json?
+  status         SiteStatus @default(active)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  deletedAt      DateTime?
 
-  zones     Zone[]
-  unitTypes UnitType[]
-  units     Unit[]
+  organisation Organisation? @relation(fields: [organisationId], references: [id])
+  zones        Zone[]
+  unitTypes    UnitType[]
+  units        Unit[]
+
+  @@index([organisationId])
 }
 
 enum SiteStatus {
@@ -794,20 +798,104 @@ model OutboundMessage {
   sentAt      DateTime?
 }
 
+// ─── Organisation ────────────────────────────────────────────────────────────
+
+enum OrganisationStatus {
+  active
+  suspended
+}
+
+enum OrgPlan {
+  starter
+  professional
+  enterprise
+}
+
+enum MemberRole {
+  owner
+  operator
+  tenant
+}
+
+enum InvitationStatus {
+  pending
+  accepted
+  expired
+  revoked
+}
+
+model Organisation {
+  id              String             @id @default(cuid())
+  legalName       String
+  tradingName     String?
+  slug            String             @unique
+  countryCode     String             @default("DE")
+  defaultLanguage String             @default("de")
+  currency        String             @default("EUR")
+  vatId           String?
+  taxNumber       String?
+  billingEmail    String
+  supportEmail    String?
+  phone           String?
+  website         String?
+  status          OrganisationStatus @default(active)
+  plan            OrgPlan            @default(starter)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  members     OrganisationMember[]
+  invitations Invitation[]
+  sites       Site[]
+}
+
+model OrganisationMember {
+  id             String     @id @default(cuid())
+  organisationId String
+  userId         String
+  role           MemberRole
+  createdAt      DateTime   @default(now())
+
+  organisation Organisation @relation(fields: [organisationId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+
+  @@unique([organisationId, userId])
+  @@index([organisationId])
+  @@index([userId])
+}
+
+model Invitation {
+  id              String           @id @default(cuid())
+  organisationId  String
+  email           String
+  role            MemberRole
+  tokenHash       String           @unique
+  status          InvitationStatus @default(pending)
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  invitedByUserId String?
+  createdAt       DateTime         @default(now())
+
+  organisation Organisation @relation(fields: [organisationId], references: [id])
+
+  @@index([organisationId])
+}
+
 // ─── Auth & RBAC ──────────────────────────────────────────────────────────────
 
 model User {
-  id         String   @id @default(cuid())
-  type       UserType
-  email      String   @unique
-  mfaState   String   @default("disabled")
-  status     String   @default("active")
-  keycloakId String?  @unique
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id           String   @id @default(cuid())
+  type         UserType
+  email        String   @unique
+  name         String?
+  passwordHash String?
+  mfaState     String   @default("disabled")
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   assignments PermissionAssignment[]
   sessions    UserSession[]
+  memberships OrganisationMember[]
 }
 
 enum UserType {
@@ -838,6 +926,7 @@ model PermissionAssignment {
 model UserSession {
   id        String   @id @default(cuid())
   userId    String
+  tokenHash String   @unique
   device    String?
   expiresAt DateTime
   createdAt DateTime @default(now())
@@ -845,13 +934,6 @@ model UserSession {
   user User @relation(fields: [userId], references: [id])
 
   @@index([userId])
-}
-
-model OrganisationMembership {
-  id             String @id @default(cuid())
-  organisationId String
-  contactId      String
-  portalRole     String @default("member")
 }
 
 // ─── Audit & Security ────────────────────────────────────────────────────────
