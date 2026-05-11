@@ -876,6 +876,7 @@ model Invitation {
   createdAt       DateTime         @default(now())
 
   organisation Organisation @relation(fields: [organisationId], references: [id])
+  invitedBy       User?            @relation(fields: [invitedByUserId], references: [id])
 
   @@index([organisationId])
 }
@@ -896,6 +897,7 @@ model User {
   assignments PermissionAssignment[]
   sessions    UserSession[]
   memberships OrganisationMember[]
+  invitations Invitation[]
 }
 
 enum UserType {
