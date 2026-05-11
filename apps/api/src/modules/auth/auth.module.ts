@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaClient } from '@prisma/client';
-import { KeycloakStrategy } from './keycloak.strategy';
+import { JwtStrategy } from './strategies/jwt.strategy';
 import { RbacService } from './rbac.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -11,7 +11,7 @@ import { SiteGuard } from '../../common/guards/site.guard';
   imports: [PassportModule],
   controllers: [AuthController],
   providers: [
-    KeycloakStrategy,
+    JwtStrategy,
     RbacService,
     SiteGuard,
     AuthService,
