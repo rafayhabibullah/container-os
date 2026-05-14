@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PUBLIC_PATHS = ['/login', '/register', '/accept-invite', '/api/auth', '/storage'];
+const PUBLIC_PATHS = ['/login', '/register', '/accept-invite', '/api/auth', '/api/checkout', '/storage'];
 
 // Edge Runtime cannot import from src/lib/auth — JWT decode is intentionally duplicated here.
 function decodeJwtExpiry(token: string): number {

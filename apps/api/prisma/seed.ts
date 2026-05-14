@@ -359,6 +359,9 @@ async function main() {
     // access.lockout.activated
     { channel: 'email', locale: 'de', eventType: 'access.lockout.activated', subject: 'Wichtig: Zugang gesperrt', body: '<p>Ihr Zugang wurde aufgrund ausstehender Zahlungen gesperrt. Bitte begleichen Sie Ihre offene Rechnung, um den Zugang wiederherzustellen.</p>' },
     { channel: 'email', locale: 'en', eventType: 'access.lockout.activated', subject: 'Important: Access suspended', body: '<p>Your access has been suspended due to outstanding payments. Please settle your invoice to restore access.</p>' },
+    // reservation.confirmed
+    { channel: 'email', locale: 'de', eventType: 'reservation.confirmed', subject: 'Buchungsbestätigung — {{reservationId}}', body: '<p>Hallo {{name}},</p><p>Ihre Buchung wurde bestätigt. Reservierungs-ID: <strong>{{reservationId}}</strong>. Einzugsdatum: {{startDate}}.</p><p>Wir melden uns, um Ihren Vertrag und den Zugangscode zu arrangieren.</p><p>Mit freundlichen Grüßen,<br>SiteLager</p>' },
+    { channel: 'email', locale: 'en', eventType: 'reservation.confirmed', subject: 'Booking confirmed — {{reservationId}}', body: '<p>Hi {{name}},</p><p>Your booking is confirmed. Reservation ID: <strong>{{reservationId}}</strong>. Move-in date: {{startDate}}.</p><p>We will be in touch to arrange your agreement and access.</p><p>Best regards,<br>SiteLager</p>' },
   ];
 
   for (const tmpl of notificationTemplates) {
