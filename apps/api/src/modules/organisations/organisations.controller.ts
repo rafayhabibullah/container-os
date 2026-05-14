@@ -231,4 +231,45 @@ export class OrganisationController {
   ) {
     return this.pricing.removeRateRule(siteId, priceBookId, rateRuleId, member.role);
   }
+
+  // ─── Units ───────────────────────────────────────────────────────────────────
+
+  @Get('sites/:siteId/units')
+  @ApiOperation({ summary: 'List units for a site' })
+  listUnits(@Param('organisationId') orgId: string, @Param('siteId') siteId: string) {
+    return this.sites.listUnits(orgId, siteId);
+  }
+
+  @Post('sites/:siteId/units')
+  @ApiOperation({ summary: 'Create a unit' })
+  createUnit(
+    @Param('organisationId') orgId: string,
+    @Param('siteId') siteId: string,
+    @Body() body: { unitCode: string; unitTypeId: string; kind: string; driveUp: boolean },
+  ) {
+    return this.sites.createUnit(orgId, siteId, body);
+  }
+
+  @Get('sites/:siteId/units/:unitId')
+  @ApiOperation({ summary: 'Get a single unit' })
+  getUnit(@Param('organisationId') orgId: string, @Param('siteId') siteId: string, @Param('unitId') unitId: string) {
+    return this.sites.getUnit(orgId, siteId, unitId);
+  }
+
+  @Patch('sites/:siteId/units/:unitId')
+  @ApiOperation({ summary: 'Update a unit' })
+  patchUnit(
+    @Param('organisationId') orgId: string,
+    @Param('siteId') siteId: string,
+    @Param('unitId') unitId: string,
+    @Body() body: { unitCode?: string; driveUp?: boolean; status?: string },
+  ) {
+    return this.sites.patchUnit(orgId, siteId, unitId, body);
+  }
+
+  @Delete('sites/:siteId/units/:unitId')
+  @ApiOperation({ summary: 'Soft-delete a unit' })
+  deleteUnit(@Param('organisationId') orgId: string, @Param('siteId') siteId: string, @Param('unitId') unitId: string) {
+    return this.sites.softDeleteUnit(orgId, siteId, unitId);
+  }
 }

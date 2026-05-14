@@ -54,4 +54,40 @@ export class SiteService {
     await this.getSite(orgId, siteId);
     await this.prisma.site.update({ where: { id: siteId }, data: { deletedAt: new Date() } });
   }
+
+  async listUnits(orgId: string, siteId: string) {
+    await this.getSite(orgId, siteId);
+    return this.prisma.unit.findMany({
+      where: { siteId, deletedAt: null },
+      include: { unitType: true },
+      orderBy: { unitCode: 'asc' },
+    });
+  }
+
+  async getUnit(orgId: string, siteId: string, unitId: string) {
+    await this.getSite(orgId, siteId);
+    const unit = await this.prisma.unit.findFirst({
+      where: { id: unitId, siteId, deletedAt: null },
+      include: { unitType: true },
+    });
+    if (!unit) throw new NotFoundException('UNIT_NOT_FOUND');
+    return unit;
+  }
+
+  async createUnit(orgId: string, siteId: string, data: { unitCode: string; unitTypeId: string; kind: string; driveUp: boolean }) {
+    await this.getSite(orgId, siteId);
+    return this.prisma.unit.create({
+      data: { siteId, ...data } as any,
+    });
+  }
+
+  async patchUnit(orgId: string, siteId: string, unitId: string, data: { unitCode?: string; driveUp?: boolean; status?: string }) {
+    await this.getUnit(orgId, siteId, unitId);
+    return this.prisma.unit.update({ where: { id: unitId }, data: data as any });
+  }
+
+  async softDeleteUnit(orgId: string, siteId: string, unitId: string) {
+    await this.getUnit(orgId, siteId, unitId);
+    await this.prisma.unit.update({ where: { id: unitId }, data: { deletedAt: new Date() } });
+  }
 }
