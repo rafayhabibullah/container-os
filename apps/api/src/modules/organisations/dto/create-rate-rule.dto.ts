@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { BillingCycle } from '@sitelager/domain-types';
+import { IsEnum, IsInt, IsObject, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateRateRuleDto {
   @ApiProperty({ example: 'clx...' })
@@ -11,11 +12,12 @@ export class CreateRateRuleDto {
   @Min(0)
   amountMinor: number;
 
-  @ApiProperty({ enum: ['monthly', 'fixed_term'] })
-  @IsEnum(['monthly', 'fixed_term'])
-  billingCycle: 'monthly' | 'fixed_term';
+  @ApiProperty({ enum: BillingCycle })
+  @IsEnum(BillingCycle)
+  billingCycle: BillingCycle;
 
   @ApiPropertyOptional()
+  @IsObject()
   @IsOptional()
   conditions?: object;
 }
