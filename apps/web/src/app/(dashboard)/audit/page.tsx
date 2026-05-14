@@ -15,42 +15,83 @@ export default async function AuditPage({ searchParams }: { searchParams: { page
   ).catch(() => []);
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="mb-8">
-          <Link href="/dashboard" className="text-sm text-slate-500 hover:text-slate-700 mb-1 block">&larr; Dashboard</Link>
-          <h1 className="text-2xl font-bold text-slate-900">Audit Log</h1>
-        </div>
-        <div className="bg-white rounded-2xl shadow overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
-              <tr>
-                <th className="text-left px-6 py-3">Action</th>
-                <th className="text-left px-6 py-3">Subject</th>
-                <th className="text-left px-6 py-3">Actor</th>
-                <th className="text-left px-6 py-3">Time</th>
+    <div className="p-8 max-w-6xl mx-auto">
+      {/* Page header */}
+      <div className="mb-6">
+        <h1 className="text-xl font-bold text-slate-900">Audit Log</h1>
+        <p className="text-sm text-slate-400 mt-0.5">
+          {events.length} event{events.length !== 1 ? 's' : ''}
+        </p>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-100">
+              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                Action
+              </th>
+              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                Subject
+              </th>
+              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                Actor
+              </th>
+              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                Time
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {events.map((e, i) => (
+              <tr
+                key={e.id}
+                className={`hover:bg-blue-50/30 transition-colors ${
+                  i % 2 === 1 ? 'bg-slate-50/50' : 'bg-white'
+                }`}
+              >
+                <td className="px-5 py-3.5 font-mono text-xs text-blue-700">{e.action}</td>
+                <td className="px-5 py-3.5 text-xs text-slate-600">
+                  {e.subjectType}:{e.subjectId.slice(0, 8)}
+                </td>
+                <td className="px-5 py-3.5 font-mono text-xs text-slate-500">
+                  {e.actorId?.slice(0, 8) ?? 'system'}
+                </td>
+                <td className="px-5 py-3.5 text-xs text-slate-400">
+                  {new Date(e.createdAt).toLocaleString()}
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {events.map((e) => (
-                <tr key={e.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-3 font-mono text-xs text-blue-700">{e.action}</td>
-                  <td className="px-6 py-3 text-slate-600 text-xs">{e.subjectType}:{e.subjectId.slice(0, 8)}</td>
-                  <td className="px-6 py-3 text-slate-500 text-xs font-mono">{e.actorId?.slice(0, 8) ?? 'system'}</td>
-                  <td className="px-6 py-3 text-slate-400 text-xs">{new Date(e.createdAt).toLocaleString()}</td>
-                </tr>
-              ))}
-              {events.length === 0 && (
-                <tr><td colSpan={4} className="px-6 py-8 text-center text-slate-400">No audit events yet.</td></tr>
-              )}
-            </tbody>
-          </table>
-          <div className="px-6 py-4 border-t border-slate-100 flex gap-4">
+            ))}
+            {events.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-5 py-8 text-center text-sm text-slate-400">
+                  No audit events yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+
+        {/* Pagination footer */}
+        <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100">
+          <span className="text-xs text-slate-400">{events.length} events</span>
+          <div className="flex gap-2">
             {parseInt(page) > 1 && (
-              <Link href={`?page=${parseInt(page) - 1}`} className="text-sm text-blue-600 hover:underline">&larr; Previous</Link>
+              <Link
+                href={`?page=${parseInt(page) - 1}`}
+                className="border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50"
+              >
+                ← Prev
+              </Link>
             )}
             {events.length === 50 && (
-              <Link href={`?page=${parseInt(page) + 1}`} className="text-sm text-blue-600 hover:underline">Next &rarr;</Link>
+              <Link
+                href={`?page=${parseInt(page) + 1}`}
+                className="border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-50"
+              >
+                Next →
+              </Link>
             )}
           </div>
         </div>

@@ -1,66 +1,120 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
 import TaskActions from './TaskActions';
-import Link from 'next/link';
+import { Badge } from '@sitelager/ui';
 
-interface Task { id: string; title: string; status: string; dueAt: string | null; siteId: string; notes: string | null; }
+interface Task {
+  id: string;
+  title: string;
+  status: string;
+  dueAt: string | null;
+  siteId: string;
+  notes: string | null;
+}
 
-const STATUS_COLORS: Record<string, string> = {
-  open: 'bg-yellow-100 text-yellow-700',
-  in_progress: 'bg-blue-100 text-blue-700',
-  completed: 'bg-green-100 text-green-700',
-  cancelled: 'bg-slate-100 text-slate-500',
+type BadgeVariant = 'default' | 'success' | 'warning' | 'destructive' | 'outline';
+
+const STATUS_VARIANT: Record<string, BadgeVariant> = {
+  open: 'warning',
+  in_progress: 'default',
+  completed: 'success',
+  cancelled: 'outline',
 };
 
 export default async function TasksPage() {
   const user = await requireAuth();
-  const tasks = await serverFetch<Task[]>(`/v1/organisations/${user.organisationId}/tasks`).catch(() => []);
+  const tasks = await serverFetch<Task[]>(
+    `/v1/organisations/${user.organisationId}/tasks`,
+  ).catch(() => [] as Task[]);
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <Link href="/dashboard" className="text-sm text-slate-500 hover:text-slate-700 mb-1 block">&larr; Dashboard</Link>
-            <h1 className="text-2xl font-bold text-slate-900">Tasks</h1>
-          </div>
-          <TaskActions type="create" />
+    <div className="p-8 max-w-6xl mx-auto">
+      {/* Page header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">Tasks</h1>
+          <p className="text-sm text-slate-400 mt-0.5">
+            {tasks.length} task{tasks.length !== 1 ? 's' : ''}
+          </p>
         </div>
-        <div className="bg-white rounded-2xl shadow overflow-hidden">
-          {tasks.length === 0 ? (
-            <p className="text-slate-500 text-center p-8">No tasks yet.</p>
-          ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
-                <tr>
-                  <th className="text-left px-6 py-3">Title</th>
-                  <th className="text-left px-6 py-3">Status</th>
-                  <th className="text-left px-6 py-3">Due</th>
-                  <th className="px-6 py-3"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {tasks.map((task) => (
-                  <tr key={task.id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4 font-medium text-slate-900">{task.title}</td>
-                    <td className="px-6 py-4">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[task.status] ?? ''}`}>
-                        {task.status.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-500 text-xs">
-                      {task.dueAt ? new Date(task.dueAt).toLocaleDateString() : '—'}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <TaskActions type="update" taskId={task.id} currentStatus={task.status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+        <TaskActions type="create" />
       </div>
+
+      {/* Table / empty state */}
+      {tasks.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-xl p-10 text-center">
+          <p className="text-sm text-slate-400">No tasks yet.</p>
+        </div>
+      ) : (
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-100">
+                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  Title
+                </th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  Status
+                </th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  Due
+                </th>
+                <th className="px-5 py-3" />
+              </tr>
+            </thead>
+            <tbody>
+              {tasks.map((task, i) => (
+                <tr
+                  key={task.id}
+                  className={`border-b border-slate-50 hover:bg-blue-50/30 transition-colors ${
+                    i % 2 === 1 ? 'bg-slate-50/50' : 'bg-white'
+                  }`}
+                >
+                  <td className="px-5 py-3.5 font-medium text-slate-900">{task.title}</td>
+                  <td className="px-5 py-3.5">
+                    <Badge variant={STATUS_VARIANT[task.status] ?? 'outline'}>
+                      {task.status.replace('_', ' ')}
+                    </Badge>
+                  </td>
+                  <td className="px-5 py-3.5 text-slate-400 text-xs">
+                    {task.dueAt
+                      ? new Date(task.dueAt).toLocaleDateString('de-DE')
+                      : '—'}
+                  </td>
+                  <td className="px-5 py-3.5 text-right">
+                    <TaskActions
+                      type="update"
+                      taskId={task.id}
+                      currentStatus={task.status}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100">
+            <span className="text-xs text-slate-400">
+              Showing {tasks.length} of {tasks.length}
+            </span>
+            <div className="flex gap-2">
+              <button
+                disabled
+                className="border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-400 disabled:opacity-40"
+              >
+                ← Prev
+              </button>
+              <button
+                disabled
+                className="border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-400 disabled:opacity-40"
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

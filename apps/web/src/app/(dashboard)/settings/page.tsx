@@ -2,7 +2,6 @@ import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
 import { redirect } from 'next/navigation';
 import OrgSettingsForm from './OrgSettingsForm';
-import Link from 'next/link';
 
 interface Organisation {
   id: string;
@@ -26,14 +25,16 @@ export default async function SettingsPage() {
   const org = await serverFetch<Organisation>(`/v1/organisations/${user.organisationId}`);
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-2xl mx-auto">
-        <Link href="/dashboard" className="text-sm text-slate-500 hover:text-slate-700 mb-4 block">&larr; Dashboard</Link>
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Organisation settings</h1>
-        <p className="text-slate-500 text-sm mb-8">
-          Plan: <strong className="capitalize">{org.plan}</strong> ·{' '}
-          Status: <strong className="capitalize">{org.status}</strong>
+    <div className="p-8 max-w-2xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-xl font-bold text-slate-900">Organisation settings</h1>
+        <p className="text-sm text-slate-400 mt-0.5">
+          Plan: <span className="font-medium text-slate-600 capitalize">{org.plan}</span>
+          {' · '}
+          Status: <span className="font-medium text-slate-600 capitalize">{org.status}</span>
         </p>
+      </div>
+      <div className="bg-white border border-slate-200 rounded-xl p-8">
         <OrgSettingsForm org={org} />
       </div>
     </div>

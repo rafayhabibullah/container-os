@@ -1,68 +1,136 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
+import { Badge } from '@sitelager/ui';
 import IncidentActions from './IncidentActions';
-import Link from 'next/link';
 
-interface Incident { id: string; type: string; status: string; severity: string; siteId: string; createdAt: string; }
+interface Incident {
+  id: string;
+  type: string;
+  status: string;
+  severity: string;
+  siteId: string;
+  createdAt: string;
+}
 
-const SEVERITY_COLORS: Record<string, string> = {
-  low: 'bg-green-100 text-green-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  high: 'bg-orange-100 text-orange-700',
-  critical: 'bg-red-100 text-red-700',
+type BadgeVariant = 'default' | 'success' | 'warning' | 'destructive' | 'outline';
+
+const SEVERITY_VARIANT: Record<string, BadgeVariant> = {
+  low: 'success',
+  medium: 'warning',
+  high: 'warning',
+  critical: 'destructive',
+};
+
+const STATUS_VARIANT: Record<string, BadgeVariant> = {
+  open: 'warning',
+  in_progress: 'default',
+  resolved: 'success',
 };
 
 export default async function IncidentsPage() {
   const user = await requireAuth();
-  const incidents = await serverFetch<Incident[]>(`/v1/organisations/${user.organisationId}/incidents`).catch(() => []);
+  const incidents = await serverFetch<Incident[]>(
+    `/v1/organisations/${user.organisationId}/incidents`,
+  ).catch(() => []);
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <Link href="/dashboard" className="text-sm text-slate-500 hover:text-slate-700 mb-1 block">&larr; Dashboard</Link>
-            <h1 className="text-2xl font-bold text-slate-900">Incidents</h1>
-          </div>
-          <IncidentActions type="report" />
+    <div className="p-8 max-w-6xl mx-auto">
+      {/* Page header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">Incidents</h1>
+          <p className="text-sm text-slate-400 mt-0.5">
+            {incidents.length} incident{incidents.length !== 1 ? 's' : ''}
+          </p>
         </div>
-        <div className="bg-white rounded-2xl shadow overflow-hidden">
-          {incidents.length === 0 ? (
-            <p className="text-slate-500 text-center p-8">No incidents reported.</p>
-          ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
-                <tr>
-                  <th className="text-left px-6 py-3">Type</th>
-                  <th className="text-left px-6 py-3">Severity</th>
-                  <th className="text-left px-6 py-3">Status</th>
-                  <th className="text-left px-6 py-3">Reported</th>
-                  <th className="px-6 py-3"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {incidents.map((inc) => (
-                  <tr key={inc.id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4 font-medium text-slate-900">{inc.type}</td>
-                    <td className="px-6 py-4">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${SEVERITY_COLORS[inc.severity] ?? 'bg-slate-100 text-slate-500'}`}>
-                        {inc.severity}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-500 capitalize">{inc.status.replace('_', ' ')}</td>
-                    <td className="px-6 py-4 text-slate-400 text-xs">{new Date(inc.createdAt).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 text-right">
-                      {inc.status !== 'resolved' && (
-                        <IncidentActions type="update" incidentId={inc.id} currentStatus={inc.status} />
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+        <IncidentActions type="report" />
       </div>
+
+      {/* Table / empty state */}
+      {incidents.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-xl p-10 text-center">
+          <p className="text-sm text-slate-400">No incidents reported.</p>
+        </div>
+      ) : (
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-100">
+                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  Type
+                </th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  Severity
+                </th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  Status
+                </th>
+                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                  Reported
+                </th>
+                <th className="px-5 py-3" />
+              </tr>
+            </thead>
+            <tbody>
+              {incidents.map((inc, i) => (
+                <tr
+                  key={inc.id}
+                  className={`border-b border-slate-50 hover:bg-blue-50/30 transition-colors ${
+                    i % 2 === 1 ? 'bg-slate-50/50' : 'bg-white'
+                  }`}
+                >
+                  <td className="px-5 py-3.5 font-medium text-slate-900">
+                    {inc.type}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <Badge variant={SEVERITY_VARIANT[inc.severity] ?? 'outline'}>
+                      {inc.severity}
+                    </Badge>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <Badge variant={STATUS_VARIANT[inc.status] ?? 'outline'}>
+                      {inc.status.replace('_', ' ')}
+                    </Badge>
+                  </td>
+                  <td className="px-5 py-3.5 text-slate-400 text-xs">
+                    {new Date(inc.createdAt).toLocaleDateString('de-DE')}
+                  </td>
+                  <td className="px-5 py-3.5 text-right">
+                    {inc.status !== 'resolved' && (
+                      <IncidentActions
+                        type="update"
+                        incidentId={inc.id}
+                        currentStatus={inc.status}
+                      />
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100">
+            <span className="text-xs text-slate-400">
+              Showing {incidents.length} of {incidents.length}
+            </span>
+            <div className="flex gap-2">
+              <button
+                disabled
+                className="border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-400 disabled:opacity-40"
+              >
+                ← Prev
+              </button>
+              <button
+                disabled
+                className="border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-400 disabled:opacity-40"
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

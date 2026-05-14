@@ -4,41 +4,40 @@ import Link from 'next/link';
 import { Badge } from '@sitelager/ui';
 import { Search } from 'lucide-react';
 
-interface Agreement {
+interface Customer {
   id: string;
-  tenantId: string;
-  unitId: string;
-  siteId: string;
-  status: 'draft' | 'pending_signature' | 'signed' | 'active' | 'terminated';
-  billingCycle: 'monthly' | 'fixed_term';
-  effectiveFrom: string | null;
+  type: 'person' | 'organisation';
+  personOrOrgData: {
+    firstName?: string;
+    lastName?: string;
+    companyName?: string;
+    name?: string;
+    email?: string;
+  };
   createdAt: string;
 }
 
-type BadgeVariant = 'default' | 'success' | 'warning' | 'destructive' | 'outline';
+function displayName(c: Customer): string {
+  const d = c.personOrOrgData;
+  if (d.companyName) return d.companyName;
+  if (d.name) return d.name;
+  return [d.firstName, d.lastName].filter(Boolean).join(' ') || c.id;
+}
 
-const STATUS_VARIANT: Record<string, BadgeVariant> = {
-  draft: 'outline',
-  pending_signature: 'warning',
-  signed: 'default',
-  active: 'success',
-  terminated: 'destructive',
-};
-
-export default async function AgreementsPage() {
+export default async function CustomersPage() {
   const user = await requireAuth();
-  const agreements = await serverFetch<Agreement[]>(
-    `/v1/organisations/${user.organisationId}/agreements`,
-  ).catch(() => [] as Agreement[]);
+  const customers = await serverFetch<Customer[]>(
+    `/v1/organisations/${user.organisationId}/customers`,
+  ).catch(() => [] as Customer[]);
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
       {/* Page header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Agreements</h1>
+          <h1 className="text-xl font-bold text-slate-900">Customers</h1>
           <p className="text-sm text-slate-400 mt-0.5">
-            {agreements.length} agreement{agreements.length !== 1 ? 's' : ''}
+            {customers.length} customer{customers.length !== 1 ? 's' : ''}
           </p>
         </div>
       </div>
@@ -47,14 +46,14 @@ export default async function AgreementsPage() {
       <div className="flex gap-3 mb-4">
         <div className="flex-1 flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2">
           <Search className="w-4 h-4 text-slate-400 shrink-0" />
-          <span className="text-sm text-slate-400">Search agreements…</span>
+          <span className="text-sm text-slate-400">Search customers…</span>
         </div>
       </div>
 
       {/* Table / empty state */}
-      {agreements.length === 0 ? (
+      {customers.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-xl p-10 text-center">
-          <p className="text-sm text-slate-400">No agreements found.</p>
+          <p className="text-sm text-slate-400">No customers yet.</p>
         </div>
       ) : (
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
@@ -62,51 +61,45 @@ export default async function AgreementsPage() {
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
                 <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                  ID
+                  Name
                 </th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                  Tenant
+                  Email
                 </th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                  Billing
+                  Type
                 </th>
                 <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                  Effective from
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                  Status
+                  Since
                 </th>
                 <th className="px-5 py-3" />
               </tr>
             </thead>
             <tbody>
-              {agreements.map((a, i) => (
+              {customers.map((customer, i) => (
                 <tr
-                  key={a.id}
+                  key={customer.id}
                   className={`border-b border-slate-50 hover:bg-blue-50/30 transition-colors ${
                     i % 2 === 1 ? 'bg-slate-50/50' : 'bg-white'
                   }`}
                 >
-                  <td className="px-5 py-3.5 font-mono text-xs text-slate-400">
-                    {a.id.slice(0, 12)}…
-                  </td>
-                  <td className="px-5 py-3.5 font-mono text-xs text-slate-600">
-                    {a.tenantId.slice(0, 10)}…
-                  </td>
-                  <td className="px-5 py-3.5 text-slate-600 capitalize">
-                    {a.billingCycle.replace('_', ' ')}
+                  <td className="px-5 py-3.5 font-medium text-slate-900">
+                    {displayName(customer)}
                   </td>
                   <td className="px-5 py-3.5 text-slate-600">
-                    {a.effectiveFrom ? new Date(a.effectiveFrom).toLocaleDateString('de-DE') : '—'}
+                    {customer.personOrOrgData.email ?? '—'}
                   </td>
                   <td className="px-5 py-3.5">
-                    <Badge variant={STATUS_VARIANT[a.status] ?? 'outline'}>
-                      {a.status.replace('_', ' ')}
+                    <Badge variant={customer.type === 'person' ? 'default' : 'outline'}>
+                      {customer.type}
                     </Badge>
+                  </td>
+                  <td className="px-5 py-3.5 text-slate-400">
+                    {new Date(customer.createdAt).toLocaleDateString('de-DE')}
                   </td>
                   <td className="px-5 py-3.5 text-right">
                     <Link
-                      href={`/agreements/${a.id}`}
+                      href={`/customers/${customer.id}`}
                       className="text-sm text-blue-600 font-medium hover:text-blue-700"
                     >
                       View →
@@ -120,7 +113,7 @@ export default async function AgreementsPage() {
           {/* Pagination */}
           <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100">
             <span className="text-xs text-slate-400">
-              Showing {agreements.length} of {agreements.length}
+              Showing {customers.length} of {customers.length}
             </span>
             <div className="flex gap-2">
               <button
