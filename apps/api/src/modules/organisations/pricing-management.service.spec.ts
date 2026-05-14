@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PricingManagementService } from './pricing-management.service';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { BillingCycle } from '@sitelager/domain-types';
 
 const mockPrisma = {
   priceBook: {
@@ -83,7 +84,7 @@ describe('PricingManagementService', () => {
   describe('addRateRule', () => {
     it('throws ForbiddenException when role is operator', async () => {
       await expect(
-        service.addRateRule('s1', 'pb1', { unitTypeId: 'ut1', amountMinor: 8900, billingCycle: 'monthly' }, 'operator'),
+        service.addRateRule('s1', 'pb1', { unitTypeId: 'ut1', amountMinor: 8900, billingCycle: BillingCycle.Monthly }, 'operator'),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -93,7 +94,7 @@ describe('PricingManagementService', () => {
       mockPrisma.rateRule.create.mockResolvedValue(rule);
 
       const result = await service.addRateRule(
-        's1', 'pb1', { unitTypeId: 'ut1', amountMinor: 8900, billingCycle: 'monthly' }, 'owner',
+        's1', 'pb1', { unitTypeId: 'ut1', amountMinor: 8900, billingCycle: BillingCycle.Monthly }, 'owner',
       );
 
       expect(result).toEqual(rule);

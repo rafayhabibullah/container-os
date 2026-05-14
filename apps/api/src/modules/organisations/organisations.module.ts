@@ -4,6 +4,8 @@ import { AuthModule } from '../auth/auth.module';
 import { OrganisationService } from './organisations.service';
 import { SiteService } from './sites.service';
 import { TeamService } from './team.service';
+import { UnitTypeService } from './unit-type.service';
+import { PricingManagementService } from './pricing-management.service';
 import { OrganisationController } from './organisations.controller';
 
 @Module({
@@ -13,8 +15,10 @@ import { OrganisationController } from './organisations.controller';
     OrganisationService,
     SiteService,
     TeamService,
+    UnitTypeService,
+    PricingManagementService,
   ],
   controllers: [OrganisationController],
-  exports: [OrganisationService, SiteService, TeamService],
+  exports: [OrganisationService, SiteService, TeamService, UnitTypeService, PricingManagementService],
 })
 export class OrganisationModule {}
