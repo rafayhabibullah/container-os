@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
 import { EventBusService } from '../../events/event-bus.service';
@@ -38,5 +38,62 @@ export class OperationsService {
     const transfer = await this.prisma.transfer.create({ data: { fromUnitId, toUnitId, agreementId, effectiveDate } });
     await this.audit.record({ action: 'transfer.created', subjectType: 'Transfer', subjectId: transfer.id });
     return transfer;
+  }
+
+  private async orgSiteIds(orgId: string): Promise<string[]> {
+    const sites = await this.prisma.site.findMany({ where: { organisationId: orgId }, select: { id: true } });
+    return sites.map((s) => s.id);
+  }
+
+  async listTasks(orgId: string, filters: { siteId?: string; status?: string }) {
+    const siteIds = await this.orgSiteIds(orgId);
+    return this.prisma.task.findMany({
+      where: {
+        siteId: filters.siteId ?? { in: siteIds },
+        ...(filters.status ? { status: filters.status as any } : {}),
+      },
+      orderBy: { dueAt: 'asc' },
+    });
+  }
+
+  async updateTask(orgId: string, taskId: string, data: { status?: string; notes?: string; assigneeId?: string }) {
+    const siteIds = await this.orgSiteIds(orgId);
+    const task = await this.prisma.task.findFirst({ where: { id: taskId, siteId: { in: siteIds } } });
+    if (!task) throw new NotFoundException('TASK_NOT_FOUND');
+    return this.prisma.task.update({ where: { id: taskId }, data: data as any });
+  }
+
+  async listIncidents(orgId: string, filters: { siteId?: string; status?: string }) {
+    const siteIds = await this.orgSiteIds(orgId);
+    return this.prisma.incident.findMany({
+      where: {
+        siteId: filters.siteId ?? { in: siteIds },
+        ...(filters.status ? { status: filters.status as any } : {}),
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async updateIncident(orgId: string, incidentId: string, data: { status?: string }) {
+    const siteIds = await this.orgSiteIds(orgId);
+    const incident = await this.prisma.incident.findFirst({ where: { id: incidentId, siteId: { in: siteIds } } });
+    if (!incident) throw new NotFoundException('INCIDENT_NOT_FOUND');
+    return this.prisma.incident.update({
+      where: { id: incidentId },
+      data: { ...(data.status ? { status: data.status as any } : {}) },
+    });
+  }
+
+  async listMaintenanceOrders(orgId: string, filters: { siteId?: string }) {
+    return this.prisma.maintenanceOrder.findMany({
+      where: { ...(filters.siteId ? { unitId: filters.siteId } : {}) },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  async createMaintenanceOrder(orgId: string, data: { unitId: string; vendorContact?: string }) {
+    return this.prisma.maintenanceOrder.create({
+      data: { unitId: data.unitId, vendorContact: data.vendorContact, status: 'open' },
+    });
   }
 }
