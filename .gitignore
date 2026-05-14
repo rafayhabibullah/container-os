@@ -10,3 +10,4 @@ coverage/
 .next/
 .turbo/
 prisma/migrations/dev.*
+.superpowers/
