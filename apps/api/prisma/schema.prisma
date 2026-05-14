@@ -8,33 +8,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── Site & Inventory ────────────────────────────────────────────────────────
-
 model Site {
-  id             String     @id @default(cuid())
-  organisationId String?
+  id             String        @id @default(cuid())
   name           String
-  slug           String     @unique
-  timezone       String     @default("Europe/Berlin")
-  currency       String     @default("EUR")
+  slug           String        @unique
+  timezone       String        @default("Europe/Berlin")
+  currency       String        @default("EUR")
   address        Json
   accessHours    Json?
-  status         SiteStatus @default(active)
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  status         SiteStatus    @default(active)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
   deletedAt      DateTime?
-
-  organisation Organisation? @relation(fields: [organisationId], references: [id])
-  zones        Zone[]
-  unitTypes    UnitType[]
-  units        Unit[]
+  organisationId String?
+  organisation   Organisation? @relation(fields: [organisationId], references: [id])
+  units          Unit[]
+  unitTypes      UnitType[]
+  zones          Zone[]
 
   @@index([organisationId])
-}
-
-enum SiteStatus {
-  active
-  inactive
 }
 
 model Zone {
@@ -43,8 +35,8 @@ model Zone {
   name          String
   mapPolygon    Json?
   vehicleAccess Boolean @default(false)
-  site          Site    @relation(fields: [siteId], references: [id])
   units         Unit[]
+  site          Site    @relation(fields: [siteId], references: [id])
 }
 
 model UnitType {
@@ -55,8 +47,8 @@ model UnitType {
   sizeCbm  Float?
   doorType String?
   features String[]
-  site     Site     @relation(fields: [siteId], references: [id])
   units    Unit[]
+  site     Site     @relation(fields: [siteId], references: [id])
 }
 
 model Unit {
@@ -76,25 +68,11 @@ model Unit {
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
   deletedAt        DateTime?
-
-  site     Site     @relation(fields: [siteId], references: [id])
-  zone     Zone?    @relation(fields: [zoneId], references: [id])
-  unitType UnitType @relation(fields: [unitTypeId], references: [id])
+  site             Site       @relation(fields: [siteId], references: [id])
+  unitType         UnitType   @relation(fields: [unitTypeId], references: [id])
+  zone             Zone?      @relation(fields: [zoneId], references: [id])
 
   @@unique([siteId, unitCode])
-}
-
-enum UnitKind {
-  container
-  self_storage
-}
-
-enum UnitStatus {
-  available
-  reserved
-  occupied
-  maintenance
-  out_of_service
 }
 
 model InventoryEvent {
@@ -107,8 +85,6 @@ model InventoryEvent {
   createdAt DateTime @default(now())
 }
 
-// ─── Pricing ─────────────────────────────────────────────────────────────────
-
 model PriceBook {
   id            String          @id @default(cuid())
   siteId        String
@@ -117,26 +93,18 @@ model PriceBook {
   effectiveFrom DateTime
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
-
-  rules RateRule[]
-}
-
-enum PriceBookStatus {
-  draft
-  published
-  archived
+  rules         RateRule[]
 }
 
 model RateRule {
-  id           String   @id @default(cuid())
+  id           String       @id @default(cuid())
   priceBookId  String
   unitTypeId   String
   amountMinor  Int
   billingCycle BillingCycle
   conditions   Json?
-  createdAt    DateTime @default(now())
-
-  priceBook PriceBook @relation(fields: [priceBookId], references: [id])
+  createdAt    DateTime     @default(now())
+  priceBook    PriceBook    @relation(fields: [priceBookId], references: [id])
 }
 
 model Promotion {
@@ -166,8 +134,6 @@ model TaxProfile {
   vatRate Float
 }
 
-// ─── Storefront ───────────────────────────────────────────────────────────────
-
 model LandingPageConfig {
   id          String   @id @default(cuid())
   siteId      String   @unique
@@ -196,8 +162,6 @@ model QuoteRequest {
   createdAt    DateTime @default(now())
 }
 
-// ─── CRM & Leads ─────────────────────────────────────────────────────────────
-
 model Lead {
   id         String     @id @default(cuid())
   siteId     String
@@ -212,14 +176,6 @@ model Lead {
   deletedAt  DateTime?
 }
 
-enum LeadStatus {
-  new
-  contacted
-  qualified
-  converted
-  lost
-}
-
 model Customer {
   id               String       @id @default(cuid())
   type             CustomerType @default(private)
@@ -228,15 +184,9 @@ model Customer {
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
   deletedAt        DateTime?
-
-  contacts   Contact[]
-  agreements Agreement[]
-  mandates   Mandate[]
-}
-
-enum CustomerType {
-  private
-  business
+  agreements       Agreement[]
+  contacts         Contact[]
+  mandates         Mandate[]
 }
 
 model Contact {
@@ -246,8 +196,7 @@ model Contact {
   email      String
   phone      String?
   createdAt  DateTime @default(now())
-
-  customer Customer @relation(fields: [customerId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id])
 
   @@index([customerId])
 }
@@ -262,8 +211,6 @@ model Activity {
   createdAt   DateTime @default(now())
 }
 
-// ─── Reservations ────────────────────────────────────────────────────────────
-
 model Reservation {
   id         String            @id @default(cuid())
   siteId     String
@@ -277,15 +224,6 @@ model Reservation {
   updatedAt  DateTime          @updatedAt
 }
 
-enum ReservationStatus {
-  pending
-  pending_signature
-  confirmed
-  expired
-  cancelled
-  converted
-}
-
 model ReservationHold {
   id            String   @id @default(cuid())
   unitId        String
@@ -294,8 +232,6 @@ model ReservationHold {
   expiresAt     DateTime
   createdAt     DateTime @default(now())
 }
-
-// ─── Agreements ──────────────────────────────────────────────────────────────
 
 model AgreementTemplate {
   id        String   @id @default(cuid())
@@ -310,69 +246,47 @@ model AgreementTemplate {
 }
 
 model Agreement {
-  id               String          @id @default(cuid())
-  reservationId    String          @unique
+  id               String               @id @default(cuid())
+  reservationId    String               @unique
   tenantId         String
   unitId           String
   siteId           String
-  status           AgreementStatus @default(draft)
-  billingCycle     BillingCycle    @default(monthly)
+  status           AgreementStatus      @default(draft)
+  billingCycle     BillingCycle         @default(monthly)
   effectiveFrom    DateTime?
   terminationRules Json
   pricingSnapshot  Json
-  language         String          @default("de")
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-
-  customer    Customer             @relation(fields: [tenantId], references: [id])
-  amendments  AgreementAmendment[]
-  signatories Signatory[]
-  invoices    Invoice[]
-}
-
-enum AgreementStatus {
-  draft
-  pending_signature
-  signed
-  active
-  terminated
-}
-
-enum BillingCycle {
-  monthly
-  fixed_term
+  language         String               @default("de")
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  customer         Customer             @relation(fields: [tenantId], references: [id])
+  amendments       AgreementAmendment[]
+  invoices         Invoice[]
+  signatories      Signatory[]
 }
 
 model AgreementAmendment {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   agreementId   String
   type          String
   effectiveFrom DateTime
   data          Json?
-  createdAt     DateTime @default(now())
-
-  agreement Agreement @relation(fields: [agreementId], references: [id])
+  createdAt     DateTime  @default(now())
+  agreement     Agreement @relation(fields: [agreementId], references: [id])
 
   @@index([agreementId])
 }
 
 model Signatory {
-  id          String         @id @default(cuid())
+  id          String          @id @default(cuid())
   agreementId String
   personId    String
   status      SignatoryStatus @default(pending)
   signedAt    DateTime?
-  createdAt   DateTime       @default(now())
-
-  agreement Agreement @relation(fields: [agreementId], references: [id])
+  createdAt   DateTime        @default(now())
+  agreement   Agreement       @relation(fields: [agreementId], references: [id])
 
   @@index([agreementId])
-}
-
-enum SignatoryStatus {
-  pending
-  signed
-  declined
 }
 
 model TerminationRequest {
@@ -383,8 +297,6 @@ model TerminationRequest {
   operatorNote  String?
   createdAt     DateTime @default(now())
 }
-
-// ─── Billing & Mandates ───────────────────────────────────────────────────────
 
 model Invoice {
   id                 String        @id @default(cuid())
@@ -401,22 +313,13 @@ model Invoice {
   einvoiceStorageKey String?
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
-
-  agreement Agreement     @relation(fields: [agreementId], references: [id])
-  lines     InvoiceLine[]
-  payments  Payment[]
-  credits   CreditNote[]
+  credits            CreditNote[]
+  agreement          Agreement     @relation(fields: [agreementId], references: [id])
+  lines              InvoiceLine[]
+  payments           Payment[]
 
   @@unique([agreementId, periodStart])
   @@index([siteId])
-}
-
-enum InvoiceStatus {
-  pending
-  sent
-  paid
-  overdue
-  void
 }
 
 model InvoiceLine {
@@ -427,8 +330,7 @@ model InvoiceLine {
   amountMinor Int
   taxCode     String?
   vatRate     Float?
-
-  invoice Invoice @relation(fields: [invoiceId], references: [id])
+  invoice     Invoice @relation(fields: [invoiceId], references: [id])
 
   @@index([invoiceId])
 }
@@ -446,26 +348,9 @@ model Mandate {
   signedAt      DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-
-  customer Customer @relation(fields: [customerId], references: [id])
+  customer      Customer      @relation(fields: [customerId], references: [id])
 
   @@index([customerId])
-}
-
-enum MandateScheme {
-  sepa_core
-  sepa_b2b
-  card
-  manual_invoice
-  cash
-  bank_transfer
-}
-
-enum MandateStatus {
-  pending
-  active
-  cancelled
-  failed
 }
 
 model ReminderPolicy {
@@ -488,36 +373,24 @@ model CreditNote {
   amountMinor Int
   reason      String
   createdAt   DateTime @default(now())
-
-  invoice Invoice @relation(fields: [invoiceId], references: [id])
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id])
 
   @@index([invoiceId])
 }
-
-// ─── Payments & Accounting ────────────────────────────────────────────────────
 
 model Payment {
-  id          String        @id @default(cuid())
+  id          String           @id @default(cuid())
   invoiceId   String
   method      MandateScheme
-  status      PaymentStatus @default(pending)
+  status      PaymentStatus    @default(pending)
   amountMinor Int
-  reference   String        @unique
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  invoice  Invoice          @relation(fields: [invoiceId], references: [id])
-  attempts PaymentAttempt[]
+  reference   String           @unique
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  invoice     Invoice          @relation(fields: [invoiceId], references: [id])
+  attempts    PaymentAttempt[]
 
   @@index([invoiceId])
-}
-
-enum PaymentStatus {
-  pending
-  pending_settlement
-  succeeded
-  failed
-  refunded
 }
 
 model PaymentAttempt {
@@ -528,8 +401,7 @@ model PaymentAttempt {
   providerRef String   @unique
   errorCode   String?
   createdAt   DateTime @default(now())
-
-  payment Payment @relation(fields: [paymentId], references: [id])
+  payment     Payment  @relation(fields: [paymentId], references: [id])
 
   @@index([paymentId])
 }
@@ -568,8 +440,6 @@ model AccountingMapping {
   costCenter     String?
   effectiveFrom  DateTime
 }
-
-// ─── Access Control ───────────────────────────────────────────────────────────
 
 model AccessVendor {
   id          String   @id @default(cuid())
@@ -626,8 +496,6 @@ model LockoutState {
   updatedAt   DateTime @updatedAt
 }
 
-// ─── Operations ───────────────────────────────────────────────────────────────
-
 model Task {
   id         String     @id @default(cuid())
   siteId     String
@@ -639,13 +507,6 @@ model Task {
   notes      String?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
-}
-
-enum TaskStatus {
-  open
-  in_progress
-  completed
-  cancelled
 }
 
 model InspectionTemplate {
@@ -678,12 +539,6 @@ model Incident {
   updatedAt           DateTime       @updatedAt
 }
 
-enum IncidentStatus {
-  open
-  investigating
-  resolved
-}
-
 model MaintenanceOrder {
   id            String   @id @default(cuid())
   unitId        String
@@ -701,8 +556,6 @@ model Transfer {
   status        String   @default("pending")
   createdAt     DateTime @default(now())
 }
-
-// ─── Documents & Signatures ───────────────────────────────────────────────────
 
 model Document {
   id          String   @id @default(cuid())
@@ -743,8 +596,6 @@ model EvidencePack {
   createdAt  DateTime @default(now())
 }
 
-// ─── Reporting ────────────────────────────────────────────────────────────────
-
 model MetricSnapshot {
   id        String   @id @default(cuid())
   siteId    String
@@ -764,8 +615,6 @@ model ReportRun {
   result    Json?
   createdAt DateTime @default(now())
 }
-
-// ─── Notifications ────────────────────────────────────────────────────────────
 
 model NotificationTemplate {
   id        String  @id @default(cuid())
@@ -798,65 +647,37 @@ model OutboundMessage {
   sentAt      DateTime?
 }
 
-// ─── Organisation ────────────────────────────────────────────────────────────
-
-enum OrganisationStatus {
-  active
-  suspended
-}
-
-enum OrgPlan {
-  starter
-  professional
-  enterprise
-}
-
-enum MemberRole {
-  owner
-  operator
-  tenant
-}
-
-enum InvitationStatus {
-  pending
-  accepted
-  expired
-  revoked
-}
-
 model Organisation {
-  id              String             @id @default(cuid())
+  id              String               @id @default(cuid())
   legalName       String
   tradingName     String?
-  slug            String             @unique
-  countryCode     String             @default("DE")
-  defaultLanguage String             @default("de")
-  currency        String             @default("EUR")
+  slug            String               @unique
+  countryCode     String               @default("DE")
+  defaultLanguage String               @default("de")
+  currency        String               @default("EUR")
   vatId           String?
   taxNumber       String?
   billingEmail    String
   supportEmail    String?
   phone           String?
   website         String?
-  status          OrganisationStatus @default(active)
-  plan            OrgPlan            @default(starter)
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
-
-  members     OrganisationMember[]
-  invitations Invitation[]
-  sites       Site[]
+  status          OrganisationStatus   @default(active)
+  plan            OrgPlan              @default(starter)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  invitations     Invitation[]
+  members         OrganisationMember[]
+  sites           Site[]
 }
 
 model OrganisationMember {
-  id             String     @id @default(cuid())
+  id             String       @id @default(cuid())
   organisationId String
   userId         String
   role           MemberRole
-  createdAt      DateTime   @default(now())
-
-  organisation Organisation @relation(fields: [organisationId], references: [id])
-  user         User         @relation(fields: [userId], references: [id])
+  createdAt      DateTime     @default(now())
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
 
   @@unique([organisationId, userId])
   @@index([organisationId])
@@ -874,44 +695,33 @@ model Invitation {
   acceptedAt      DateTime?
   invitedByUserId String?
   createdAt       DateTime         @default(now())
-
-  organisation Organisation @relation(fields: [organisationId], references: [id])
   invitedBy       User?            @relation(fields: [invitedByUserId], references: [id])
+  organisation    Organisation     @relation(fields: [organisationId], references: [id])
 
   @@index([organisationId])
 }
 
-// ─── Auth & RBAC ──────────────────────────────────────────────────────────────
-
 model User {
-  id           String   @id @default(cuid())
+  id           String                 @id @default(cuid())
   type         UserType
-  email        String   @unique
+  email        String                 @unique
+  mfaState     String                 @default("disabled")
+  status       String                 @default("active")
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
   name         String?
   passwordHash String?
-  mfaState     String   @default("disabled")
-  status       String   @default("active")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  assignments PermissionAssignment[]
-  sessions    UserSession[]
-  memberships OrganisationMember[]
-  invitations Invitation[]
-}
-
-enum UserType {
-  owner
-  operator
-  tenant
+  invitations  Invitation[]
+  memberships  OrganisationMember[]
+  assignments  PermissionAssignment[]
+  sessions     UserSession[]
 }
 
 model Role {
-  id          String   @id @default(cuid())
-  name        String   @unique
+  id          String                 @id @default(cuid())
+  name        String                 @unique
   permissions String[]
-  createdAt   DateTime @default(now())
-
+  createdAt   DateTime               @default(now())
   assignments PermissionAssignment[]
 }
 
@@ -920,25 +730,21 @@ model PermissionAssignment {
   userId  String
   roleId  String
   siteIds String[]
-
-  user User @relation(fields: [userId], references: [id])
-  role Role @relation(fields: [roleId], references: [id])
+  role    Role     @relation(fields: [roleId], references: [id])
+  user    User     @relation(fields: [userId], references: [id])
 }
 
 model UserSession {
   id        String   @id @default(cuid())
   userId    String
-  tokenHash String   @unique
   device    String?
   expiresAt DateTime
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
+  tokenHash String   @unique
+  user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
-
-// ─── Audit & Security ────────────────────────────────────────────────────────
 
 model AuditEvent {
   id          String   @id @default(cuid())
@@ -973,14 +779,11 @@ model SecurityEvent {
   createdAt DateTime @default(now())
 }
 
-// ─── Webhooks & API ───────────────────────────────────────────────────────────
-
 model ApiClient {
-  id      String   @id @default(cuid())
-  name    String
-  scopes  String[]
-  siteIds String[]
-
+  id        String            @id @default(cuid())
+  name      String
+  scopes    String[]
+  siteIds   String[]
   keys      ApiKey[]
   endpoints WebhookEndpoint[]
 }
@@ -993,35 +796,172 @@ model ApiKey {
   lastUsedAt DateTime?
   expiresAt  DateTime?
   createdAt  DateTime  @default(now())
-
-  client ApiClient @relation(fields: [clientId], references: [id])
+  client     ApiClient @relation(fields: [clientId], references: [id])
 }
 
 model WebhookEndpoint {
-  id            String   @id @default(cuid())
+  id            String            @id @default(cuid())
   clientId      String
   url           String
   secret        String
   subscriptions String[]
-  status        String   @default("active")
-  createdAt     DateTime @default(now())
-
-  client     ApiClient         @relation(fields: [clientId], references: [id])
-  deliveries WebhookDelivery[]
+  status        String            @default("active")
+  createdAt     DateTime          @default(now())
+  deliveries    WebhookDelivery[]
+  client        ApiClient         @relation(fields: [clientId], references: [id])
 }
 
 model WebhookDelivery {
-  id          String    @id @default(cuid())
+  id          String          @id @default(cuid())
   endpointId  String
   eventType   String
   payload     Json
-  status      String    @default("pending")
-  attempts    Int       @default(0)
+  status      String          @default("pending")
+  attempts    Int             @default(0)
   lastError   String?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime        @default(now())
   deliveredAt DateTime?
-
-  endpoint WebhookEndpoint @relation(fields: [endpointId], references: [id])
+  endpoint    WebhookEndpoint @relation(fields: [endpointId], references: [id])
 
   @@index([endpointId])
+}
+
+enum SiteStatus {
+  active
+  inactive
+}
+
+enum UnitKind {
+  container
+  self_storage
+}
+
+enum UnitStatus {
+  available
+  reserved
+  occupied
+  maintenance
+  out_of_service
+}
+
+enum PriceBookStatus {
+  draft
+  published
+  archived
+}
+
+enum LeadStatus {
+  new
+  contacted
+  qualified
+  converted
+  lost
+}
+
+enum CustomerType {
+  private
+  business
+}
+
+enum ReservationStatus {
+  pending
+  pending_signature
+  confirmed
+  expired
+  cancelled
+  converted
+}
+
+enum AgreementStatus {
+  draft
+  pending_signature
+  signed
+  active
+  terminated
+}
+
+enum BillingCycle {
+  monthly
+  fixed_term
+}
+
+enum SignatoryStatus {
+  pending
+  signed
+  declined
+}
+
+enum InvoiceStatus {
+  pending
+  sent
+  paid
+  overdue
+  void
+}
+
+enum MandateScheme {
+  sepa_core
+  sepa_b2b
+  card
+  manual_invoice
+  cash
+  bank_transfer
+}
+
+enum MandateStatus {
+  pending
+  active
+  cancelled
+  failed
+}
+
+enum PaymentStatus {
+  pending
+  pending_settlement
+  succeeded
+  failed
+  refunded
+}
+
+enum TaskStatus {
+  open
+  in_progress
+  completed
+  cancelled
+}
+
+enum IncidentStatus {
+  open
+  investigating
+  resolved
+}
+
+enum OrganisationStatus {
+  active
+  suspended
+}
+
+enum OrgPlan {
+  starter
+  professional
+  enterprise
+}
+
+enum MemberRole {
+  owner
+  operator
+  tenant
+}
+
+enum InvitationStatus {
+  pending
+  accepted
+  expired
+  revoked
+}
+
+enum UserType {
+  owner
+  operator
+  tenant
 }
