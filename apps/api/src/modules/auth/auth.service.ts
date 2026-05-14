@@ -70,10 +70,16 @@ export class AuthService {
 
   async login(dto: LoginDto): Promise<AuthResponseDto> {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
-    if (!user?.passwordHash) throw new UnauthorizedException('INVALID_CREDENTIALS');
+    if (!user?.passwordHash) {
+      await this.recordSecurityEvent('login_failed', null, { email: dto.email, reason: 'user_not_found' });
+      throw new UnauthorizedException('INVALID_CREDENTIALS');
+    }
 
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
-    if (!valid) throw new UnauthorizedException('INVALID_CREDENTIALS');
+    if (!valid) {
+      await this.recordSecurityEvent('login_failed', user.id, { reason: 'wrong_password' });
+      throw new UnauthorizedException('INVALID_CREDENTIALS');
+    }
 
     const member = await this.prisma.organisationMember.findFirst({
       where: { userId: user.id },
@@ -182,6 +188,14 @@ export class AuthService {
     });
 
     return this.issueTokens(result.user, result.member);
+  }
+
+  private async recordSecurityEvent(eventType: string, _actorId: string | null, details: object) {
+    try {
+      await this.prisma.securityEvent.create({ data: { type: eventType, severity: 'medium', details } });
+    } catch {
+      // non-critical
+    }
   }
 
   private async issueTokens(
