@@ -836,6 +836,47 @@ Requirements:
 - No color-only status communication.
 - Forms must show inline validation.
 
+### 14.5 Dashboard Shell Layout
+
+All authenticated operator/owner pages share one persistent shell.
+
+**Sidebar:**
+
+- White background, full-height, `border-r border-slate-200`.
+- Collapsed state: 52px wide, icons only, centred.
+- Expanded state: 200px wide, icons + labels, triggered by CSS `group-hover` — no JavaScript required, `transition-all duration-200 ease-in-out`.
+- Logo: blue square monogram at top; expands to show "SiteLager" wordmark.
+- Active item: `bg-blue-50 border border-blue-100 text-blue-700 font-semibold`.
+- Inactive item: `text-slate-500 hover:bg-slate-50 hover:text-slate-700`.
+- Settings pinned at bottom with `border-t border-slate-100 mt-auto`.
+
+**Content area:**
+
+- Background: `bg-slate-50`, scrollable, `p-8`.
+- Max content width: `max-w-6xl mx-auto`.
+- No top navigation bar — sidebar handles all navigation.
+- User avatar top-right of each page header: 30px filled circle, user initials.
+
+**Public/auth pages (login, register, accept-invite):**
+
+- No sidebar. Full-page `bg-slate-50`, centred card `max-w-sm`.
+- Card: `bg-white border border-slate-200 rounded-xl p-8 shadow-sm`.
+
+### 14.6 Table Page Pattern
+
+All list pages (Sites, Invoices, Customers, Reservations, etc.) follow this structure:
+
+- **Page header:** title `text-xl font-bold text-slate-900` + record count subtitle left; primary action button right.
+- **Toolbar:** search input with lucide `Search` icon + optional filter button.
+- **Table card:** `bg-white border border-slate-200 rounded-xl overflow-hidden`.
+  - Header row: `bg-slate-50 border-b border-slate-100`, column labels `text-xs text-slate-400 font-semibold uppercase tracking-wide`.
+  - Data rows: alternating `bg-white` / `bg-slate-50`, `hover:bg-blue-50/30 transition-colors`.
+  - Status badges: use `Badge` from `@sitelager/ui` — `success` / `default` / `warning` / `destructive` variants.
+  - Row action: `text-sm text-blue-600 font-medium` link.
+- **Pagination:** record count left, Prev / Next buttons right.
+
+Use `shadcn/ui` Table, Dialog, DropdownMenu, and Sheet components where appropriate; style them with the palette above.
+
 ---
 
 ## 15. Internationalisation UX
@@ -1079,7 +1120,7 @@ Shows:
 
 ### 17.1 Navigation
 
-Owner sidebar:
+Owner sidebar nav items (top to bottom):
 
 - Dashboard.
 - Sites.
@@ -1097,6 +1138,8 @@ Owner sidebar:
 - Documents.
 - Settings.
 - SiteLager Billing.
+
+Sidebar follows the collapsible icon-first pattern defined in section 14.5. Collapses to 52px icons at rest; expands to 200px with labels on hover. No JavaScript — pure CSS group-hover transition.
 
 ### 17.2 Owner Dashboard Home
 

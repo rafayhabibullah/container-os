@@ -1,0 +1,103 @@
+<h2>How should the icon sidebar behave?</h2>
+<p class="subtitle">Both use the same icon-first design from option B</p>
+
+<div class="split">
+
+  <div class="mockup">
+    <div class="mockup-header">A — Always icon-only (fixed narrow)</div>
+    <div class="mockup-body" style="padding:0;overflow:hidden;">
+      <div style="display:flex;height:260px;font-family:Inter,sans-serif;">
+        <div style="width:52px;background:#fff;border-right:1px solid #e2e8f0;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;">
+          <div style="width:28px;height:28px;background:#2563EB;border-radius:8px;margin-bottom:8px;"></div>
+          <!-- Active -->
+          <div style="width:36px;height:32px;background:#eff6ff;border-radius:8px;display:flex;align-items:center;justify-content:center;border:1.5px solid #2563EB;" title="Dashboard">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          </div>
+          <div style="width:36px;height:32px;background:transparent;border-radius:8px;display:flex;align-items:center;justify-content:center;" title="Sites">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          </div>
+          <div style="width:36px;height:32px;background:transparent;border-radius:8px;display:flex;align-items:center;justify-content:center;" title="Invoices">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div style="width:36px;height:32px;background:transparent;border-radius:8px;display:flex;align-items:center;justify-content:center;" title="Customers">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div style="width:36px;height:32px;background:transparent;border-radius:8px;display:flex;align-items:center;justify-content:center;" title="Reports">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <div style="margin-top:auto;width:36px;height:32px;background:transparent;border-radius:8px;display:flex;align-items:center;justify-content:center;" title="Settings">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          </div>
+        </div>
+        <div style="flex:1;background:#f8fafc;padding:12px;">
+          <div style="font-size:11px;font-weight:700;color:#0f172a;margin-bottom:8px;">Dashboard</div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:8px;">
+              <div style="font-size:8px;color:#64748b;">SITES</div>
+              <div style="font-size:18px;font-weight:700;color:#0f172a;">12</div>
+            </div>
+            <div style="background:#2563EB;border-radius:8px;padding:8px;">
+              <div style="font-size:8px;color:#bfdbfe;">REVENUE</div>
+              <div style="font-size:18px;font-weight:700;color:#fff;">€48K</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">B — Expand on hover (icons → icons + labels)</div>
+    <div class="mockup-body" style="padding:0;overflow:hidden;">
+      <div style="display:flex;height:260px;font-family:Inter,sans-serif;">
+        <!-- Expanded sidebar (showing hover state) -->
+        <div style="width:140px;background:#fff;border-right:1px solid #e2e8f0;padding:10px 8px;display:flex;flex-direction:column;gap:2px;transition:width 0.2s;">
+          <div style="display:flex;align-items:center;gap:8px;padding:4px;margin-bottom:8px;">
+            <div style="width:24px;height:24px;background:#2563EB;border-radius:6px;flex-shrink:0;"></div>
+            <span style="font-size:10px;font-weight:700;color:#0f172a;">SiteLager</span>
+          </div>
+          <div style="background:#eff6ff;border-radius:7px;padding:6px 8px;display:flex;align-items:center;gap:8px;border:1.5px solid #dbeafe;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            <span style="font-size:10px;font-weight:600;color:#1d4ed8;">Dashboard</span>
+          </div>
+          <div style="padding:6px 8px;display:flex;align-items:center;gap:8px;border-radius:7px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            <span style="font-size:10px;color:#64748b;">Sites</span>
+          </div>
+          <div style="padding:6px 8px;display:flex;align-items:center;gap:8px;border-radius:7px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span style="font-size:10px;color:#64748b;">Invoices</span>
+          </div>
+          <div style="padding:6px 8px;display:flex;align-items:center;gap:8px;border-radius:7px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <span style="font-size:10px;color:#64748b;">Customers</span>
+          </div>
+          <div style="padding:6px 8px;display:flex;align-items:center;gap:8px;border-radius:7px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            <span style="font-size:10px;color:#64748b;">Reports</span>
+          </div>
+          <div style="margin-top:auto;padding:6px 8px;display:flex;align-items:center;gap:8px;border-radius:7px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+            <span style="font-size:10px;color:#64748b;">Settings</span>
+          </div>
+        </div>
+        <div style="flex:1;background:#f8fafc;padding:12px;">
+          <div style="font-size:11px;font-weight:700;color:#0f172a;margin-bottom:8px;">Dashboard</div>
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:8px;">
+              <div style="font-size:8px;color:#64748b;">SITES</div>
+              <div style="font-size:18px;font-weight:700;color:#0f172a;">12</div>
+            </div>
+            <div style="background:#2563EB;border-radius:8px;padding:8px;">
+              <div style="font-size:8px;color:#bfdbfe;">REVENUE</div>
+              <div style="font-size:18px;font-weight:700;color:#fff;">€48K</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:16px;">In option B, the sidebar is shown in its <em>expanded/hover state</em> — it collapses to icon-only at rest.</p>

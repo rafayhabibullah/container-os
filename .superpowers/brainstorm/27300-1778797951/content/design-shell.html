@@ -1,0 +1,141 @@
+<h2>Design — Section 1: Layout Shell</h2>
+<p class="subtitle">The persistent wrapper used by all authenticated pages</p>
+
+<div class="mockup" style="max-width:700px;margin:0 auto;">
+  <div class="mockup-header">Full dashboard shell (sidebar collapsed → expanded on hover)</div>
+  <div class="mockup-body" style="padding:0;overflow:hidden;">
+    <div style="display:flex;height:320px;font-family:Inter,sans-serif;">
+
+      <!-- Sidebar collapsed state -->
+      <div style="width:52px;background:#fff;border-right:1px solid #e2e8f0;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;">
+        <div style="width:30px;height:30px;background:#2563EB;border-radius:8px;margin-bottom:10px;display:flex;align-items:center;justify-content:center;">
+          <span style="color:#fff;font-size:11px;font-weight:800;">S</span>
+        </div>
+        <!-- Active -->
+        <div style="width:36px;height:34px;background:#eff6ff;border-radius:8px;display:flex;align-items:center;justify-content:center;border:1.5px solid #dbeafe;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        </div>
+        <div style="width:36px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        </div>
+        <div style="width:36px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <div style="width:36px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        </div>
+        <div style="width:36px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        </div>
+        <div style="width:36px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div style="margin-top:auto;width:36px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        </div>
+        <!-- Divider label -->
+        <div style="position:absolute;top:50%;right:-28px;transform:translateY(-50%) rotate(90deg);font-size:8px;color:#cbd5e1;letter-spacing:1px;">COLLAPSED</div>
+      </div>
+
+      <!-- Arrow -->
+      <div style="width:36px;display:flex;align-items:center;justify-content:center;background:#f8fafc;flex-shrink:0;">
+        <span style="font-size:16px;color:#94a3b8;">→</span>
+      </div>
+
+      <!-- Sidebar expanded state -->
+      <div style="width:168px;background:#fff;border-right:1px solid #e2e8f0;padding:10px 8px;display:flex;flex-direction:column;gap:2px;flex-shrink:0;">
+        <div style="display:flex;align-items:center;gap:8px;padding:4px 4px;margin-bottom:10px;">
+          <div style="width:26px;height:26px;background:#2563EB;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+            <span style="color:#fff;font-size:10px;font-weight:800;">S</span>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:#0f172a;">SiteLager</span>
+        </div>
+        <div style="background:#eff6ff;border-radius:7px;padding:7px 9px;display:flex;align-items:center;gap:9px;border:1.5px solid #dbeafe;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          <span style="font-size:10px;font-weight:600;color:#1d4ed8;">Dashboard</span>
+        </div>
+        <div style="padding:7px 9px;display:flex;align-items:center;gap:9px;border-radius:7px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          <span style="font-size:10px;color:#64748b;">Sites</span>
+        </div>
+        <div style="padding:7px 9px;display:flex;align-items:center;gap:9px;border-radius:7px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span style="font-size:10px;color:#64748b;">Invoices</span>
+        </div>
+        <div style="padding:7px 9px;display:flex;align-items:center;gap:9px;border-radius:7px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <span style="font-size:10px;color:#64748b;">Customers</span>
+        </div>
+        <div style="padding:7px 9px;display:flex;align-items:center;gap:9px;border-radius:7px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span style="font-size:10px;color:#64748b;">Reports</span>
+        </div>
+        <div style="padding:7px 9px;display:flex;align-items:center;gap:9px;border-radius:7px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span style="font-size:10px;color:#64748b;">Reservations</span>
+        </div>
+        <div style="margin-top:auto;padding:7px 9px;display:flex;align-items:center;gap:9px;border-radius:7px;border-top:1px solid #f1f5f9;padding-top:10px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          <span style="font-size:10px;color:#64748b;">Settings</span>
+        </div>
+      </div>
+
+      <!-- Main content area -->
+      <div style="flex:1;background:#f8fafc;padding:14px;overflow:hidden;">
+        <!-- Page header -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#0f172a;">Dashboard</div>
+            <div style="font-size:9px;color:#94a3b8;margin-top:1px;">Friday, 15 May 2026</div>
+          </div>
+          <div style="width:24px;height:24px;background:#e2e8f0;border-radius:999px;"></div>
+        </div>
+        <!-- Stat cards -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;">
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;">
+            <div style="font-size:8px;color:#94a3b8;letter-spacing:.5px;margin-bottom:3px;">SITES</div>
+            <div style="font-size:20px;font-weight:700;color:#0f172a;">12</div>
+          </div>
+          <div style="background:#2563EB;border-radius:10px;padding:10px;">
+            <div style="font-size:8px;color:#bfdbfe;letter-spacing:.5px;margin-bottom:3px;">REVENUE</div>
+            <div style="font-size:20px;font-weight:700;color:#fff;">€48K</div>
+          </div>
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;">
+            <div style="font-size:8px;color:#94a3b8;letter-spacing:.5px;margin-bottom:3px;">OCCUPANCY</div>
+            <div style="font-size:20px;font-weight:700;color:#0f172a;">87%</div>
+          </div>
+        </div>
+        <!-- Mini table -->
+        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+          <div style="padding:8px 10px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:9px;font-weight:600;color:#0f172a;">Recent sites</span>
+            <span style="font-size:8px;color:#2563EB;">View all →</span>
+          </div>
+          <div style="padding:6px 10px;border-bottom:1px solid #f8fafc;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:9px;color:#334155;">Hamburg Nord</span>
+            <span style="background:#dcfce7;color:#15803d;font-size:8px;padding:1px 7px;border-radius:999px;font-weight:500;">Active</span>
+          </div>
+          <div style="padding:6px 10px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:9px;color:#334155;">Berlin Mitte</span>
+            <span style="background:#dbeafe;color:#1d4ed8;font-size:8px;padding:1px 7px;border-radius:999px;font-weight:500;">New</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px;">
+  <h3>Shell spec</h3>
+  <ul>
+    <li><strong>Sidebar:</strong> white bg, 52px collapsed / 200px expanded on <code>group-hover</code>, CSS transition 200ms ease. No JS required.</li>
+    <li><strong>Active item:</strong> <code>bg-blue-50 border border-blue-200 text-blue-700</code>. Inactive: <code>text-slate-500 hover:bg-slate-50</code>.</li>
+    <li><strong>Logo:</strong> Blue 30px square with "S" monogram, collapses to icon-only.</li>
+    <li><strong>Nav items:</strong> Dashboard, Sites, Invoices, Customers, Reports, Reservations — Settings pinned at bottom.</li>
+    <li><strong>Content area:</strong> <code>bg-slate-50</code>, scrollable, <code>p-8</code> padding.</li>
+    <li><strong>Top-right:</strong> Avatar/user menu (no topbar — sidebar handles all nav).</li>
+  </ul>
+</div>
+
+<p class="subtitle">Does this shell look right? Respond in the terminal.</p>
