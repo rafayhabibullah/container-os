@@ -17,7 +17,7 @@ const mockPrisma = {
 const service = new BillingService(mockPrisma as any);
 
 describe('BillingService', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => { vi.clearAllMocks(); });
 
   it('listInvoicesForOrg returns invoices filtered by orgId via siteId join', async () => {
     mockPrisma.invoice.findMany.mockResolvedValue([
