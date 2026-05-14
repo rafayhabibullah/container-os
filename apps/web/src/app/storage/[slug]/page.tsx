@@ -51,7 +51,8 @@ export default async function StorageSiteDetailPage({ params }: { params: { slug
                     Earliest: {new Date(item.earliestAvailable).toLocaleDateString()}
                   </p>
                 )}
-                <Link href={`/register`}
+                <Link
+                  href={`/storage/${params.slug}/book?siteId=${site.id}&unitTypes=${encodeURIComponent(JSON.stringify([{ id: item.unitTypeId, name: item.unitTypeName, sizeSqm: item.sizeSqm, features: [] }]))}`}
                   className="mt-4 block text-center bg-blue-600 text-white text-sm font-semibold py-2 rounded-lg hover:bg-blue-700">
                   Reserve a unit
                 </Link>
