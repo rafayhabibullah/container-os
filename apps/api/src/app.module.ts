@@ -20,6 +20,10 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { ReportingModule } from './modules/reporting/reporting.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { OrganisationModule } from './modules/organisations/organisations.module';
+import { CheckoutModule } from './modules/checkout/checkout.module';
+import { OperatorReservationsModule } from './modules/operator-reservations/operator-reservations.module';
+import { OperatorAgreementsModule } from './modules/operator-agreements/operator-agreements.module';
+import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module';
 
 @Module({
   imports: [
@@ -50,6 +54,11 @@ import { OrganisationModule } from './modules/organisations/organisations.module
     NotificationsModule,
     ReportingModule,
     WebhooksModule,
+    // Plan 4 — Booking & Tenant Portal
+    CheckoutModule,
+    OperatorReservationsModule,
+    OperatorAgreementsModule,
+    TenantPortalModule,
   ],
 })
 export class AppModule {}
