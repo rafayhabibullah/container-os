@@ -144,7 +144,7 @@ function RunInvoicesButton({ orgId }: { orgId: string }) {
   );
 }
 
-function ExportDatevButton({ orgId }: { orgId: string }) {
+function ExportDatevButton({ orgId: _orgId }: { orgId: string }) {
   return (
     <Link
       href={`/invoices/export`}
