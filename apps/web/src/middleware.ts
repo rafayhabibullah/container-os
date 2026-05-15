@@ -1,30 +1,46 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PUBLIC_PATHS = ['/login', '/register', '/accept-invite', '/api/auth', '/api/checkout', '/storage'];
+const PUBLIC_PREFIX_PATHS = [
+  '/login', '/register', '/accept-invite',
+  '/api/auth', '/api/checkout',
+  '/storage',
+  '/for-operators',
+  '/pricing',
+  '/legal',
+];
+const PUBLIC_EXACT_PATHS = ['/'];
 
 // Edge Runtime cannot import from src/lib/auth — JWT decode is intentionally duplicated here.
-function decodeJwtExpiry(token: string): number {
+function decodeJwt(token: string): { exp?: number; type?: string } {
   try {
     const [, payload] = token.split('.');
-    return JSON.parse(Buffer.from(payload, 'base64url').toString()).exp ?? 0;
+    return JSON.parse(Buffer.from(payload, 'base64url').toString());
   } catch {
-    return 0;
+    return {};
   }
 }
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  const isPublic =
+    PUBLIC_EXACT_PATHS.includes(pathname) ||
+    PUBLIC_PREFIX_PATHS.some((p) => pathname.startsWith(p));
 
   const accessToken = request.cookies.get('sl_access')?.value;
-  const isValid = accessToken && decodeJwtExpiry(accessToken) * 1000 > Date.now();
+  const decoded = accessToken ? decodeJwt(accessToken) : {};
+  const isValid = accessToken && (decoded.exp ?? 0) * 1000 > Date.now();
 
   if (!isValid && !isPublic) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  if (isValid && (pathname === '/login' || pathname === '/register')) {
+  // Tenants have no access to the management dashboard — let them stay on public paths
+  if (isValid && decoded.type === 'tenant' && !isPublic) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  if (isValid && decoded.type !== 'tenant' && (pathname === '/login' || pathname === '/register')) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 

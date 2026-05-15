@@ -28,9 +28,12 @@ export default async function StoragePage({
   if (searchParams.mode) params.set('bookingMode', searchParams.mode);
   params.set('limit', '40');
 
-  const listings = await fetch(`${API_URL}/public/v1/listings?${params.toString()}`, {
+  const listings = await fetch(`${API_URL}/api/public/v1/listings?${params.toString()}`, {
     cache: 'no-store',
-  }).then((r) => r.json() as Promise<ListingSearchResult[]>).catch(() => [] as ListingSearchResult[]);
+  }).then(async (r) => {
+    const data = await r.json();
+    return Array.isArray(data) ? (data as ListingSearchResult[]) : [];
+  }).catch(() => [] as ListingSearchResult[]);
 
   return (
     <div className="min-h-screen bg-slate-50">
