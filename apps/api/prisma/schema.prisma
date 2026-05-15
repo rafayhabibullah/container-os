@@ -500,16 +500,22 @@ model LockoutState {
 }
 
 model Task {
-  id         String     @id @default(cuid())
-  siteId     String
-  assigneeId String?
-  status     TaskStatus @default(open)
-  dueAt      DateTime?
-  subjectRef String?
-  title      String
-  notes      String?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  id             String       @id @default(cuid())
+  organisationId String?
+  siteId         String
+  unitId         String?
+  tenantId       String?
+  bookingId      String?
+  assigneeId     String?
+  type           TaskType?
+  priority       TaskPriority @default(normal)
+  status         TaskStatus   @default(open)
+  title          String
+  notes          String?
+  subjectRef     String?
+  dueAt          DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 }
 
 model InspectionTemplate {
@@ -520,14 +526,18 @@ model InspectionTemplate {
 }
 
 model InspectionRun {
-  id          String    @id @default(cuid())
-  unitId      String
-  templateId  String?
-  kind        String
-  result      String?
-  photoIds    String[]
-  completedAt DateTime?
-  createdAt   DateTime  @default(now())
+  id               String    @id @default(cuid())
+  unitId           String
+  templateId       String?
+  contractId       String?
+  kind             String
+  result           String?
+  checklist        Json?
+  notes            String?
+  depositDeduction Float?
+  photoIds         String[]
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
 }
 
 model Incident {
@@ -930,8 +940,31 @@ enum PaymentStatus {
 enum TaskStatus {
   open
   in_progress
+  blocked
   completed
   cancelled
+}
+
+enum TaskType {
+  move_in
+  move_out
+  inspect_unit
+  clean_unit
+  repair_unit
+  verify_document
+  approve_booking
+  call_tenant
+  collect_payment
+  assign_access
+  upload_contract
+  other
+}
+
+enum TaskPriority {
+  low
+  normal
+  high
+  urgent
 }
 
 enum IncidentStatus {
