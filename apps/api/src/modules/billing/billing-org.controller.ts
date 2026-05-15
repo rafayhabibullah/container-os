@@ -9,6 +9,7 @@ import { CurrentMember } from '../../common/decorators/current-member.decorator'
 import { BillingService } from './billing.service';
 import { InvoiceRunService } from './invoice-run.service';
 import { MollieAdapter } from '../payments/mollie.adapter';
+import { PrismaClient } from '@prisma/client';
 
 interface MemberContext { id: string; userId: string; role: string; organisationId: string; }
 
@@ -21,6 +22,7 @@ export class BillingOrgController {
     private readonly billing: BillingService,
     private readonly invoiceRun: InvoiceRunService,
     private readonly mollie: MollieAdapter,
+    private readonly prisma: PrismaClient,
   ) {}
 
   @Get('invoices')
@@ -61,6 +63,19 @@ export class BillingOrgController {
     @Body() body: { reason: string },
   ) {
     return this.billing.voidInvoice(invoiceId, body.reason ?? 'Voided by operator');
+  }
+
+  @Get('payments')
+  @ApiOperation({ summary: 'List payments for all sites in organisation' })
+  async listPayments(@Param('organisationId') orgId: string) {
+    const sites = await this.prisma.site.findMany({ where: { organisationId: orgId }, select: { id: true } });
+    const siteIds = sites.map((s) => s.id);
+    return this.prisma.payment.findMany({
+      where: { invoice: { agreement: { siteId: { in: siteIds } } } },
+      include: { invoice: { select: { id: true, currency: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
   }
 
   @Post('invoices/:invoiceId/pay')
