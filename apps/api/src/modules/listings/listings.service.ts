@@ -47,7 +47,23 @@ export class ListingsService {
 
   async updateListing(organisationId: string, listingId: string, dto: UpdateListingDto) {
     await this.assertOwnership(organisationId, listingId);
-    return this.prisma.listing.update({ where: { id: listingId }, data: dto as object });
+    const { title, description, publicPriceMinor, showPrice, depositMinor, availableFrom,
+            bookingMode, requiredDocs, seoTitle, seoDescription } = dto;
+    return this.prisma.listing.update({
+      where: { id: listingId },
+      data: {
+        ...(title !== undefined && { title }),
+        ...(description !== undefined && { description }),
+        ...(publicPriceMinor !== undefined && { publicPriceMinor }),
+        ...(showPrice !== undefined && { showPrice }),
+        ...(depositMinor !== undefined && { depositMinor }),
+        ...(availableFrom !== undefined && { availableFrom: availableFrom ? new Date(availableFrom) : null }),
+        ...(bookingMode !== undefined && { bookingMode }),
+        ...(requiredDocs !== undefined && { requiredDocs }),
+        ...(seoTitle !== undefined && { seoTitle }),
+        ...(seoDescription !== undefined && { seoDescription }),
+      },
+    });
   }
 
   async publishListing(organisationId: string, listingId: string) {
