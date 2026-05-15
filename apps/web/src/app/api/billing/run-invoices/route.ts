@@ -1,10 +1,14 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext, proxyToBackend } from '@/lib/api-route-helpers';
 
 export async function POST(req: NextRequest) {
   const ctx = getAuthContext();
   if (!ctx) return new Response(JSON.stringify({ message: 'Unauthorized' }), { status: 401 });
-  const body = await req.json().catch(() => ({}));
-  const orgId = body.organisationId ?? ctx.payload.organisationId;
-  return proxyToBackend(`/v1/organisations/${orgId}/invoices/run`, 'POST', ctx.token);
+
+  // Form submits as application/x-www-form-urlencoded; fall back to JWT org ID
+  const orgId = ctx.payload.organisationId;
+  const res = await proxyToBackend(`/v1/organisations/${orgId}/invoices/run`, 'POST', ctx.token);
+
+  if (res.status >= 400) return res;
+  return NextResponse.redirect(new URL('/invoices', req.url));
 }
