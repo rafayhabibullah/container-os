@@ -1,11 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { OrganisationGuard } from '../../common/guards/organisation.guard';
 import { CurrentMember } from '../../common/decorators/current-member.decorator';
 import { OperationsService } from './operations.service';
 import { InspectionService } from './inspection.service';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, TaskType, TaskPriority } from '@prisma/client';
+import { StorageService } from '../documents/storage.service';
 
 interface MemberContext { userId: string; role: string; organisationId: string; }
 
@@ -18,6 +20,7 @@ export class OrgOperationsController {
     private readonly ops: OperationsService,
     private readonly inspections: InspectionService,
     private readonly prisma: PrismaClient,
+    private readonly storage: StorageService,
   ) {}
 
   @Get('tasks')
@@ -34,9 +37,21 @@ export class OrgOperationsController {
   @ApiOperation({ summary: 'Create a task' })
   createTask(
     @Param('organisationId') orgId: string,
-    @Body() body: { siteId: string; title: string; notes?: string; assigneeId?: string; dueAt?: string },
+    @Body() body: { siteId: string; title: string; type?: string; priority?: string; notes?: string; assigneeId?: string; unitId?: string; tenantId?: string; bookingId?: string; dueAt?: string },
   ) {
-    return this.ops.createTask({ siteId: body.siteId, title: body.title, assigneeId: body.assigneeId, dueAt: body.dueAt ? new Date(body.dueAt) : undefined });
+    return this.ops.createTask({
+      organisationId: orgId,
+      siteId: body.siteId,
+      title: body.title,
+      type: body.type as TaskType | undefined,
+      priority: body.priority as TaskPriority | undefined,
+      notes: body.notes,
+      assigneeId: body.assigneeId,
+      unitId: body.unitId,
+      tenantId: body.tenantId,
+      bookingId: body.bookingId,
+      dueAt: body.dueAt ? new Date(body.dueAt) : undefined,
+    });
   }
 
   @Patch('tasks/:taskId')
@@ -100,9 +115,39 @@ export class OrgOperationsController {
   @Post('inspection-runs')
   @ApiOperation({ summary: 'Start an inspection run' })
   createInspectionRun(
-    @Body() body: { unitId: string; siteId: string; kind: string; checklist: { code: string; result: string; note?: string }[] },
+    @Body() body: {
+      unitId: string;
+      siteId: string;
+      kind: string;
+      checklist: { code: string; label: string; result: string; note?: string }[];
+      photoIds?: string[];
+      notes?: string;
+      contractId?: string;
+      depositDeduction?: number;
+    },
   ) {
-    return this.inspections.createInspectionRun(body.unitId, body.siteId, body.kind, body.checklist as any);
+    return this.inspections.createInspectionRun({
+      unitId: body.unitId,
+      siteId: body.siteId,
+      kind: body.kind,
+      checklist: body.checklist as any,
+      photoIds: body.photoIds,
+      notes: body.notes,
+      contractId: body.contractId,
+      depositDeduction: body.depositDeduction,
+    });
+  }
+
+  @Post('inspection-photos')
+  @ApiOperation({ summary: 'Upload an inspection photo and return a storage key' })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadInspectionPhoto(
+    @Param('organisationId') orgId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    const key = `inspections/${orgId}/${Date.now()}-${file.originalname}`;
+    const { storageKey } = await this.storage.upload(key, file.buffer, file.mimetype);
+    return { photoId: storageKey };
   }
 
   @Get('inspections')

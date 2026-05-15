@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, TaskType, TaskPriority } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
 import { EventBusService } from '../../events/event-bus.service';
 import { Events } from '../../events/domain-events';
@@ -11,8 +11,36 @@ export class OperationsService {
     eventBus.on(Events.ACCESS_DENIED, async (event: any) => { await this.createIncident({ siteId: event.meta.siteId, severity: 'medium', type: 'unauthorized_access', linkedAccessEventId: event.payload.accessEventId }); });
   }
 
-  async createTask(params: { siteId: string; title: string; assigneeId?: string; subjectRef?: string; dueAt?: Date }) {
-    const task = await this.prisma.task.create({ data: params });
+  async createTask(params: {
+    organisationId?: string;
+    siteId: string;
+    unitId?: string;
+    tenantId?: string;
+    bookingId?: string;
+    title: string;
+    type?: TaskType;
+    priority?: TaskPriority;
+    notes?: string;
+    assigneeId?: string;
+    subjectRef?: string;
+    dueAt?: Date;
+  }) {
+    const task = await this.prisma.task.create({
+      data: {
+        organisationId: params.organisationId,
+        siteId: params.siteId,
+        unitId: params.unitId,
+        tenantId: params.tenantId,
+        bookingId: params.bookingId,
+        title: params.title,
+        type: params.type,
+        priority: params.priority,
+        notes: params.notes,
+        assigneeId: params.assigneeId,
+        subjectRef: params.subjectRef,
+        dueAt: params.dueAt,
+      },
+    });
     await this.audit.record({ action: 'task.created', subjectType: 'Task', subjectId: task.id, siteId: params.siteId });
     return task;
   }

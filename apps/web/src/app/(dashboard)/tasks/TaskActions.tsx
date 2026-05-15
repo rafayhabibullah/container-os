@@ -3,22 +3,20 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-
-interface Site {
-  id: string;
-  name: string;
-}
+import type { Site, Member } from './page';
 
 interface Props {
   type: 'create' | 'update';
   taskId?: string;
   currentStatus?: string;
   sites?: Site[];
+  members?: Member[];
 }
 
 const NEXT_STATUSES: Record<string, string[]> = {
-  open:        ['in_progress', 'cancelled'],
-  in_progress: ['completed',   'cancelled'],
+  open:        ['in_progress', 'blocked', 'cancelled'],
+  in_progress: ['completed',   'blocked', 'cancelled'],
+  blocked:     ['in_progress', 'cancelled'],
   completed:   [],
   cancelled:   [],
 };
@@ -26,8 +24,31 @@ const NEXT_STATUSES: Record<string, string[]> = {
 const STATUS_LABELS: Record<string, string> = {
   in_progress: 'Start',
   completed:   'Complete',
+  blocked:     'Block',
   cancelled:   'Cancel',
 };
+
+const TASK_TYPES = [
+  { value: 'move_in',         label: 'Move-in'         },
+  { value: 'move_out',        label: 'Move-out'        },
+  { value: 'inspect_unit',    label: 'Inspect unit'    },
+  { value: 'clean_unit',      label: 'Clean unit'      },
+  { value: 'repair_unit',     label: 'Repair unit'     },
+  { value: 'verify_document', label: 'Verify document' },
+  { value: 'approve_booking', label: 'Approve booking' },
+  { value: 'call_tenant',     label: 'Call tenant'     },
+  { value: 'collect_payment', label: 'Collect payment' },
+  { value: 'assign_access',   label: 'Assign access'   },
+  { value: 'upload_contract', label: 'Upload contract' },
+  { value: 'other',           label: 'Other'           },
+];
+
+const TASK_PRIORITIES = [
+  { value: 'low',    label: 'Low'    },
+  { value: 'normal', label: 'Normal' },
+  { value: 'high',   label: 'High'   },
+  { value: 'urgent', label: 'Urgent' },
+];
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -52,7 +73,7 @@ const labelStyle: React.CSSProperties = {
   letterSpacing: '0.03em',
 };
 
-export default function TaskActions({ type, taskId, currentStatus, sites = [] }: Props) {
+export default function TaskActions({ type, taskId, currentStatus, sites = [], members = [] }: Props) {
   const router = useRouter();
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
@@ -130,8 +151,9 @@ export default function TaskActions({ type, taskId, currentStatus, sites = [] }:
               border: '1px solid #e2e8f0',
               boxShadow: '0 20px 60px rgba(15,23,42,0.18), 0 4px 16px rgba(15,23,42,0.08)',
               width: '100%',
-              maxWidth: '440px',
-              overflow: 'hidden',
+              maxWidth: '480px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
             }}
           >
             {/* Header */}
@@ -167,9 +189,16 @@ export default function TaskActions({ type, taskId, currentStatus, sites = [] }:
                 e.preventDefault();
                 const form = new FormData(e.currentTarget);
                 await doAction('/api/tasks', 'POST', {
-                  siteId: form.get('siteId'),
-                  title:  form.get('title'),
-                  dueAt:  form.get('dueAt') || undefined,
+                  siteId:     form.get('siteId'),
+                  title:      form.get('title'),
+                  type:       form.get('type') || undefined,
+                  priority:   form.get('priority') || 'normal',
+                  notes:      form.get('notes') || undefined,
+                  assigneeId: form.get('assigneeId') || undefined,
+                  unitId:     form.get('unitId') || undefined,
+                  tenantId:   form.get('tenantId') || undefined,
+                  bookingId:  form.get('bookingId') || undefined,
+                  dueAt:      form.get('dueAt') || undefined,
                 });
               }}
               style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}
@@ -193,6 +222,64 @@ export default function TaskActions({ type, taskId, currentStatus, sites = [] }:
                   className="task-modal-input"
                   style={inputStyle}
                 />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={labelStyle}>TYPE <span style={{ color: '#cbd5e1', fontWeight: 400 }}>(optional)</span></label>
+                  <select name="type" className="task-modal-input" style={inputStyle}>
+                    <option value="">— none —</option>
+                    {TASK_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>PRIORITY</label>
+                  <select name="priority" defaultValue="normal" className="task-modal-input" style={inputStyle}>
+                    {TASK_PRIORITIES.map((p) => (
+                      <option key={p.value} value={p.value}>{p.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {members.length > 0 && (
+                <div>
+                  <label style={labelStyle}>ASSIGNEE <span style={{ color: '#cbd5e1', fontWeight: 400 }}>(optional)</span></label>
+                  <select name="assigneeId" className="task-modal-input" style={inputStyle}>
+                    <option value="">— unassigned —</option>
+                    {members.map((m) => (
+                      <option key={m.userId} value={m.userId}>{m.user.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label style={labelStyle}>NOTES <span style={{ color: '#cbd5e1', fontWeight: 400 }}>(optional)</span></label>
+                <textarea
+                  name="notes"
+                  placeholder="Additional details…"
+                  rows={2}
+                  className="task-modal-input"
+                  style={{ ...inputStyle, resize: 'vertical', minHeight: '60px' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={labelStyle}>UNIT ID <span style={{ color: '#cbd5e1', fontWeight: 400 }}>(opt)</span></label>
+                  <input name="unitId" placeholder="unit ID…" className="task-modal-input" style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>TENANT ID <span style={{ color: '#cbd5e1', fontWeight: 400 }}>(opt)</span></label>
+                  <input name="tenantId" placeholder="tenant ID…" className="task-modal-input" style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>BOOKING ID <span style={{ color: '#cbd5e1', fontWeight: 400 }}>(opt)</span></label>
+                  <input name="bookingId" placeholder="booking ID…" className="task-modal-input" style={inputStyle} />
+                </div>
               </div>
 
               <div>

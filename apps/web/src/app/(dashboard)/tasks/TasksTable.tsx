@@ -2,19 +2,20 @@
 
 import { useState, useMemo } from 'react';
 import TaskActions from './TaskActions';
+import TaskDetailSheet from './TaskDetailSheet';
+import { TYPE_LABELS, PRIORITY_COLORS } from './task-constants';
+import type { Task, Site, Member } from './page';
 
-interface Task {
-  id: string;
-  title: string;
-  status: string;
-  dueAt: string | null;
-  siteId: string;
-  notes: string | null;
+interface Props {
+  tasks: Task[];
+  sitesById: Record<string, Site>;
+  membersById: Record<string, Member>;
 }
 
 const STAT: Record<string, { dot: string; text: string; bg: string; border: string; label: string }> = {
   open:        { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a', label: 'Open'        },
   in_progress: { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd', label: 'In progress' },
+  blocked:     { dot: '#a855f7', text: '#7e22ce', bg: '#fdf4ff', border: '#e9d5ff', label: 'Blocked'     },
   completed:   { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', label: 'Completed'   },
   cancelled:   { dot: '#94a3b8', text: '#64748b', bg: '#f8fafc', border: '#e2e8f0', label: 'Cancelled'   },
 };
@@ -23,26 +24,29 @@ const FILTERS = [
   { key: 'all',         label: 'All'         },
   { key: 'open',        label: 'Open'        },
   { key: 'in_progress', label: 'In progress' },
+  { key: 'blocked',     label: 'Blocked'     },
   { key: 'completed',   label: 'Completed'   },
   { key: 'cancelled',   label: 'Cancelled'   },
 ] as const;
 
-export default function TasksTable({ tasks }: { tasks: Task[] }) {
+export default function TasksTable({ tasks, sitesById, membersById }: Props) {
   const [query,        setQuery]        = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const filtered = useMemo(() =>
     tasks.filter((t) => {
       const q      = query.trim().toLowerCase();
-      const matchQ = !q || t.title.toLowerCase().includes(q) || t.siteId.toLowerCase().includes(q);
+      const site   = sitesById[t.siteId]?.name ?? t.siteId;
+      const matchQ = !q || t.title.toLowerCase().includes(q) || site.toLowerCase().includes(q);
       const matchS = statusFilter === 'all' || t.status === statusFilter;
       return matchQ && matchS;
     }),
-    [tasks, query, statusFilter],
+    [tasks, query, statusFilter, sitesById],
   );
 
   const isDue = (t: Task) =>
-    t.dueAt && new Date(t.dueAt) < new Date() && t.status !== 'completed' && t.status !== 'cancelled';
+    !!t.dueAt && new Date(t.dueAt) < new Date() && t.status !== 'completed' && t.status !== 'cancelled';
 
   return (
     <>
@@ -51,7 +55,7 @@ export default function TasksTable({ tasks }: { tasks: Task[] }) {
           from { opacity: 0; transform: translateY(4px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        .task-row { animation: task-row-in 0.25s ease both; }
+        .task-row { animation: task-row-in 0.25s ease both; cursor: pointer; }
         .task-row:hover { background: #f8fafc !important; }
         .task-filter-btn { transition: all 0.12s ease; }
         .task-filter-btn:hover { color: #0f172a !important; }
@@ -67,7 +71,6 @@ export default function TasksTable({ tasks }: { tasks: Task[] }) {
       }}>
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 20px', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap' }}>
-          {/* Filter tabs */}
           <div style={{ display: 'flex', gap: '2px' }}>
             {FILTERS.map((f) => {
               const active = statusFilter === f.key;
@@ -103,7 +106,6 @@ export default function TasksTable({ tasks }: { tasks: Task[] }) {
 
           <div style={{ flex: 1 }} />
 
-          {/* Search */}
           <div
             className="task-search-box"
             style={{
@@ -152,9 +154,9 @@ export default function TasksTable({ tasks }: { tasks: Task[] }) {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                {['Site', 'Title', 'Status', 'Due', ''].map((h) => (
+                {['Site', 'Title', 'Type', 'Priority', 'Assignee', 'Status', 'Due', ''].map((h) => (
                   <th key={h} style={{
-                    textAlign: 'left', padding: '10px 20px',
+                    textAlign: 'left', padding: '10px 16px',
                     fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif",
                     fontWeight: 700, color: '#94a3b8',
                     letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap',
@@ -166,38 +168,86 @@ export default function TasksTable({ tasks }: { tasks: Task[] }) {
             </thead>
             <tbody>
               {filtered.map((task, i) => {
-                const stat    = STAT[task.status] ?? STAT.open;
-                const overdue = isDue(task);
+                const stat         = STAT[task.status] ?? STAT.open;
+                const priColor     = PRIORITY_COLORS[task.priority] ?? PRIORITY_COLORS.normal;
+                const overdue      = isDue(task);
+                const siteName     = sitesById[task.siteId]?.name ?? task.siteId.slice(0, 8) + '…';
+                const assigneeName = task.assigneeId
+                  ? (membersById[task.assigneeId]?.user?.name ?? task.assigneeId.slice(0, 6) + '…')
+                  : null;
                 return (
                   <tr
                     key={task.id}
                     className="task-row"
+                    onClick={() => setSelectedTask(task)}
                     style={{
                       animationDelay: `${i * 30}ms`,
                       borderBottom: i < filtered.length - 1 ? '1px solid #f8fafc' : 'none',
                     }}
                   >
                     {/* Site */}
-                    <td style={{ padding: '14px 20px' }}>
+                    <td style={{ padding: '12px 16px' }}>
                       <span style={{
                         fontFamily: "'Plus Jakarta Sans', sans-serif",
                         fontSize: '13px', color: '#64748b',
                         background: '#f8fafc', border: '1px solid #e2e8f0',
-                        borderRadius: '5px', padding: '2px 8px',
+                        borderRadius: '5px', padding: '2px 8px', whiteSpace: 'nowrap',
                       }}>
-                        {task.siteId.slice(0, 8)}…
+                        {siteName}
                       </span>
                     </td>
 
                     {/* Title */}
-                    <td style={{ padding: '14px 20px' }}>
+                    <td style={{ padding: '12px 16px', maxWidth: '240px' }}>
                       <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>
                         {task.title}
                       </span>
+                      {task.notes && (
+                        <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '12px', color: '#94a3b8', margin: '2px 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '220px' }}>
+                          {task.notes}
+                        </p>
+                      )}
+                    </td>
+
+                    {/* Type */}
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                      {task.type ? (
+                        <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '12px', color: '#475569', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '5px', padding: '2px 8px' }}>
+                          {TYPE_LABELS[task.type] ?? task.type}
+                        </span>
+                      ) : (
+                        <span style={{ color: '#cbd5e1', fontSize: '13px' }}>—</span>
+                      )}
+                    </td>
+
+                    {/* Priority */}
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center',
+                        background: priColor.bg, color: priColor.text,
+                        border: `1px solid ${priColor.border}`,
+                        borderRadius: '20px', padding: '2px 9px',
+                        fontSize: '11px', fontWeight: 600,
+                        fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        textTransform: 'capitalize',
+                      }}>
+                        {task.priority}
+                      </span>
+                    </td>
+
+                    {/* Assignee */}
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                      {assigneeName ? (
+                        <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#475569' }}>
+                          {assigneeName}
+                        </span>
+                      ) : (
+                        <span style={{ color: '#cbd5e1', fontSize: '13px' }}>—</span>
+                      )}
                     </td>
 
                     {/* Status */}
-                    <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
                       <span style={{
                         display: 'inline-flex', alignItems: 'center', gap: '6px',
                         background: stat.bg, color: stat.text,
@@ -212,7 +262,7 @@ export default function TasksTable({ tasks }: { tasks: Task[] }) {
                     </td>
 
                     {/* Due */}
-                    <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
                       {task.dueAt ? (
                         <span style={{
                           fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -224,12 +274,12 @@ export default function TasksTable({ tasks }: { tasks: Task[] }) {
                           {new Date(task.dueAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
                       ) : (
-                        <span style={{ color: '#cbd5e1', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>—</span>
+                        <span style={{ color: '#cbd5e1', fontSize: '13px' }}>—</span>
                       )}
                     </td>
 
                     {/* Actions */}
-                    <td style={{ padding: '14px 20px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 16px', textAlign: 'right', whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                       <TaskActions type="update" taskId={task.id} currentStatus={task.status} />
                     </td>
                   </tr>
@@ -239,6 +289,15 @@ export default function TasksTable({ tasks }: { tasks: Task[] }) {
           </table>
         )}
       </div>
+
+      {selectedTask && (
+        <TaskDetailSheet
+          task={selectedTask}
+          sitesById={sitesById}
+          membersById={membersById}
+          onClose={() => setSelectedTask(null)}
+        />
+      )}
     </>
   );
 }
