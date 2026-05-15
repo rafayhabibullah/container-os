@@ -9,11 +9,15 @@ const mockBilling = {
 };
 const mockInvoiceRun = { runForDate: vi.fn().mockResolvedValue({ created: 2, skipped: 0, errors: 0 }) };
 const mockMollie = {};
+const mockPrisma = {
+  site: { findMany: vi.fn().mockResolvedValue([]) },
+  payment: { findMany: vi.fn().mockResolvedValue([]) },
+};
 
 // Import after defining mocks (vitest hoisting not needed — direct instantiation)
 import { BillingOrgController } from './billing-org.controller';
 
-const controller = new BillingOrgController(mockBilling as any, mockInvoiceRun as any, mockMollie as any);
+const controller = new BillingOrgController(mockBilling as any, mockInvoiceRun as any, mockMollie as any, mockPrisma as any);
 
 describe('BillingOrgController', () => {
   it('listInvoices calls BillingService.listInvoicesForOrg', async () => {
