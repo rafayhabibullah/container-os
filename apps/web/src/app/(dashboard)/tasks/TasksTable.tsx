@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import TaskActions from './TaskActions';
 import TaskDetailSheet from './TaskDetailSheet';
+import { TYPE_LABELS, PRIORITY_COLORS } from './task-constants';
 import type { Task, Site, Member } from './page';
 
 interface Props {
@@ -17,28 +18,6 @@ const STAT: Record<string, { dot: string; text: string; bg: string; border: stri
   blocked:     { dot: '#a855f7', text: '#7e22ce', bg: '#fdf4ff', border: '#e9d5ff', label: 'Blocked'     },
   completed:   { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', label: 'Completed'   },
   cancelled:   { dot: '#94a3b8', text: '#64748b', bg: '#f8fafc', border: '#e2e8f0', label: 'Cancelled'   },
-};
-
-const PRIORITY_COLORS: Record<string, { text: string; bg: string; border: string }> = {
-  low:    { text: '#64748b', bg: '#f8fafc', border: '#e2e8f0' },
-  normal: { text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd' },
-  high:   { text: '#92400e', bg: '#fffbeb', border: '#fde68a' },
-  urgent: { text: '#991b1b', bg: '#fef2f2', border: '#fecaca' },
-};
-
-const TYPE_LABELS: Record<string, string> = {
-  move_in:         'Move-in',
-  move_out:        'Move-out',
-  inspect_unit:    'Inspect',
-  clean_unit:      'Clean',
-  repair_unit:     'Repair',
-  verify_document: 'Verify doc',
-  approve_booking: 'Approve booking',
-  call_tenant:     'Call tenant',
-  collect_payment: 'Collect payment',
-  assign_access:   'Assign access',
-  upload_contract: 'Upload contract',
-  other:           'Other',
 };
 
 const FILTERS = [
