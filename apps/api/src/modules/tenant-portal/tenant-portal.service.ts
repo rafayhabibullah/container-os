@@ -30,4 +30,32 @@ export class TenantPortalService {
       orderBy: { dueDate: 'desc' },
     });
   }
+
+  async listMyMandates(tenantId: string) {
+    return this.prisma.mandate.findMany({
+      where: { customerId: tenantId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        scheme: true,
+        status: true,
+        ibanLast4: true,
+        signedAt: true,
+      },
+    });
+  }
+
+  async createMoveOutRequest(tenantId: string, agreementId: string, requestedDate: string) {
+    await this.prisma.agreement.findFirstOrThrow({
+      where: { id: agreementId, tenantId },
+      select: { id: true },
+    });
+    return this.prisma.terminationRequest.create({
+      data: {
+        agreementId,
+        requestedDate: new Date(requestedDate),
+        status: 'pending',
+      },
+    });
+  }
 }

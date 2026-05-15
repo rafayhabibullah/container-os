@@ -1,5 +1,5 @@
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { CurrentUser, AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { TenantPortalService } from './tenant-portal.service';
@@ -24,5 +24,18 @@ export class TenantPortalController {
   @Get('invoices')
   listInvoices(@CurrentUser() user: AuthenticatedUser) {
     return this.service.listMyInvoices(user.id);
+  }
+
+  @Get('mandates')
+  listMandates(@CurrentUser() user: AuthenticatedUser) {
+    return this.service.listMyMandates(user.id);
+  }
+
+  @Post('move-out-requests')
+  createMoveOutRequest(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: { agreementId: string; requestedDate: string },
+  ) {
+    return this.service.createMoveOutRequest(user.id, body.agreementId, body.requestedDate);
   }
 }
