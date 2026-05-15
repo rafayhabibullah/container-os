@@ -31,10 +31,25 @@ export default async function MyStoragePage() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold text-slate-900">My Storage</h1>
-        <Link href="/my-storage/invoices" className="text-sm text-blue-600 hover:underline">
-          View invoices &rarr;
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
+        <Link href="/my-storage/invoices"
+          className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-300 hover:shadow-sm transition-all">
+          <h3 className="font-semibold text-slate-900 text-sm">Invoices</h3>
+          <p className="text-xs text-slate-400 mt-1">View your billing history</p>
+        </Link>
+        <Link href="/my-storage/payment-methods"
+          className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-300 hover:shadow-sm transition-all">
+          <h3 className="font-semibold text-slate-900 text-sm">Payment Methods</h3>
+          <p className="text-xs text-slate-400 mt-1">Manage your SEPA mandates</p>
+        </Link>
+        <Link href="/my-storage/move-out"
+          className="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 transition-all">
+          <h3 className="font-semibold text-slate-900 text-sm">Request Move-out</h3>
+          <p className="text-xs text-slate-400 mt-1">End your rental agreement</p>
         </Link>
       </div>
 
