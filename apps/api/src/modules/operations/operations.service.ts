@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, TaskType, TaskPriority } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
 import { EventBusService } from '../../events/event-bus.service';
 import { Events } from '../../events/domain-events';
@@ -18,8 +18,8 @@ export class OperationsService {
     tenantId?: string;
     bookingId?: string;
     title: string;
-    type?: string;
-    priority?: string;
+    type?: TaskType;
+    priority?: TaskPriority;
     notes?: string;
     assigneeId?: string;
     subjectRef?: string;
@@ -33,8 +33,8 @@ export class OperationsService {
         tenantId: params.tenantId,
         bookingId: params.bookingId,
         title: params.title,
-        type: params.type as any,
-        priority: params.priority as any,
+        type: params.type,
+        priority: params.priority,
         notes: params.notes,
         assigneeId: params.assigneeId,
         subjectRef: params.subjectRef,
