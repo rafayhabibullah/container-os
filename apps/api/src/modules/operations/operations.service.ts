@@ -25,7 +25,22 @@ export class OperationsService {
     subjectRef?: string;
     dueAt?: Date;
   }) {
-    const task = await this.prisma.task.create({ data: params as any });
+    const task = await this.prisma.task.create({
+      data: {
+        organisationId: params.organisationId,
+        siteId: params.siteId,
+        unitId: params.unitId,
+        tenantId: params.tenantId,
+        bookingId: params.bookingId,
+        title: params.title,
+        type: params.type as any,
+        priority: params.priority as any,
+        notes: params.notes,
+        assigneeId: params.assigneeId,
+        subjectRef: params.subjectRef,
+        dueAt: params.dueAt,
+      },
+    });
     await this.audit.record({ action: 'task.created', subjectType: 'Task', subjectId: task.id, siteId: params.siteId });
     return task;
   }

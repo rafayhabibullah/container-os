@@ -54,6 +54,24 @@ describe('OperationsService.createTask', () => {
       data: expect.objectContaining({ unitId: 'u1', tenantId: 'ten1', bookingId: 'bk1' }),
     });
   });
+
+  it('returns the created task', async () => {
+    const mockTask = { id: 't1', status: 'open', siteId: 's1', title: 'Test' };
+    mockPrisma.task.create.mockResolvedValue(mockTask);
+    const result = await service.createTask({ siteId: 's1', title: 'Test' });
+    expect(result).toEqual(mockTask);
+  });
+
+  it('records audit log when task is created', async () => {
+    mockPrisma.task.create.mockResolvedValue({ id: 't1', siteId: 's1' });
+    await service.createTask({ siteId: 's1', title: 'Test' });
+    expect(mockAudit.record).toHaveBeenCalledWith({
+      action: 'task.created',
+      subjectType: 'Task',
+      subjectId: 't1',
+      siteId: 's1',
+    });
+  });
 });
 
 describe('OperationsService.updateTask', () => {
