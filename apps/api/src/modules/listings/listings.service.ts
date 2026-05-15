@@ -81,6 +81,56 @@ export class ListingsService {
     return this.prisma.listing.update({ where: { id: listingId }, data: { status: 'archived' } });
   }
 
+  searchPublicListings(filters: {
+    city?: string;
+    country?: string;
+    minSizeSqm?: string;
+    maxSizeSqm?: string;
+    bookingMode?: string;
+    limit?: string;
+    offset?: string;
+  }) {
+    const MAX_LIMIT = 100;
+    const take = Math.min(filters.limit ? parseInt(filters.limit, 10) : 20, MAX_LIMIT);
+    const skip = filters.offset ? parseInt(filters.offset, 10) : 0;
+    if (isNaN(take) || isNaN(skip)) throw new Error('Invalid pagination params');
+
+    const bookingModeValues = ['approval_required', 'instant_booking', 'request_price'];
+    if (filters.bookingMode && !bookingModeValues.includes(filters.bookingMode)) {
+      throw new Error('Invalid bookingMode');
+    }
+
+    return this.prisma.listing.findMany({
+      where: {
+        status: 'published',
+        ...(filters.bookingMode ? { bookingMode: filters.bookingMode as 'approval_required' | 'instant_booking' | 'request_price' } : {}),
+        ...(filters.city || filters.country ? {
+          site: {
+            ...(filters.city ? { address: { path: ['city'], equals: filters.city } } : {}),
+            ...(filters.country ? { address: { path: ['country'], equals: filters.country } } : {}),
+          },
+        } : {}),
+        ...(filters.minSizeSqm || filters.maxSizeSqm ? {
+          unit: {
+            unitType: {
+              sizeSqm: {
+                ...(filters.minSizeSqm ? { gte: parseFloat(filters.minSizeSqm) } : {}),
+                ...(filters.maxSizeSqm ? { lte: parseFloat(filters.maxSizeSqm) } : {}),
+              },
+            },
+          },
+        } : {}),
+      },
+      include: {
+        site: { select: { name: true, slug: true, address: true } },
+        unit: { select: { unitCode: true, unitType: { select: { sizeSqm: true, name: true } } } },
+      },
+      take,
+      skip,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   private async assertOwnership(organisationId: string, listingId: string) {
     const listing = await this.prisma.listing.findFirst({ where: { id: listingId, organisationId } });
     if (!listing) throw new NotFoundException('Listing not found');
