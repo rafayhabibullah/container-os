@@ -1,5 +1,6 @@
 import { ApiTags } from '@nestjs/swagger';
 import { Controller, Get, Post, Param, Body, Query, UseGuards } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { SiteGuard } from '../../common/guards/site.guard';
 import { CurrentUser, AuthenticatedUser } from '../../common/decorators/current-user.decorator';
@@ -9,7 +10,7 @@ import { AvailabilityService } from './availability.service';
 @ApiTags('public', 'operator')
 @Controller()
 export class SiteInventoryController {
-  constructor(private siteInventory: SiteInventoryService, private availability: AvailabilityService) {}
+  constructor(private siteInventory: SiteInventoryService, private availability: AvailabilityService, private prisma: PrismaClient) {}
 
   @Get('public/v1/sites')
   getSites() { return this.siteInventory.getSites(); }
@@ -36,5 +37,46 @@ export class SiteInventoryController {
   @UseGuards(JwtAuthGuard)
   transitionStatus(@Param('unitId') unitId: string, @Body() body: { to: string; reason: string }, @CurrentUser() user: AuthenticatedUser) {
     return this.siteInventory.transitionUnitStatus(unitId, body.to, user.id, body.reason);
+  }
+
+  @Get('public/v1/listings')
+  async searchListings(
+    @Query('city') city?: string,
+    @Query('country') country?: string,
+    @Query('minSizeSqm') minSizeSqm?: string,
+    @Query('maxSizeSqm') maxSizeSqm?: string,
+    @Query('bookingMode') bookingMode?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    return this.prisma.listing.findMany({
+      where: {
+        status: 'published',
+        ...(bookingMode ? { bookingMode: bookingMode as 'approval_required' | 'instant_booking' | 'request_price' } : {}),
+        site: {
+          ...(city ? { address: { path: ['city'], string_contains: city } } : {}),
+          ...(country ? { address: { path: ['country'], string_contains: country } } : {}),
+        },
+        ...(minSizeSqm || maxSizeSqm
+          ? {
+              unit: {
+                unitType: {
+                  sizeSqm: {
+                    ...(minSizeSqm ? { gte: parseFloat(minSizeSqm) } : {}),
+                    ...(maxSizeSqm ? { lte: parseFloat(maxSizeSqm) } : {}),
+                  },
+                },
+              },
+            }
+          : {}),
+      },
+      include: {
+        site: { select: { name: true, slug: true, address: true } },
+        unit: { select: { unitCode: true, unitType: { select: { sizeSqm: true, name: true } } } },
+      },
+      take: limit ? parseInt(limit, 10) : 20,
+      skip: offset ? parseInt(offset, 10) : 0,
+      orderBy: { createdAt: 'desc' },
+    });
   }
 }

@@ -24,6 +24,7 @@ import { CheckoutModule } from './modules/checkout/checkout.module';
 import { OperatorReservationsModule } from './modules/operator-reservations/operator-reservations.module';
 import { OperatorAgreementsModule } from './modules/operator-agreements/operator-agreements.module';
 import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module';
+import { ListingsModule } from './modules/listings/listings.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module
     OrganisationModule,
     // Domain modules — Track A
     SiteInventoryModule,
+    ListingsModule,
     PricingModule,
     StorefrontModule,
     // Domain modules — Track B
