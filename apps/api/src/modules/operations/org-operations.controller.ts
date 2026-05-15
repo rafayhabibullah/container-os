@@ -110,12 +110,13 @@ export class OrgOperationsController {
   async listInspections(@Param('organisationId') orgId: string) {
     const sites = await this.prisma.site.findMany({ where: { organisationId: orgId }, select: { id: true } });
     const siteIds = sites.map((s) => s.id);
-    const units = await this.prisma.unit.findMany({ where: { siteId: { in: siteIds } }, select: { id: true } });
-    const unitIds = units.map((u) => u.id);
-    return this.prisma.inspectionRun.findMany({
-      where: { unitId: { in: unitIds } },
+    const units = await this.prisma.unit.findMany({ where: { siteId: { in: siteIds } }, select: { id: true, siteId: true } });
+    const unitSiteMap = new Map(units.map((u) => [u.id, u.siteId]));
+    const runs = await this.prisma.inspectionRun.findMany({
+      where: { unitId: { in: [...unitSiteMap.keys()] } },
       orderBy: { createdAt: 'desc' },
       take: 100,
     });
+    return runs.map((r) => ({ ...r, siteId: unitSiteMap.get(r.unitId) ?? null }));
   }
 }

@@ -1,7 +1,7 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
-import { Badge } from '@sitelager/ui';
 import IncidentActions from './IncidentActions';
+import IncidentsTable from './IncidentsTable';
 
 interface Incident {
   id: string;
@@ -12,125 +12,113 @@ interface Incident {
   createdAt: string;
 }
 
-type BadgeVariant = 'default' | 'success' | 'warning' | 'destructive' | 'outline';
-
-const SEVERITY_VARIANT: Record<string, BadgeVariant> = {
-  low: 'success',
-  medium: 'warning',
-  high: 'warning',
-  critical: 'destructive',
-};
-
-const STATUS_VARIANT: Record<string, BadgeVariant> = {
-  open: 'warning',
-  in_progress: 'default',
-  resolved: 'success',
-};
+interface Site {
+  id: string;
+  name: string;
+}
 
 export default async function IncidentsPage() {
   const user = await requireAuth();
-  const incidents = await serverFetch<Incident[]>(
-    `/v1/organisations/${user.organisationId}/incidents`,
-  ).catch(() => []);
+  const [incidents, sites] = await Promise.all([
+    serverFetch<Incident[]>(`/v1/organisations/${user.organisationId}/incidents`).catch(() => [] as Incident[]),
+    serverFetch<Site[]>(`/v1/organisations/${user.organisationId}/sites`).catch(() => [] as Site[]),
+  ]);
+
+  const open       = incidents.filter((i) => i.status === 'open').length;
+  const critical   = incidents.filter((i) => i.severity === 'critical').length;
+  const resolvedCount = incidents.filter((i) => i.status === 'resolved').length;
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      {/* Page header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Incidents</h1>
-          <p className="text-sm text-slate-400 mt-0.5">
-            {incidents.length} incident{incidents.length !== 1 ? 's' : ''}
-          </p>
-        </div>
-        <IncidentActions type="report" />
-      </div>
+    <>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+      />
+      <div style={{
+        minHeight: '100vh',
+        background: '#f1f5f9',
+        padding: '36px 40px',
+        fontFamily: "'Plus Jakarta Sans', sans-serif",
+      }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
 
-      {/* Table / empty state */}
-      {incidents.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-10 text-center">
-          <p className="text-sm text-slate-400">No incidents reported.</p>
-        </div>
-      ) : (
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-100">
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                  Type
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                  Severity
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                  Status
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                  Reported
-                </th>
-                <th className="px-5 py-3" />
-              </tr>
-            </thead>
-            <tbody>
-              {incidents.map((inc, i) => (
-                <tr
-                  key={inc.id}
-                  className={`border-b border-slate-50 hover:bg-blue-50/30 transition-colors ${
-                    i % 2 === 1 ? 'bg-slate-50/50' : 'bg-white'
-                  }`}
-                >
-                  <td className="px-5 py-3.5 font-medium text-slate-900">
-                    {inc.type}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <Badge variant={SEVERITY_VARIANT[inc.severity] ?? 'outline'}>
-                      {inc.severity}
-                    </Badge>
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <Badge variant={STATUS_VARIANT[inc.status] ?? 'outline'}>
-                      {inc.status.replace('_', ' ')}
-                    </Badge>
-                  </td>
-                  <td className="px-5 py-3.5 text-slate-400 text-xs">
-                    {new Date(inc.createdAt).toLocaleDateString('de-DE')}
-                  </td>
-                  <td className="px-5 py-3.5 text-right">
-                    {inc.status !== 'resolved' && (
-                      <IncidentActions
-                        type="update"
-                        incidentId={inc.id}
-                        currentStatus={inc.status}
-                      />
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {/* ── Page header ── */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            marginBottom: '28px',
+            gap: '20px',
+            flexWrap: 'wrap',
+          }}>
+            <div>
+              <h1 style={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontSize: '26px',
+                fontWeight: 800,
+                color: '#0f172a',
+                margin: '0 0 10px',
+                letterSpacing: '-0.02em',
+              }}>
+                Incidents
+              </h1>
 
-          {/* Pagination */}
-          <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100">
-            <span className="text-xs text-slate-400">
-              Showing {incidents.length} of {incidents.length}
-            </span>
-            <div className="flex gap-2">
-              <button
-                disabled
-                className="border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-400 disabled:opacity-40"
-              >
-                ← Prev
-              </button>
-              <button
-                disabled
-                className="border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-400 disabled:opacity-40"
-              >
-                Next →
-              </button>
+              {/* Stat chips */}
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {critical > 0 && (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '5px',
+                    background: '#fef2f2', color: '#dc2626',
+                    border: '1px solid #fecaca',
+                    borderRadius: '20px', padding: '3px 10px',
+                    fontSize: '12px', fontWeight: 600,
+                  }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#dc2626', display: 'inline-block' }} />
+                    {critical} critical
+                  </span>
+                )}
+                {open > 0 && (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '5px',
+                    background: '#fff7ed', color: '#ea580c',
+                    border: '1px solid #fed7aa',
+                    borderRadius: '20px', padding: '3px 10px',
+                    fontSize: '12px', fontWeight: 600,
+                  }}>
+                    {open} open
+                  </span>
+                )}
+                {resolvedCount > 0 && (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '5px',
+                    background: '#f0fdf4', color: '#16a34a',
+                    border: '1px solid #bbf7d0',
+                    borderRadius: '20px', padding: '3px 10px',
+                    fontSize: '12px', fontWeight: 600,
+                  }}>
+                    {resolvedCount} resolved
+                  </span>
+                )}
+                {incidents.length === 0 && (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '5px',
+                    background: '#f0fdf4', color: '#16a34a',
+                    border: '1px solid #bbf7d0',
+                    borderRadius: '20px', padding: '3px 10px',
+                    fontSize: '12px', fontWeight: 600,
+                  }}>
+                    All clear
+                  </span>
+                )}
+              </div>
             </div>
+
+            <IncidentActions type="report" sites={sites} />
           </div>
+
+          <IncidentsTable incidents={incidents} />
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 }
