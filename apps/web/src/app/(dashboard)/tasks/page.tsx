@@ -3,29 +3,47 @@ import { serverFetch } from '@/lib/server-api';
 import TaskActions from './TaskActions';
 import TasksTable from './TasksTable';
 
-interface Task {
+export interface Task {
   id: string;
   title: string;
   status: string;
+  type: string | null;
+  priority: string;
   dueAt: string | null;
   siteId: string;
+  unitId: string | null;
+  tenantId: string | null;
+  bookingId: string | null;
+  assigneeId: string | null;
   notes: string | null;
 }
 
-interface Site {
+export interface Site {
   id: string;
   name: string;
 }
 
+export interface Member {
+  id: string;
+  userId: string;
+  role: string;
+  user: { id: string; name: string; email: string };
+}
+
 export default async function TasksPage() {
   const user = await requireAuth();
-  const [tasks, sites] = await Promise.all([
+  const [tasks, sites, members] = await Promise.all([
     serverFetch<Task[]>(`/v1/organisations/${user.organisationId}/tasks`).catch(() => [] as Task[]),
     serverFetch<Site[]>(`/v1/organisations/${user.organisationId}/sites`).catch(() => [] as Site[]),
+    serverFetch<Member[]>(`/v1/organisations/${user.organisationId}/members`).catch(() => [] as Member[]),
   ]);
+
+  const sitesById   = Object.fromEntries(sites.map((s) => [s.id, s]));
+  const membersById = Object.fromEntries(members.map((m) => [m.userId, m]));
 
   const open       = tasks.filter((t) => t.status === 'open').length;
   const inProgress = tasks.filter((t) => t.status === 'in_progress').length;
+  const blocked    = tasks.filter((t) => t.status === 'blocked').length;
   const completed  = tasks.filter((t) => t.status === 'completed').length;
   const overdue    = tasks.filter((t) => t.dueAt && new Date(t.dueAt) < new Date() && t.status !== 'completed' && t.status !== 'cancelled').length;
 
@@ -36,7 +54,7 @@ export default async function TasksPage() {
         rel="stylesheet"
       />
       <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
 
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', gap: '20px', flexWrap: 'wrap' }}>
@@ -61,6 +79,11 @@ export default async function TasksPage() {
                     {inProgress} in progress
                   </span>
                 )}
+                {blocked > 0 && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#fdf4ff', color: '#7e22ce', border: '1px solid #e9d5ff', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
+                    {blocked} blocked
+                  </span>
+                )}
                 {completed > 0 && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
                     {completed} completed
@@ -73,10 +96,10 @@ export default async function TasksPage() {
                 )}
               </div>
             </div>
-            <TaskActions type="create" sites={sites} />
+            <TaskActions type="create" sites={sites} members={members} />
           </div>
 
-          <TasksTable tasks={tasks} />
+          <TasksTable tasks={tasks} sitesById={sitesById} membersById={membersById} />
         </div>
       </div>
     </>
