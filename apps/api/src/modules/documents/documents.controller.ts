@@ -1,13 +1,16 @@
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { Controller, Post, Get, Param, Body, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
+import { OrganisationGuard } from '../../common/guards/organisation.guard';
 import { CurrentUser, AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { DocumentsService } from './documents.service';
+import { PrismaClient } from '@prisma/client';
 
 @ApiTags('operator', 'tenant')
+@ApiBearerAuth()
 @Controller()
 export class DocumentsController {
-  constructor(private documents: DocumentsService) {}
+  constructor(private documents: DocumentsService, private readonly prisma: PrismaClient) {}
 
   @Post('operator/v1/documents/upload')
   @UseGuards(JwtAuthGuard)
@@ -26,4 +29,22 @@ export class DocumentsController {
   @Get('tenant/v1/documents')
   @UseGuards(JwtAuthGuard)
   getDocuments(@CurrentUser() user: AuthenticatedUser) { return this.documents.getTenantDocuments(user.id); }
+
+  @Get('v1/organisations/:organisationId/documents')
+  @UseGuards(JwtAuthGuard, OrganisationGuard)
+  @ApiOperation({ summary: 'List documents for all sites in organisation' })
+  async listOrgDocuments(@Param('organisationId') orgId: string) {
+    const sites = await this.prisma.site.findMany({ where: { organisationId: orgId }, select: { id: true } });
+    const siteIds = sites.map((s) => s.id);
+    return this.prisma.document.findMany({
+      where: {
+        OR: [
+          { subjectType: 'agreement', subjectId: { in: siteIds } },
+          { subjectType: 'site', subjectId: { in: siteIds } },
+        ],
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    });
+  }
 }
