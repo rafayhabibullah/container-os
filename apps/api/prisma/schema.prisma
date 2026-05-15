@@ -25,6 +25,7 @@ model Site {
   units          Unit[]
   unitTypes      UnitType[]
   zones          Zone[]
+  listings       Listing[]
 
   @@index([organisationId])
 }
@@ -71,6 +72,7 @@ model Unit {
   site             Site       @relation(fields: [siteId], references: [id])
   unitType         UnitType   @relation(fields: [unitTypeId], references: [id])
   zone             Zone?      @relation(fields: [zoneId], references: [id])
+  listing          Listing?
 
   @@unique([siteId, unitCode])
 }
@@ -668,6 +670,7 @@ model Organisation {
   invitations     Invitation[]
   members         OrganisationMember[]
   sites           Site[]
+  listings        Listing[]
 }
 
 model OrganisationMember {
@@ -964,4 +967,44 @@ enum UserType {
   owner
   operator
   tenant
+}
+
+enum ListingStatus {
+  draft
+  published
+  paused
+  fully_booked
+  archived
+}
+
+enum BookingMode {
+  approval_required
+  instant_booking
+  request_price
+}
+
+model Listing {
+  id               String        @id @default(cuid())
+  organisationId   String
+  siteId           String
+  unitId           String        @unique
+  slug             String        @unique
+  title            String
+  description      String?
+  publicPriceMinor Int?
+  showPrice        Boolean       @default(true)
+  depositMinor     Int?
+  availableFrom    DateTime?
+  bookingMode      BookingMode   @default(approval_required)
+  status           ListingStatus @default(draft)
+  requiredDocs     String[]
+  seoTitle         String?
+  seoDescription   String?
+  commissionRateBp Int           @default(0)
+  source           String        @default("manual")
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  organisation     Organisation  @relation(fields: [organisationId], references: [id])
+  site             Site          @relation(fields: [siteId], references: [id])
+  unit             Unit          @relation(fields: [unitId], references: [id])
 }
