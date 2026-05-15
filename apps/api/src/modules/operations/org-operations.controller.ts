@@ -5,6 +5,7 @@ import { OrganisationGuard } from '../../common/guards/organisation.guard';
 import { CurrentMember } from '../../common/decorators/current-member.decorator';
 import { OperationsService } from './operations.service';
 import { InspectionService } from './inspection.service';
+import { PrismaClient } from '@prisma/client';
 
 interface MemberContext { userId: string; role: string; organisationId: string; }
 
@@ -16,6 +17,7 @@ export class OrgOperationsController {
   constructor(
     private readonly ops: OperationsService,
     private readonly inspections: InspectionService,
+    private readonly prisma: PrismaClient,
   ) {}
 
   @Get('tasks')
@@ -101,5 +103,19 @@ export class OrgOperationsController {
     @Body() body: { unitId: string; siteId: string; kind: string; checklist: { code: string; result: string; note?: string }[] },
   ) {
     return this.inspections.createInspectionRun(body.unitId, body.siteId, body.kind, body.checklist as any);
+  }
+
+  @Get('inspections')
+  @ApiOperation({ summary: 'List inspection runs for all units in organisation' })
+  async listInspections(@Param('organisationId') orgId: string) {
+    const sites = await this.prisma.site.findMany({ where: { organisationId: orgId }, select: { id: true } });
+    const siteIds = sites.map((s) => s.id);
+    const units = await this.prisma.unit.findMany({ where: { siteId: { in: siteIds } }, select: { id: true } });
+    const unitIds = units.map((u) => u.id);
+    return this.prisma.inspectionRun.findMany({
+      where: { unitId: { in: unitIds } },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
   }
 }
