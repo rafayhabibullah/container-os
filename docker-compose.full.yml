@@ -1,6 +1,6 @@
 # docker-compose.full.yml
 # ─────────────────────────────────────────────────────────────────────────────
-# Full stack: all 5 infrastructure services + 4 application containers.
+# Full stack: all 5 infrastructure services + 2 application containers.
 #
 # Usage:
 #   docker compose -f docker-compose.full.yml up --build
@@ -46,8 +46,7 @@ services:
       MINIO_BUCKET: container-os-dev
       SMTP_HOST: mailhog
       SMTP_PORT: '1025'
-      # Comma-separated list — CORS allows all three portals.
-      FRONTEND_URL: http://localhost:3001,http://localhost:3002,http://localhost:3003
+      FRONTEND_URL: http://localhost:3001
     depends_on:
       postgres:
         condition: service_healthy
@@ -62,60 +61,22 @@ services:
       start_period: 60s   # allow time for migrations to run
       retries: 5
 
-  # ─── Owner portal (port 3001) ─────────────────────────────────────────────
-  web-owner:
+  # ─── Web portal (port 3001) ───────────────────────────────────────────────
+  web:
     build:
       context: .
-      dockerfile: apps/web-owner/Dockerfile
+      dockerfile: apps/web/Dockerfile
       args:
         # Must be the browser-visible URL (baked into the JS bundle at build time).
         NEXT_PUBLIC_API_URL: http://localhost:3000/api
-    image: container-os/web-owner:local
-    container_name: container_os_web_owner
+    image: sitelager/web:local
+    container_name: sitelager_web
     restart: unless-stopped
     ports:
       - '3001:3001'
     environment:
       NODE_ENV: production
       PORT: '3001'
-    depends_on:
-      api:
-        condition: service_healthy
-
-  # ─── Operator portal (port 3002) ──────────────────────────────────────────
-  web-operator:
-    build:
-      context: .
-      dockerfile: apps/web-operator/Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: http://localhost:3000/api
-    image: container-os/web-operator:local
-    container_name: container_os_web_operator
-    restart: unless-stopped
-    ports:
-      - '3002:3002'
-    environment:
-      NODE_ENV: production
-      PORT: '3002'
-    depends_on:
-      api:
-        condition: service_healthy
-
-  # ─── Tenant portal (port 3003) ────────────────────────────────────────────
-  web-tenant:
-    build:
-      context: .
-      dockerfile: apps/web-tenant/Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: http://localhost:3000/api
-    image: container-os/web-tenant:local
-    container_name: container_os_web_tenant
-    restart: unless-stopped
-    ports:
-      - '3003:3003'
-    environment:
-      NODE_ENV: production
-      PORT: '3003'
     depends_on:
       api:
         condition: service_healthy

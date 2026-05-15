@@ -6,7 +6,7 @@ RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 WORKDIR /monorepo
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
-COPY apps/web-operator/package.json              ./apps/web-operator/package.json
+COPY apps/web/package.json              ./apps/web/package.json
 COPY packages/domain-types/package.json  ./packages/domain-types/package.json
 COPY packages/i18n/package.json          ./packages/i18n/package.json
 COPY packages/ui/package.json            ./packages/ui/package.json
@@ -25,17 +25,14 @@ WORKDIR /monorepo
 ARG NEXT_PUBLIC_API_URL=http://localhost:3000/api
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
-# Copy the full installed workspace (preserves per-package node_modules symlinks).
 COPY --from=deps /monorepo .
 
-# Overlay actual source files.
 COPY packages/ui            ./packages/ui
 COPY packages/i18n          ./packages/i18n
 COPY packages/domain-types  ./packages/domain-types
-COPY apps/web-operator              ./apps/web-operator
+COPY apps/web               ./apps/web
 
-# Run next build directly from the app directory.
-RUN cd apps/web-operator && ./node_modules/.bin/next build
+RUN cd apps/web && ./node_modules/.bin/next build
 
 
 # ─── Stage 3: runtime ─────────────────────────────────────────────────────────
@@ -46,21 +43,21 @@ RUN addgroup -g 1001 nodejs && adduser -u 1001 -G nodejs -s /bin/sh -D nextjs
 WORKDIR /app
 
 COPY --from=build --chown=nextjs:nodejs \
-  /monorepo/apps/web-operator/.next/standalone ./
+  /monorepo/apps/web/.next/standalone ./
 
 COPY --from=build --chown=nextjs:nodejs \
-  /monorepo/apps/web-operator/.next/static \
-  ./apps/web-operator/.next/static
+  /monorepo/apps/web/.next/static \
+  ./apps/web/.next/static
 
 USER nextjs
 
-ENV PORT=3002 \
+ENV PORT=3001 \
     NODE_ENV=production \
     HOSTNAME=0.0.0.0
 
-EXPOSE 3002
+EXPOSE 3001
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
-  CMD wget -qO- http://localhost:3002/ || exit 1
+  CMD wget -qO- http://localhost:3001/ || exit 1
 
-CMD ["node", "apps/web-operator/server.js"]
+CMD ["node", "apps/web/server.js"]

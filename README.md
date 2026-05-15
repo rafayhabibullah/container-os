@@ -11,9 +11,7 @@ A German-first, multi-site container/self-storage SaaS for a two-site operator. 
 ```
 apps/
   api/            NestJS backend — 16 domain modules, REST API
-  web-owner/      Next.js Owner portal   (port 3001) — portfolio KPIs, DATEV export
-  web-operator/   Next.js Operator portal (port 3002) — daily queue, leads, inspections
-  web-tenant/     Next.js Tenant portal  (port 3003) — browse, book, sign, pay
+  web/            Next.js unified portal (port 3001) — owner, operator, and tenant dashboards
 
 packages/
   domain-types/   Shared TypeScript enums, Zod schemas, DomainException
@@ -49,7 +47,7 @@ cp .env.example .env
 docker compose -f docker-compose.full.yml up --build
 ```
 
-**Startup order (automatic):** postgres → redis → minio → keycloak → mailhog → api (runs migrations) → web-owner → web-operator → web-tenant
+**Startup order (automatic):** postgres → redis → minio → keycloak → mailhog → api (runs migrations) → web
 
 Once healthy, all services are available at the same ports as the dev workflow (see [Key URLs](#key-urls-local) below). First boot takes ~3–5 minutes to build images. Subsequent starts (without `--build`) are under 30 seconds.
 
@@ -148,19 +146,10 @@ Or for file-watch dev mode (recompiles on save):
 node_modules/.bin/nest start --watch
 ```
 
-### 8. Start the portals (each in a separate terminal)
+### 8. Start the web portal
 
 ```bash
-# Tenant portal
-cd apps/web-tenant
-NEXT_PUBLIC_API_URL="http://localhost:3000/api" pnpm dev   # → http://localhost:3003
-
-# Operator portal
-cd apps/web-operator
-NEXT_PUBLIC_API_URL="http://localhost:3000/api" pnpm dev   # → http://localhost:3002
-
-# Owner portal
-cd apps/web-owner
+cd apps/web
 NEXT_PUBLIC_API_URL="http://localhost:3000/api" pnpm dev   # → http://localhost:3001
 ```
 
@@ -185,9 +174,7 @@ All tests use mocks — no running database required.
 | http://localhost:3000/api/readyz | API readiness (checks DB) |
 | **http://localhost:3000/docs** | **Swagger UI — 51 routes** |
 | http://localhost:3000/docs-json | OpenAPI JSON |
-| http://localhost:3001 | Owner portal |
-| http://localhost:3002 | Operator portal |
-| http://localhost:3003 | **Tenant portal (public)** |
+| http://localhost:3001 | Web portal (owner / operator / tenant) |
 | http://localhost:8025 | MailHog — email preview |
 | http://localhost:9001 | MinIO console |
 | http://localhost:8080 | Keycloak admin |
@@ -290,12 +277,10 @@ apps/
   api/
     Dockerfile                       3-stage: deps (pnpm deploy) → build (tsc) → runtime (Alpine)
     entrypoint.sh                    Wait for Postgres, run migrations, start server
-  web-tenant/Dockerfile              3-stage: deps → Next.js standalone build → runtime (Alpine)
-  web-operator/Dockerfile            Same pattern, port 3002
-  web-owner/Dockerfile               Same pattern, port 3001
+  web/Dockerfile                     3-stage: deps → Next.js standalone build → runtime (Alpine)
 
 docker-compose.yml                   Infra only: postgres, redis, minio, keycloak, mailhog
-docker-compose.full.yml              Full stack: infra + all 4 app containers
+docker-compose.full.yml              Full stack: infra + api + web containers
 ```
 
 **Key Docker design decisions:**
