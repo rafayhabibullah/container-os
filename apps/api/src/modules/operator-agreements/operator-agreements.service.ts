@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
 
-interface ListAgreementsFilter { siteId?: string; status?: string; }
+interface ListAgreementsFilter { siteId?: string; unitId?: string; status?: string; }
 
 @Injectable()
 export class OperatorAgreementsService {
@@ -19,6 +19,7 @@ export class OperatorAgreementsService {
       where: {
         siteId: { in: siteIds },
         ...(filter.siteId ? { siteId: filter.siteId } : {}),
+        ...(filter.unitId ? { unitId: filter.unitId } : {}),
         ...(filter.status ? { status: filter.status as any } : {}),
       },
       orderBy: { createdAt: 'desc' },

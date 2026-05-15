@@ -2,12 +2,17 @@
 
 import { useState, useMemo } from 'react';
 
+interface ChecklistItem { code: string; label: string; result: string; note?: string; }
+
 interface InspectionRow {
   id: string;
   siteId: string | null;
   unitId: string;
   kind: string;
   result: string | null;
+  checklist: ChecklistItem[] | null;
+  notes: string | null;
+  depositDeduction: number | null;
   completedAt: string | null;
   createdAt: string;
 }
@@ -161,7 +166,7 @@ export default function InspectionsTable({ inspections }: { inspections: Inspect
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                {['Site', 'Unit', 'Kind', 'Result', 'Completed', 'Created'].map((h) => (
+                {['Site', 'Unit', 'Kind', 'Result', 'Checklist', 'Deposit', 'Completed', 'Created'].map((h) => (
                   <th key={h} style={{
                     textAlign: 'left', padding: '10px 20px',
                     fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -219,6 +224,32 @@ export default function InspectionsTable({ inspections }: { inspections: Inspect
                         <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: res.dot, display: 'inline-block' }} />
                         {res.label}
                       </span>
+                    </td>
+
+                    {/* Checklist summary */}
+                    <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                      {insp.checklist && insp.checklist.length > 0 ? (
+                        <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '12px', color: '#64748b' }}>
+                          {insp.checklist.filter((i) => i.result === 'pass').length}✓{' '}
+                          {insp.checklist.filter((i) => i.result === 'fail').length > 0 && (
+                            <span style={{ color: '#dc2626' }}>{insp.checklist.filter((i) => i.result === 'fail').length}✗</span>
+                          )}
+                          {' '}/ {insp.checklist.length}
+                        </span>
+                      ) : (
+                        <span style={{ color: '#cbd5e1', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>—</span>
+                      )}
+                    </td>
+
+                    {/* Deposit deduction */}
+                    <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                      {insp.depositDeduction ? (
+                        <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#dc2626', fontWeight: 600 }}>
+                          €{insp.depositDeduction.toFixed(2)}
+                        </span>
+                      ) : (
+                        <span style={{ color: '#cbd5e1', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>—</span>
+                      )}
                     </td>
 
                     {/* Completed */}

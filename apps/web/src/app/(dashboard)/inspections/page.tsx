@@ -9,6 +9,9 @@ interface InspectionRow {
   unitId: string;
   kind: string;
   result: string | null;
+  checklist: { code: string; label: string; result: string; note?: string }[] | null;
+  notes: string | null;
+  depositDeduction: number | null;
   completedAt: string | null;
   createdAt: string;
 }

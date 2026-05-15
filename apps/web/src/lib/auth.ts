@@ -8,7 +8,7 @@ export interface TokenPayload {
   sub: string;
   organisationId: string;
   role: 'owner' | 'operator' | 'tenant';
-  type: string;
+  type: 'owner' | 'operator' | 'tenant';
   exp: number;
 }
 

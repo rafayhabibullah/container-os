@@ -15,7 +15,7 @@ export default function DelinquencyPolicyPage() {
   const params = useParams<{ siteId: string }>();
   const siteId = params.siteId;
 
-  const [_policy, setPolicy] = useState<DelinquencyPolicy | null>(null);
+  const [, setPolicy] = useState<DelinquencyPolicy | null>(null);
   const [overdueDays, setOverdueDays] = useState(14);
   const [lockoutEnabled, setLockoutEnabled] = useState(true);
   const [saving, setSaving] = useState(false);

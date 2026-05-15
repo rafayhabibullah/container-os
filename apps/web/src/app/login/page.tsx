@@ -25,6 +25,9 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? 'Login failed');
+      if (data.userType === 'tenant') {
+        throw new Error('This portal is for operators and owners. Please contact your facility for tenant access.');
+      }
       router.push('/dashboard');
       router.refresh();
     } catch (err: unknown) {

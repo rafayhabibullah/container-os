@@ -7,9 +7,10 @@ export class OrganisationGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const user = request.user as { sub?: string; organisationId?: string };
+    const user = request.user as { sub?: string; organisationId?: string; type?: string };
 
     if (!user?.sub || !user?.organisationId) return false;
+    if (user.type === 'tenant') return false;
 
     const member = await this.prisma.organisationMember.findFirst({
       where: { userId: user.sub, organisationId: user.organisationId },

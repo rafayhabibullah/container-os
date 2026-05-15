@@ -15,7 +15,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { status: res.status });
   }
 
-  const response = NextResponse.json({ ok: true });
+  const [, payloadB64] = (data.accessToken as string).split('.');
+  const { type: userType } = JSON.parse(Buffer.from(payloadB64, 'base64url').toString()) as { type: string };
+
+  const response = NextResponse.json({ ok: true, userType });
   response.cookies.set('sl_access', data.accessToken, {
     httpOnly: true,
     path: '/',

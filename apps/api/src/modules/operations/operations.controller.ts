@@ -17,7 +17,7 @@ export class OperationsController {
 
   @Post('inspections')
   createInspection(@Body() body: { unitId: string; siteId: string; kind: string; checklist: any[]; photoIds?: string[] }) {
-    return this.inspection.createInspectionRun(body.unitId, body.siteId, body.kind, body.checklist, body.photoIds);
+    return this.inspection.createInspectionRun({ unitId: body.unitId, siteId: body.siteId, kind: body.kind, checklist: body.checklist, photoIds: body.photoIds });
   }
 
   @Post('incidents')

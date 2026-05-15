@@ -18,9 +18,10 @@ export class OperatorAgreementsController {
   list(
     @Param('organisationId') orgId: string,
     @Query('siteId') siteId?: string,
+    @Query('unitId') unitId?: string,
     @Query('status') status?: string,
   ) {
-    return this.service.listAgreements(orgId, { siteId, status });
+    return this.service.listAgreements(orgId, { siteId, unitId, status });
   }
 
   @Get(':agreementId')
