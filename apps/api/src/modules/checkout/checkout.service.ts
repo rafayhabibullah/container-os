@@ -53,6 +53,7 @@ export class CheckoutService {
         startDate: new Date(meta.startDate),
         expiresAt,
         status: 'pending_signature',
+        source: 'marketplace',
       },
     });
 

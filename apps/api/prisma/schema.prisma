@@ -220,6 +220,7 @@ model Reservation {
   unitTypeId String
   customerId String
   status     ReservationStatus @default(pending)
+  source     String            @default("manual")
   startDate  DateTime
   expiresAt  DateTime
   createdAt  DateTime          @default(now())
