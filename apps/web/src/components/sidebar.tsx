@@ -13,22 +13,32 @@ import {
   AlertTriangle,
   BookOpen,
   Settings,
-  Warehouse,
+  Globe,
+  CreditCard,
+  ClipboardCheck,
+  FolderOpen,
+  Receipt,
+  FileCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
   { href: '/sites', label: 'Sites', icon: Building2 },
-  { href: '/invoices', label: 'Invoices', icon: FileText },
-  { href: '/customers', label: 'Customers', icon: Users },
+  { href: '/listings', label: 'Listings', icon: Globe },
   { href: '/reservations', label: 'Reservations', icon: CalendarCheck },
+  { href: '/bookings', label: 'Bookings', icon: FileCheck },
+  { href: '/customers', label: 'Customers', icon: Users },
   { href: '/agreements', label: 'Agreements', icon: BookOpen },
+  { href: '/invoices', label: 'Invoices', icon: FileText },
+  { href: '/payments', label: 'Payments', icon: CreditCard },
   { href: '/tasks', label: 'Tasks', icon: ClipboardList },
+  { href: '/inspections', label: 'Inspections', icon: ClipboardCheck },
   { href: '/incidents', label: 'Incidents', icon: AlertTriangle },
+  { href: '/documents', label: 'Documents', icon: FolderOpen },
   { href: '/reports', label: 'Reports', icon: BarChart2 },
   { href: '/team', label: 'Team', icon: Users },
-  { href: '/storage', label: 'Storefront', icon: Warehouse },
+  { href: '/billing', label: 'SiteLager Billing', icon: Receipt },
 ] as const;
 
 export function Sidebar() {
