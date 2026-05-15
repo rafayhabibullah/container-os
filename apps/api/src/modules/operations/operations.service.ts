@@ -11,8 +11,21 @@ export class OperationsService {
     eventBus.on(Events.ACCESS_DENIED, async (event: any) => { await this.createIncident({ siteId: event.meta.siteId, severity: 'medium', type: 'unauthorized_access', linkedAccessEventId: event.payload.accessEventId }); });
   }
 
-  async createTask(params: { siteId: string; title: string; assigneeId?: string; subjectRef?: string; dueAt?: Date }) {
-    const task = await this.prisma.task.create({ data: params });
+  async createTask(params: {
+    organisationId?: string;
+    siteId: string;
+    unitId?: string;
+    tenantId?: string;
+    bookingId?: string;
+    title: string;
+    type?: string;
+    priority?: string;
+    notes?: string;
+    assigneeId?: string;
+    subjectRef?: string;
+    dueAt?: Date;
+  }) {
+    const task = await this.prisma.task.create({ data: params as any });
     await this.audit.record({ action: 'task.created', subjectType: 'Task', subjectId: task.id, siteId: params.siteId });
     return task;
   }
