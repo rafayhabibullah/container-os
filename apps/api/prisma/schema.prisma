@@ -997,7 +997,7 @@ model Listing {
   availableFrom    DateTime?
   bookingMode      BookingMode   @default(approval_required)
   status           ListingStatus @default(draft)
-  requiredDocs     String[]
+  requiredDocs     String[]  @default([])
   seoTitle         String?
   seoDescription   String?
   commissionRateBp Int           @default(0)
@@ -1007,4 +1007,7 @@ model Listing {
   organisation     Organisation  @relation(fields: [organisationId], references: [id])
   site             Site          @relation(fields: [siteId], references: [id])
   unit             Unit          @relation(fields: [unitId], references: [id])
+
+  @@index([organisationId, status])
+  @@index([siteId, status])
 }
