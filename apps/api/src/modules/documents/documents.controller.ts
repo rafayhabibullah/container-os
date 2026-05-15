@@ -36,10 +36,12 @@ export class DocumentsController {
   async listOrgDocuments(@Param('organisationId') orgId: string) {
     const sites = await this.prisma.site.findMany({ where: { organisationId: orgId }, select: { id: true } });
     const siteIds = sites.map((s) => s.id);
+    const agreements = await this.prisma.agreement.findMany({ where: { siteId: { in: siteIds } }, select: { id: true } });
+    const agreementIds = agreements.map((a) => a.id);
     return this.prisma.document.findMany({
       where: {
         OR: [
-          { subjectType: 'agreement', subjectId: { in: siteIds } },
+          { subjectType: 'agreement', subjectId: { in: agreementIds } },
           { subjectType: 'site', subjectId: { in: siteIds } },
         ],
       },
