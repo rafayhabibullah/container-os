@@ -3,6 +3,109 @@ import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+function monthsAgo(n: number): Date {
+  const d = new Date();
+  d.setDate(1);
+  d.setMonth(d.getMonth() - n);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function daysFromNow(n: number): Date {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+async function seedSiteConfig(
+  siteId: string,
+  siteName: string,
+  opts: {
+    costCenter: string;
+    heroHeadline: string;
+    heroSubline: string;
+    heroCta: string;
+    faqs: Array<{ question: string; answer: string }>;
+    seoTitle: string;
+    seoDescription: string;
+  },
+) {
+  await prisma.feeSchedule.upsert({
+    where: { siteId },
+    create: { siteId, depositMinor: 9900, lateFeePolicy: { days: 14, feeMinor: 2500 }, adminFeeMinor: 0 },
+    update: {},
+  });
+  await prisma.taxProfile.upsert({
+    where: { id: `tax_${siteId}_std` },
+    create: { id: `tax_${siteId}_std`, siteId, taxCode: 'DE_STD', vatRate: 0.19 },
+    update: {},
+  });
+  await prisma.delinquencyPolicy.upsert({
+    where: { siteId },
+    create: { siteId, overdueDays: 14, lockoutEnabled: true, lateFeeRules: [{ daysOverdue: 14, feeMinor: 2500 }] },
+    update: {},
+  });
+  await prisma.reminderPolicy.upsert({
+    where: { siteId },
+    create: { siteId, steps: [{ dayOffset: 3, channel: 'email' }, { dayOffset: 7, channel: 'email' }, { dayOffset: 10, channel: 'email' }] },
+    update: {},
+  });
+  await prisma.promotion.upsert({
+    where: { id: `promo_${siteId}_summer` },
+    create: { id: `promo_${siteId}_summer`, siteId, code: 'SOMMER25', discountType: 'percentage', value: 25, stackingPolicy: 'none', validFrom: new Date('2026-06-01'), validTo: new Date('2026-08-31') },
+    update: {},
+  });
+  await prisma.promotion.upsert({
+    where: { id: `promo_${siteId}_new` },
+    create: { id: `promo_${siteId}_new`, siteId, code: 'NEUMIETER15', discountType: 'percentage', value: 15, stackingPolicy: 'none', validFrom: new Date('2026-01-01') },
+    update: {},
+  });
+  await prisma.landingPageConfig.upsert({
+    where: { siteId },
+    create: {
+      siteId,
+      heroContent: { headline: opts.heroHeadline, subline: opts.heroSubline, cta: opts.heroCta },
+      faqBlocks: opts.faqs,
+      seoMeta: { title: opts.seoTitle, description: opts.seoDescription },
+    },
+    update: {},
+  });
+  await prisma.accountingMapping.upsert({
+    where: { id: `acc_map_${siteId}_rent` },
+    create: { id: `acc_map_${siteId}_rent`, siteId, revenueAccount: '8400', taxCode: 'DE_STD', costCenter: opts.costCenter, effectiveFrom: new Date('2026-01-01') },
+    update: {},
+  });
+  await prisma.inspectionTemplate.upsert({
+    where: { id: `insp_${siteId}_movein` },
+    create: {
+      id: `insp_${siteId}_movein`, siteId, kind: 'move_in',
+      checklist: [
+        { code: 'dry', label: 'Unit dry and mould-free?' },
+        { code: 'door_seal', label: 'Door seal intact?' },
+        { code: 'lock', label: 'Lock functional?' },
+        { code: 'floor', label: 'Floor clean and undamaged?' },
+        { code: 'ventilation', label: 'Ventilation present and clear?' },
+      ],
+    },
+    update: {},
+  });
+  await prisma.inspectionTemplate.upsert({
+    where: { id: `insp_${siteId}_moveout` },
+    create: {
+      id: `insp_${siteId}_moveout`, siteId, kind: 'move_out',
+      checklist: [
+        { code: 'empty', label: 'Unit fully cleared?' },
+        { code: 'clean', label: 'Unit clean and swept?' },
+        { code: 'damage', label: 'No new damage present?' },
+        { code: 'door_seal', label: 'Door seal still intact?' },
+      ],
+    },
+    update: {},
+  });
+  console.log(`✓ Site config: ${siteName}`);
+}
+
 async function main() {
   console.log('Seeding SiteLager database...');
 
