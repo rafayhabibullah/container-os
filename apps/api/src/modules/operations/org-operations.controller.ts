@@ -156,11 +156,12 @@ export class OrgOperationsController {
 
     const run = await this.prisma.inspectionRun.findFirst({ where: { id } });
     if (!run) throw new NotFoundException(`Inspection ${id} not found`);
+    if (run.completedAt) throw new BadRequestException(`Inspection ${id} is already completed`);
 
     const unit = await this.prisma.unit.findFirst({ where: { id: run.unitId }, select: { siteId: true } });
-    const site = unit
-      ? await this.prisma.site.findFirst({ where: { id: unit.siteId, organisationId: orgId } })
-      : null;
+    if (!unit) throw new NotFoundException(`Unit for inspection ${id} not found`);
+
+    const site = await this.prisma.site.findFirst({ where: { id: unit.siteId, organisationId: orgId } });
     if (!site) throw new ForbiddenException('Inspection does not belong to this organisation');
 
     return this.inspections.completeInspectionRun(id, {
