@@ -191,15 +191,20 @@ export class OrgOperationsController {
   @Get('inspections')
   @ApiOperation({ summary: 'List inspection runs for all units in organisation' })
   async listInspections(@Param('organisationId') orgId: string) {
-    const sites = await this.prisma.site.findMany({ where: { organisationId: orgId }, select: { id: true } });
+    const sites = await this.prisma.site.findMany({ where: { organisationId: orgId }, select: { id: true, name: true } });
     const siteIds = sites.map((s) => s.id);
-    const units = await this.prisma.unit.findMany({ where: { siteId: { in: siteIds } }, select: { id: true, siteId: true } });
-    const unitSiteMap = new Map(units.map((u) => [u.id, u.siteId]));
+    const siteMap = new Map(sites.map((s) => [s.id, s.name]));
+    const units = await this.prisma.unit.findMany({ where: { siteId: { in: siteIds } }, select: { id: true, siteId: true, unitCode: true } });
+    const unitMap = new Map(units.map((u) => [u.id, { siteId: u.siteId, unitCode: u.unitCode }]));
     const runs = await this.prisma.inspectionRun.findMany({
-      where: { unitId: { in: [...unitSiteMap.keys()] } },
+      where: { unitId: { in: [...unitMap.keys()] } },
       orderBy: { createdAt: 'desc' },
       take: 100,
     });
-    return runs.map((r) => ({ ...r, siteId: unitSiteMap.get(r.unitId) ?? null }));
+    return runs.map((r) => {
+      const unit = unitMap.get(r.unitId);
+      const siteId = unit?.siteId ?? null;
+      return { ...r, siteId, siteName: siteId ? (siteMap.get(siteId) ?? null) : null, unitCode: unit?.unitCode ?? null };
+    });
   }
 }

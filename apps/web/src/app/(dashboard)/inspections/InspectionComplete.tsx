@@ -3,13 +3,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
+import { CHECKLISTS } from './checklists';
 
 interface ChecklistItem { code: string; label: string; result: 'pass' | 'fail' | 'na'; note: string; }
 
 interface InspectionRow {
   id: string;
   siteId: string | null;
+  siteName?: string | null;
   unitId: string;
+  unitCode?: string | null;
   kind: string;
   result: string | null;
   checklist: { code: string; label: string; result: string; note?: string }[] | null;
@@ -52,14 +55,16 @@ const labelStyle: React.CSSProperties = {
   letterSpacing: '0.03em',
 };
 
-function normalizeChecklist(raw: InspectionRow['checklist']): ChecklistItem[] {
-  if (!raw || raw.length === 0) return [];
-  return raw.map((item) => ({
-    code: item.code,
-    label: item.label,
-    result: (item.result as 'pass' | 'fail' | 'na') ?? 'na',
-    note: item.note ?? '',
-  }));
+function normalizeChecklist(raw: InspectionRow['checklist'], kind: string): ChecklistItem[] {
+  if (raw && raw.length > 0) {
+    return raw.map((item) => ({
+      code: item.code,
+      label: item.label,
+      result: (item.result as 'pass' | 'fail' | 'na') ?? 'na',
+      note: item.note ?? '',
+    }));
+  }
+  return (CHECKLISTS[kind] ?? CHECKLISTS.routine).map((item) => ({ ...item, result: 'na' as const, note: '' }));
 }
 
 export default function InspectionComplete({ inspection, onClose }: Props) {
@@ -69,7 +74,7 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [checklist, setChecklist] = useState<ChecklistItem[]>(() => normalizeChecklist(inspection.checklist));
+  const [checklist, setChecklist] = useState<ChecklistItem[]>(() => normalizeChecklist(inspection.checklist, inspection.kind));
   const [notes, setNotes] = useState(inspection.notes ?? '');
   const [depositDeduction, setDepositDeduction] = useState(inspection.depositDeduction?.toString() ?? '');
   const [newPhotos, setNewPhotos] = useState<{ file: File; previewUrl: string; uploading: boolean; photoId: string | null }[]>([]);
@@ -227,8 +232,8 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
             {/* Read-only summary */}
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {[
-                { label: 'SITE', value: inspection.siteId ? inspection.siteId.slice(0, 8) + '…' : '—' },
-                { label: 'UNIT', value: inspection.unitId.slice(0, 8) + '…' },
+                { label: 'SITE', value: inspection.siteName ?? (inspection.siteId ? inspection.siteId.slice(0, 8) + '…' : '—') },
+                { label: 'UNIT', value: inspection.unitCode ?? inspection.unitId.slice(0, 8) + '…' },
                 { label: 'TYPE', value: KIND_LABEL[inspection.kind] ?? inspection.kind },
               ].map(({ label, value }) => (
                 <div key={label} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px' }}>

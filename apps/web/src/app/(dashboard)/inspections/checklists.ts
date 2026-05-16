@@ -1,0 +1,33 @@
+export const CHECKLISTS: Record<string, { code: string; label: string }[]> = {
+  move_in: [
+    { code: 'PHOTOS',    label: 'Photos uploaded' },
+    { code: 'CLEAN',     label: 'Unit clean' },
+    { code: 'DOOR',      label: 'Door working' },
+    { code: 'LOCK',      label: 'Lock working' },
+    { code: 'FLOOR',     label: 'Floor condition OK' },
+    { code: 'WALLS',     label: 'Wall condition OK' },
+    { code: 'DAMP',      label: 'No water / damp signs' },
+    { code: 'DAMAGE',    label: 'No existing damage' },
+    { code: 'TENANT_OK', label: 'Tenant confirmation (optional)' },
+  ],
+  move_out: [
+    { code: 'PHOTOS',   label: 'Photos uploaded' },
+    { code: 'EMPTY',    label: 'Unit empty' },
+    { code: 'CLEAN',    label: 'Unit clean' },
+    { code: 'DAMAGE',   label: 'No new damage' },
+    { code: 'CLEANING', label: 'Cleaning required' },
+    { code: 'REPAIR',   label: 'Repair required' },
+    { code: 'DEPOSIT',  label: 'Deposit deduction assessed' },
+    { code: 'STATUS',   label: 'Return unit to available / maintenance' },
+  ],
+  routine: [
+    { code: 'PHOTOS', label: 'Photos uploaded' },
+    { code: 'DOOR',   label: 'Door working' },
+    { code: 'LOCK',   label: 'Lock working' },
+    { code: 'FLOOR',  label: 'Floor condition OK' },
+    { code: 'WALLS',  label: 'Wall condition OK' },
+    { code: 'DAMP',   label: 'No water / damp signs' },
+    { code: 'CLEAN',  label: 'Unit clean' },
+    { code: 'DAMAGE', label: 'No damage observed' },
+  ],
+};

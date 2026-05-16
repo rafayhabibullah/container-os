@@ -7,7 +7,9 @@ interface ChecklistItem { code: string; label: string; result: string; note?: st
 interface InspectionRow {
   id: string;
   siteId: string | null;
+  siteName?: string | null;
   unitId: string;
+  unitCode?: string | null;
   kind: string;
   result: string | null;
   checklist: ChecklistItem[] | null;
@@ -193,14 +195,14 @@ export default function InspectionsTable({ inspections, onContinue }: { inspecti
                     {/* Site */}
                     <td style={{ padding: '14px 20px' }}>
                       <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#64748b', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '5px', padding: '2px 8px' }}>
-                        {insp.siteId ? insp.siteId.slice(0, 8) + '…' : '—'}
+                        {insp.siteName ?? (insp.siteId ? insp.siteId.slice(0, 8) + '…' : '—')}
                       </span>
                     </td>
 
                     {/* Unit */}
                     <td style={{ padding: '14px 20px' }}>
                       <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#64748b', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '5px', padding: '2px 8px' }}>
-                        {insp.unitId.slice(0, 8)}…
+                        {insp.unitCode ?? insp.unitId.slice(0, 8) + '…'}
                       </span>
                     </td>
 
