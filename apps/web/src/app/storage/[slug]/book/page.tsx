@@ -102,8 +102,21 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4">
-      <div className="max-w-xl mx-auto">
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white border-b border-slate-100 sticky top-0 z-10">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
+              <span className="text-white text-xs font-bold">S</span>
+            </div>
+            <span className="font-bold text-slate-900 text-sm">SiteLager</span>
+          </Link>
+          <Link href="/login" className="text-sm text-slate-600 hover:text-slate-900">Sign in</Link>
+        </div>
+      </header>
+
+      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="max-w-xl">
         <Link href={`/storage/${params.slug}`} className="text-sm text-slate-500 hover:text-slate-700 mb-6 block">
           &larr; Back to site
         </Link>
@@ -119,7 +132,7 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
           ))}
         </div>
 
-        <div className="bg-white rounded-2xl shadow p-8">
+        <div className="bg-white rounded-xl border border-slate-200 p-6">
           {error && (
             <div className="mb-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
               {error}
@@ -171,7 +184,7 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
               <button
                 type="submit"
                 disabled={loading || !selectedUnitType}
-                className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm"
               >
                 {loading ? 'Checking availability…' : 'Continue'}
               </button>
@@ -232,14 +245,14 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
                 <button
                   type="button"
                   onClick={() => setStep('unit')}
-                  className="flex-1 border border-slate-300 text-slate-700 font-medium py-3 rounded-xl hover:bg-slate-50 transition-colors"
+                  className="flex-1 border border-slate-200 text-slate-700 font-medium py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-sm"
                 >
                   Back
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  className="flex-1 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm"
                 >
                   {loading ? 'Confirming…' : 'Confirm booking'}
                 </button>
@@ -258,7 +271,7 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
               <p className="text-slate-500 text-sm">
                 A confirmation email has been sent to <strong>{contact.email}</strong>.
               </p>
-              <div className="bg-slate-50 rounded-xl p-4 text-left text-sm space-y-2">
+              <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 text-left text-sm space-y-2">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Reservation ID</span>
                   <span className="font-mono text-xs text-slate-700">{result.reservationId}</span>
@@ -284,6 +297,7 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
