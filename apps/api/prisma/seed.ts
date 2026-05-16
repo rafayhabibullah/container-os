@@ -1205,6 +1205,118 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
 
   console.log('✓ Story 2: Sarah Mitchell — confirmed reservation, pending signature, move-in task');
 
+  // ─── Story 3: Klaus Hoffmann (delinquent, lockout active) ────────────────
+
+  const klausUnit = await prisma.unit.findFirstOrThrow({ where: { siteId: siteFrankfurt.id, unitCode: 'A03' } });
+  await prisma.unit.update({ where: { id: klausUnit.id }, data: { status: 'occupied' } });
+
+  const klausReservation = await prisma.reservation.upsert({
+    where: { id: 'res_klaus_hoffmann' },
+    create: {
+      id: 'res_klaus_hoffmann',
+      siteId: siteFrankfurt.id, unitId: klausUnit.id, unitTypeId: klausUnit.unitTypeId,
+      customerId: custKlaus.id, status: 'converted', source: 'manual',
+      startDate: monthsAgo(3), expiresAt: monthsAgo(2),
+    },
+    update: {},
+  });
+
+  const klausAgreement = await prisma.agreement.upsert({
+    where: { reservationId: 'res_klaus_hoffmann' },
+    create: {
+      id: 'agr_klaus_hoffmann',
+      reservationId: klausReservation.id,
+      tenantId: custKlaus.id,
+      unitId: klausUnit.id,
+      siteId: siteFrankfurt.id,
+      status: 'active',
+      billingCycle: 'monthly',
+      effectiveFrom: monthsAgo(3),
+      terminationRules: { noticePeriodDays: 30, noticeCutoff: 'end_of_month' },
+      pricingSnapshot: { unitTypeId: klausUnit.unitTypeId, amountMinor: 6900, billingCycle: 'monthly', currency: 'EUR' },
+      language: 'en',
+    },
+    update: {},
+  });
+
+  await prisma.signatory.upsert({
+    where: { id: 'sig_klaus_hoffmann' },
+    create: { id: 'sig_klaus_hoffmann', agreementId: klausAgreement.id, personId: custKlaus.id, status: 'signed', signedAt: monthsAgo(3) },
+    update: {},
+  });
+
+  // Month 1 & 2: paid; Month 3: overdue
+  const klausInvoiceStatuses: Array<'paid' | 'overdue'> = ['paid', 'paid', 'overdue'];
+  for (let i = 0; i < 3; i++) {
+    const periodStart = monthsAgo(3 - i);
+    const periodEnd   = monthsAgo(2 - i);
+    const invId = `inv_klaus_hoffmann_${i + 1}`;
+    const status = klausInvoiceStatuses[i];
+    const inv = await prisma.invoice.upsert({
+      where: { agreementId_periodStart: { agreementId: klausAgreement.id, periodStart } },
+      create: {
+        id: invId,
+        agreementId: klausAgreement.id,
+        siteId: siteFrankfurt.id,
+        status,
+        invoiceDate: periodStart,
+        dueDate: new Date(periodStart.getTime() + 15 * 86400000),
+        currency: 'EUR',
+        totalMinor: 8211, // €69 + 19% VAT
+        periodStart,
+        periodEnd,
+      },
+      update: {},
+    });
+    await prisma.invoiceLine.upsert({
+      where: { id: `il_klaus_hoffmann_${i + 1}` },
+      create: { id: `il_klaus_hoffmann_${i + 1}`, invoiceId: inv.id, kind: 'rent', description: '10ft container A03 — monthly rental', amountMinor: 6900, taxCode: 'DE_STD', vatRate: 0.19 },
+      update: {},
+    });
+    if (status === 'paid') {
+      await prisma.payment.upsert({
+        where: { reference: `pay_klaus_hoffmann_${i + 1}` },
+        create: { invoiceId: inv.id, method: 'sepa_core', status: 'succeeded', amountMinor: 8211, reference: `pay_klaus_hoffmann_${i + 1}` },
+        update: {},
+      });
+    }
+  }
+
+  await prisma.lockoutState.upsert({
+    where: { agreementId: klausAgreement.id },
+    create: { agreementId: klausAgreement.id, reason: 'overdue_invoice', active: true },
+    update: {},
+  });
+
+  await prisma.task.upsert({
+    where: { id: 'task_klaus_collect' },
+    create: {
+      id: 'task_klaus_collect',
+      siteId: siteFrankfurt.id, tenantId: custKlaus.id, bookingId: klausReservation.id,
+      type: 'collect_payment', priority: 'urgent', status: 'in_progress',
+      title: 'Collect overdue payment — Klaus Hoffmann',
+      notes: 'Invoice overdue >14 days. Lockout activated. Call tenant and arrange payment.',
+      dueAt: daysFromNow(1),
+    },
+    update: {},
+  });
+
+  await prisma.incident.upsert({
+    where: { id: 'incident_klaus_overdue' },
+    create: {
+      id: 'incident_klaus_overdue',
+      siteId: siteFrankfurt.id,
+      severity: 'medium',
+      type: 'payment_default',
+      status: 'open',
+      linkedAccessEventId: null,
+      resolutionNote: null,
+    },
+    update: {},
+  });
+
+  console.log('✓ Story 3: Klaus Hoffmann — delinquent tenant, overdue invoice, lockout active');
+
   // ─── Summary ─────────────────────────────────────────────────────────────
 
   const [unitCount, siteCount, templateCount] = await Promise.all([
