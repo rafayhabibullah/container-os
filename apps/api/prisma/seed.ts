@@ -1535,6 +1535,81 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
 
   console.log('✓ Story 5: TechStore GmbH — active 40ft tenant, 4 paid + 1 with credit note');
 
+  // ─── Additional Tasks ─────────────────────────────────────────────────────
+
+  const additionalTasks = [
+    {
+      id: 'task_passau_inspect_b10', siteId: site1.id, type: 'inspect_unit' as const, priority: 'normal' as const,
+      status: 'open' as const, title: 'Inspect unit B10 — maintenance check',
+      notes: 'Unit B10 flagged as maintenance. Inspect before returning to available stock.',
+      dueAt: daysFromNow(5),
+    },
+    {
+      id: 'task_passau_repair_b10', siteId: site1.id, type: 'repair_unit' as const, priority: 'normal' as const,
+      status: 'open' as const, title: 'Repair unit B10 — door hinge',
+      notes: 'Roll-up door hinge damaged. Vendor contact: Schmidt Metallbau +49 851 1234.',
+      dueAt: daysFromNow(7),
+    },
+    {
+      id: 'task_koeln_call_tenant', siteId: siteKoeln.id, type: 'call_tenant' as const, priority: 'normal' as const,
+      status: 'open' as const, title: 'Follow-up call — new enquiry Köln Ehrenfeld',
+      notes: 'Quote request received via website. Call to qualify need and recommend unit size.',
+      dueAt: daysFromNow(2),
+    },
+    {
+      id: 'task_hamburg_assign_access', siteId: siteHamburg.id, type: 'assign_access' as const, priority: 'normal' as const,
+      status: 'open' as const, title: 'Assign access credential — Hamburg Hafen new unit',
+      notes: 'New tenant starting next week. Generate PIN and configure gate access group.',
+      dueAt: daysFromNow(6),
+    },
+    {
+      id: 'task_frankfurt_approve_booking', siteId: siteFrankfurt.id, type: 'approve_booking' as const, priority: 'normal' as const,
+      status: 'open' as const, title: 'Review booking request — Frankfurt Westend',
+      notes: 'Business tenant requested approval_required unit. Review ID and company docs.',
+      dueAt: daysFromNow(1),
+    },
+    {
+      id: 'task_munich_other', siteId: site2.id, type: 'other' as const, priority: 'low' as const,
+      status: 'open' as const, title: 'Update site access hours signage — München Nord',
+      notes: 'New access hours board needed at main entrance. Order from vendor.',
+      dueAt: daysFromNow(14),
+    },
+  ];
+
+  for (const t of additionalTasks) {
+    await prisma.task.upsert({
+      where: { id: t.id },
+      create: { id: t.id, siteId: t.siteId, type: t.type, priority: t.priority, status: t.status, title: t.title, notes: t.notes, dueAt: t.dueAt },
+      update: {},
+    });
+  }
+
+  // Thomas Weber move-in inspection (completed at move-in 6 months ago)
+  await prisma.inspectionRun.upsert({
+    where: { id: 'insp_run_weber_movein' },
+    create: {
+      id: 'insp_run_weber_movein',
+      unitId: weberUnit.id,
+      templateId: `insp_${site1.id}_movein`,
+      contractId: weberAgreement.id,
+      kind: 'move_in',
+      result: 'pass',
+      checklist: [
+        { code: 'dry', label: 'Unit dry and mould-free?', passed: true },
+        { code: 'door_seal', label: 'Door seal intact?', passed: true },
+        { code: 'lock', label: 'Lock functional?', passed: true },
+        { code: 'floor', label: 'Floor clean and undamaged?', passed: true },
+        { code: 'ventilation', label: 'Ventilation present and clear?', passed: true },
+      ],
+      notes: 'All checks passed. Unit in good condition at move-in.',
+      completedAt: monthsAgo(6),
+    },
+    update: {},
+  });
+
+  console.log('✓ Additional tasks: 6 open tasks across sites');
+  console.log('✓ Inspection runs: Weber (move-in complete), Mitchell (scheduled), Schneider (move-out complete)');
+
   // ─── Summary ─────────────────────────────────────────────────────────────
 
   const [unitCount, siteCount, templateCount] = await Promise.all([
