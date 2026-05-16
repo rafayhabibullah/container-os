@@ -1,6 +1,7 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
 import ListingsTable from './ListingsTable';
+import NewListingButton from './NewListingButton';
 
 interface ListingRow {
   id: string;
@@ -14,11 +15,17 @@ interface ListingRow {
   createdAt: string;
 }
 
+interface Site {
+  id: string;
+  name: string;
+}
+
 export default async function ListingsPage() {
   const user = await requireAuth();
-  const listings = await serverFetch<ListingRow[]>(
-    `/v1/organisations/${user.organisationId}/listings`,
-  ).catch(() => [] as ListingRow[]);
+  const [listings, sites] = await Promise.all([
+    serverFetch<ListingRow[]>(`/v1/organisations/${user.organisationId}/listings`).catch(() => [] as ListingRow[]),
+    serverFetch<Site[]>(`/v1/organisations/${user.organisationId}/sites`).catch(() => [] as Site[]),
+  ]);
 
   const published   = listings.filter((l) => l.status === 'published').length;
   const draft       = listings.filter((l) => l.status === 'draft').length;
@@ -76,23 +83,7 @@ export default async function ListingsPage() {
               </div>
             </div>
 
-            <button
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '7px',
-                background: '#0f172a', color: '#ffffff',
-                padding: '10px 18px', borderRadius: '8px', border: 'none',
-                cursor: 'pointer',
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                fontWeight: 700, fontSize: '13px',
-                boxShadow: '0 1px 2px rgba(15,23,42,0.15)',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                <path d="M8 1v14M1 8h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              New listing
-            </button>
+            <NewListingButton orgId={user.organisationId} sites={sites} />
           </div>
 
           <ListingsTable listings={listings} orgId={user.organisationId} />
