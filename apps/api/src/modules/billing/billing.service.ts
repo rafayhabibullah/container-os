@@ -21,8 +21,14 @@ export class BillingService {
   }
 
   async listInvoicesForOrg(organisationId: string, filter: ListInvoicesFilter) {
+    const orgSites = await this.prisma.site.findMany({
+      where: { organisationId },
+      select: { id: true },
+    });
+    const orgSiteIds = orgSites.map((s) => s.id);
+
     const where: Record<string, unknown> = {
-      agreement: { site: { organisationId } },
+      siteId: { in: orgSiteIds },
     };
     if (filter.siteId) where.siteId = filter.siteId;
     if (filter.agreementId) where.agreementId = filter.agreementId;
