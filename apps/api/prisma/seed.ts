@@ -598,6 +598,250 @@ async function main() {
   }
   console.log('✓ Accounting mappings: revenue account 8400, cost centers K001/K002');
 
+  // ─── Operator Users ───────────────────────────────────────────────────────
+
+  const operatorPasswordHash = await bcrypt.hash('Test1234!', 12);
+
+  const operator1 = await prisma.user.upsert({
+    where: { email: 'operator@sitelager.dev' },
+    create: { type: 'operator', email: 'operator@sitelager.dev', name: 'Anna Müller', passwordHash: operatorPasswordHash, status: 'active', mfaState: 'disabled' },
+    update: { passwordHash: operatorPasswordHash },
+  });
+
+  await prisma.organisationMember.upsert({
+    where: { organisationId_userId: { organisationId: org.id, userId: operator1.id } },
+    create: { organisationId: org.id, userId: operator1.id, role: 'operator' },
+    update: {},
+  });
+
+  console.log(`✓ Operator user: ${operator1.email}`);
+
+  // ─── Org 2: NordLager GmbH ────────────────────────────────────────────────
+
+  const org2 = await prisma.organisation.upsert({
+    where: { slug: 'nordlager-demo' },
+    create: {
+      legalName: 'NordLager GmbH',
+      tradingName: 'NordLager',
+      slug: 'nordlager-demo',
+      countryCode: 'DE',
+      defaultLanguage: 'de',
+      currency: 'EUR',
+      billingEmail: 'billing@nordlager.dev',
+      supportEmail: 'support@nordlager.dev',
+      status: 'active',
+      plan: 'professional',
+    },
+    update: {},
+  });
+
+  const owner2 = await prisma.user.upsert({
+    where: { email: 'owner@nordlager.dev' },
+    create: { type: 'owner', email: 'owner@nordlager.dev', name: 'NordLager Owner', passwordHash, status: 'active', mfaState: 'disabled' },
+    update: { passwordHash },
+  });
+
+  await prisma.organisationMember.upsert({
+    where: { organisationId_userId: { organisationId: org2.id, userId: owner2.id } },
+    create: { organisationId: org2.id, userId: owner2.id, role: 'owner' },
+    update: {},
+  });
+
+  const operator2 = await prisma.user.upsert({
+    where: { email: 'operator@nordlager.dev' },
+    create: { type: 'operator', email: 'operator@nordlager.dev', name: 'Lars Becker', passwordHash: operatorPasswordHash, status: 'active', mfaState: 'disabled' },
+    update: { passwordHash: operatorPasswordHash },
+  });
+
+  await prisma.organisationMember.upsert({
+    where: { organisationId_userId: { organisationId: org2.id, userId: operator2.id } },
+    create: { organisationId: org2.id, userId: operator2.id, role: 'operator' },
+    update: {},
+  });
+
+  console.log(`✓ Org 2: ${org2.tradingName} — owner: ${owner2.email}, operator: ${operator2.email}`);
+
+  // ─── New Sites ────────────────────────────────────────────────────────────
+
+  const siteFrankfurt = await prisma.site.upsert({
+    where: { slug: 'frankfurt-westend' },
+    create: {
+      name: 'Frankfurt Westend',
+      slug: 'frankfurt-westend',
+      organisationId: org.id,
+      timezone: 'Europe/Berlin',
+      currency: 'EUR',
+      address: { street: 'Mainzer Landstraße 200', city: 'Frankfurt am Main', postalCode: '60327', country: 'DE' },
+      accessHours: {
+        monday: { open: '07:00', close: '22:00' }, tuesday: { open: '07:00', close: '22:00' },
+        wednesday: { open: '07:00', close: '22:00' }, thursday: { open: '07:00', close: '22:00' },
+        friday: { open: '07:00', close: '22:00' }, saturday: { open: '08:00', close: '20:00' },
+        sunday: null,
+      },
+      status: 'active',
+    },
+    update: { organisationId: org.id },
+  });
+
+  const siteBerlin = await prisma.site.upsert({
+    where: { slug: 'berlin-mitte' },
+    create: {
+      name: 'Berlin Mitte',
+      slug: 'berlin-mitte',
+      organisationId: org2.id,
+      timezone: 'Europe/Berlin',
+      currency: 'EUR',
+      address: { street: 'Alexanderstraße 5', city: 'Berlin', postalCode: '10179', country: 'DE' },
+      accessHours: {
+        monday: { open: '00:00', close: '23:59' }, tuesday: { open: '00:00', close: '23:59' },
+        wednesday: { open: '00:00', close: '23:59' }, thursday: { open: '00:00', close: '23:59' },
+        friday: { open: '00:00', close: '23:59' }, saturday: { open: '00:00', close: '23:59' },
+        sunday: { open: '00:00', close: '23:59' },
+      },
+      status: 'active',
+    },
+    update: { organisationId: org2.id },
+  });
+
+  const siteHamburg = await prisma.site.upsert({
+    where: { slug: 'hamburg-hafen' },
+    create: {
+      name: 'Hamburg Hafen',
+      slug: 'hamburg-hafen',
+      organisationId: org2.id,
+      timezone: 'Europe/Berlin',
+      currency: 'EUR',
+      address: { street: 'Hafenstraße 34', city: 'Hamburg', postalCode: '20459', country: 'DE' },
+      accessHours: {
+        monday: { open: '06:00', close: '23:00' }, tuesday: { open: '06:00', close: '23:00' },
+        wednesday: { open: '06:00', close: '23:00' }, thursday: { open: '06:00', close: '23:00' },
+        friday: { open: '06:00', close: '23:00' }, saturday: { open: '06:00', close: '23:00' },
+        sunday: { open: '06:00', close: '23:00' },
+      },
+      status: 'active',
+    },
+    update: { organisationId: org2.id },
+  });
+
+  const siteKoeln = await prisma.site.upsert({
+    where: { slug: 'koeln-ehrenfeld' },
+    create: {
+      name: 'Köln Ehrenfeld',
+      slug: 'koeln-ehrenfeld',
+      organisationId: org2.id,
+      timezone: 'Europe/Berlin',
+      currency: 'EUR',
+      address: { street: 'Venloer Straße 140', city: 'Köln', postalCode: '50672', country: 'DE' },
+      accessHours: {
+        monday: { open: '07:00', close: '21:00' }, tuesday: { open: '07:00', close: '21:00' },
+        wednesday: { open: '07:00', close: '21:00' }, thursday: { open: '07:00', close: '21:00' },
+        friday: { open: '07:00', close: '21:00' }, saturday: { open: '08:00', close: '19:00' },
+        sunday: { open: '09:00', close: '17:00' },
+      },
+      status: 'active',
+    },
+    update: { organisationId: org2.id },
+  });
+
+  console.log(`✓ New sites: ${siteFrankfurt.name}, ${siteBerlin.name}, ${siteHamburg.name}, ${siteKoeln.name}`);
+
+  // ─── Unit Types, Zones, Units, Pricing for New Sites ─────────────────────
+
+  const frankfurtTypes = await seedUnitTypes(siteFrankfurt.id);
+  const berlinTypes    = await seedUnitTypes(siteBerlin.id);
+  const hamburgTypes   = await seedUnitTypes(siteHamburg.id);
+  const koelnTypes     = await seedUnitTypes(siteKoeln.id);
+
+  // Zones — Frankfurt
+  const fkZoneA      = await prisma.zone.upsert({ where: { id: `zone_${siteFrankfurt.id}_A` }, create: { id: `zone_${siteFrankfurt.id}_A`, siteId: siteFrankfurt.id, name: 'Block A', vehicleAccess: true }, update: {} });
+  const fkZoneB      = await prisma.zone.upsert({ where: { id: `zone_${siteFrankfurt.id}_B` }, create: { id: `zone_${siteFrankfurt.id}_B`, siteId: siteFrankfurt.id, name: 'Block B', vehicleAccess: true }, update: {} });
+  const fkZoneIndoor = await prisma.zone.upsert({ where: { id: `zone_${siteFrankfurt.id}_indoor` }, create: { id: `zone_${siteFrankfurt.id}_indoor`, siteId: siteFrankfurt.id, name: 'Indoor', vehicleAccess: false }, update: {} });
+
+  // Zones — Berlin
+  const blZoneA      = await prisma.zone.upsert({ where: { id: `zone_${siteBerlin.id}_A` }, create: { id: `zone_${siteBerlin.id}_A`, siteId: siteBerlin.id, name: 'North Wing', vehicleAccess: true }, update: {} });
+  const blZoneB      = await prisma.zone.upsert({ where: { id: `zone_${siteBerlin.id}_B` }, create: { id: `zone_${siteBerlin.id}_B`, siteId: siteBerlin.id, name: 'South Wing', vehicleAccess: true }, update: {} });
+  const blZoneIndoor = await prisma.zone.upsert({ where: { id: `zone_${siteBerlin.id}_indoor` }, create: { id: `zone_${siteBerlin.id}_indoor`, siteId: siteBerlin.id, name: 'Indoor', vehicleAccess: false }, update: {} });
+
+  // Zones — Hamburg
+  const hbZoneA      = await prisma.zone.upsert({ where: { id: `zone_${siteHamburg.id}_A` }, create: { id: `zone_${siteHamburg.id}_A`, siteId: siteHamburg.id, name: 'Pier A', vehicleAccess: true }, update: {} });
+  const hbZoneB      = await prisma.zone.upsert({ where: { id: `zone_${siteHamburg.id}_B` }, create: { id: `zone_${siteHamburg.id}_B`, siteId: siteHamburg.id, name: 'Pier B', vehicleAccess: true }, update: {} });
+  const hbZoneIndoor = await prisma.zone.upsert({ where: { id: `zone_${siteHamburg.id}_indoor` }, create: { id: `zone_${siteHamburg.id}_indoor`, siteId: siteHamburg.id, name: 'Indoor', vehicleAccess: false }, update: {} });
+
+  // Zones — Köln
+  const klZoneA      = await prisma.zone.upsert({ where: { id: `zone_${siteKoeln.id}_A` }, create: { id: `zone_${siteKoeln.id}_A`, siteId: siteKoeln.id, name: 'Row A', vehicleAccess: true }, update: {} });
+  const klZoneB      = await prisma.zone.upsert({ where: { id: `zone_${siteKoeln.id}_B` }, create: { id: `zone_${siteKoeln.id}_B`, siteId: siteKoeln.id, name: 'Row B', vehicleAccess: true }, update: {} });
+  const klZoneIndoor = await prisma.zone.upsert({ where: { id: `zone_${siteKoeln.id}_indoor` }, create: { id: `zone_${siteKoeln.id}_indoor`, siteId: siteKoeln.id, name: 'Indoor', vehicleAccess: false }, update: {} });
+
+  await seedUnits(siteFrankfurt.id, { outdoor1: fkZoneA.id, outdoor2: fkZoneB.id, indoor: fkZoneIndoor.id }, { t10ft: frankfurtTypes[0].id, t20ft: frankfurtTypes[1].id, t40ft: frankfurtTypes[2].id, small: frankfurtTypes[3].id, medium: frankfurtTypes[4].id });
+  await seedUnits(siteBerlin.id,    { outdoor1: blZoneA.id, outdoor2: blZoneB.id, indoor: blZoneIndoor.id }, { t10ft: berlinTypes[0].id, t20ft: berlinTypes[1].id, t40ft: berlinTypes[2].id, small: berlinTypes[3].id, medium: berlinTypes[4].id });
+  await seedUnits(siteHamburg.id,   { outdoor1: hbZoneA.id, outdoor2: hbZoneB.id, indoor: hbZoneIndoor.id }, { t10ft: hamburgTypes[0].id, t20ft: hamburgTypes[1].id, t40ft: hamburgTypes[2].id, small: hamburgTypes[3].id, medium: hamburgTypes[4].id });
+  await seedUnits(siteKoeln.id,     { outdoor1: klZoneA.id, outdoor2: klZoneB.id, indoor: klZoneIndoor.id }, { t10ft: koelnTypes[0].id, t20ft: koelnTypes[1].id, t40ft: koelnTypes[2].id, small: koelnTypes[3].id, medium: koelnTypes[4].id });
+
+  await seedPricing(siteFrankfurt.id, siteFrankfurt.name, frankfurtTypes);
+  await seedPricing(siteBerlin.id,    siteBerlin.name,    berlinTypes);
+  await seedPricing(siteHamburg.id,   siteHamburg.name,   hamburgTypes);
+  await seedPricing(siteKoeln.id,     siteKoeln.name,     koelnTypes);
+
+  console.log('✓ Unit types, zones, units, pricing: 4 new sites');
+
+  // ─── Site Config (fee, tax, delinquency, reminders, promos, landing, accounting, inspections) ───
+
+  await seedSiteConfig(siteFrankfurt.id, siteFrankfurt.name, {
+    costCenter: 'K003',
+    heroHeadline: 'Flexible storage in Frankfurt Westend',
+    heroSubline: 'Indoor and outdoor units, 5 days a week access, instant online booking',
+    heroCta: 'Check availability',
+    faqs: [
+      { question: 'What unit sizes are available?', answer: '10ft, 20ft and 40ft containers plus indoor boxes from 5–10 m².' },
+      { question: 'How does access work?', answer: 'You receive a personal PIN code. Access is available Monday–Saturday 07:00–22:00.' },
+      { question: 'What is the notice period?', answer: 'Monthly contracts with 30 days notice to end of month.' },
+    ],
+    seoTitle: 'Storage Frankfurt Westend — Flexible & Secure',
+    seoDescription: 'Rent containers and storage boxes in Frankfurt. Online booking, SEPA direct debit, monthly cancellation.',
+  });
+
+  await seedSiteConfig(siteBerlin.id, siteBerlin.name, {
+    costCenter: 'K004',
+    heroHeadline: '24/7 storage in the heart of Berlin',
+    heroSubline: 'Round-the-clock access, video surveillance, instant booking',
+    heroCta: 'Book now',
+    faqs: [
+      { question: 'Is 24/7 access available?', answer: 'Yes, Berlin Mitte is accessible around the clock, every day of the year.' },
+      { question: 'Is the site monitored?', answer: 'Yes, the site has 24/7 CCTV coverage and a perimeter fence.' },
+      { question: 'How quickly can I move in?', answer: 'Book online today and move in as soon as tomorrow.' },
+    ],
+    seoTitle: 'Storage Berlin Mitte — 24/7 Access',
+    seoDescription: 'Rent storage in Berlin. 24/7 access, CCTV, flexible terms. Book online in minutes.',
+  });
+
+  await seedSiteConfig(siteHamburg.id, siteHamburg.name, {
+    costCenter: 'K005',
+    heroHeadline: 'Waterfront storage at Hamburg Hafen',
+    heroSubline: 'Drive-up containers, long access hours, great location near the port',
+    heroCta: 'See available units',
+    faqs: [
+      { question: 'Can I drive up to my unit?', answer: 'Yes, all outdoor containers at Hamburg Hafen have direct drive-up vehicle access.' },
+      { question: 'What are the access hours?', answer: 'The site is open daily 06:00–23:00.' },
+      { question: 'Is there a minimum rental period?', answer: 'No minimum — month-to-month with 30 days notice.' },
+    ],
+    seoTitle: 'Container Storage Hamburg Hafen — Drive-Up Access',
+    seoDescription: 'Container and self-storage at Hamburg Hafen. Drive-up access, daily 06:00–23:00, SEPA billing.',
+  });
+
+  await seedSiteConfig(siteKoeln.id, siteKoeln.name, {
+    costCenter: 'K006',
+    heroHeadline: 'Storage in Cologne Ehrenfeld',
+    heroSubline: 'Convenient location, indoor and outdoor options, competitive rates',
+    heroCta: 'Find a unit',
+    faqs: [
+      { question: 'What types of storage are available?', answer: 'We offer outdoor containers (10ft, 20ft, 40ft) and climate-controlled indoor boxes (5 m² and 10 m²).' },
+      { question: 'How do I pay?', answer: 'We collect rent monthly by SEPA direct debit.' },
+      { question: 'Can I cancel anytime?', answer: 'Yes — 30 days notice to the end of the month.' },
+    ],
+    seoTitle: 'Storage Cologne Ehrenfeld — Indoor & Outdoor',
+    seoDescription: 'Rent storage in Cologne Ehrenfeld. Climate-controlled indoor boxes and drive-up containers.',
+  });
+
   // ─── Summary ─────────────────────────────────────────────────────────────
 
   const [unitCount, siteCount, templateCount] = await Promise.all([
