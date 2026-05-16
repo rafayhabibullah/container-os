@@ -39,6 +39,14 @@ echo "[entrypoint] Running Prisma migrations (using $PRISMA_JS)..."
 node "$PRISMA_JS" migrate deploy --schema=./prisma/schema.prisma
 echo "[entrypoint] Migrations complete."
 
+# Seed demo data (idempotent — all upserts, safe to run on every start).
+# Set SKIP_SEED=true to disable (e.g. in production with real tenant data).
+if [ "${SKIP_SEED:-false}" != "true" ]; then
+  echo "[entrypoint] Seeding database..."
+  node "$PRISMA_JS" db seed --schema=./prisma/schema.prisma
+  echo "[entrypoint] Seed complete."
+fi
+
 # exec replaces the shell so Node.js becomes PID 1 and receives SIGTERM directly.
 echo "[entrypoint] Starting server on port ${PORT:-3000}..."
 exec node dist/main.js
