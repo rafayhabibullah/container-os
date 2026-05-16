@@ -1121,6 +1121,90 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
 
   console.log('✓ Story 1: Thomas Weber — active 6-month tenant, 6 paid invoices');
 
+  // ─── Story 2: Sarah Mitchell (new move-in, pending signature) ────────────
+
+  const mitchellUnit = await prisma.unit.findFirstOrThrow({ where: { siteId: site2.id, unitCode: 'IN-S08' } });
+  await prisma.unit.update({ where: { id: mitchellUnit.id }, data: { status: 'reserved' } });
+
+  const mitchellReservation = await prisma.reservation.upsert({
+    where: { id: 'res_sarah_mitchell' },
+    create: {
+      id: 'res_sarah_mitchell',
+      siteId: site2.id, unitId: mitchellUnit.id, unitTypeId: mitchellUnit.unitTypeId,
+      customerId: custSarah.id, status: 'confirmed', source: 'online',
+      startDate: daysFromNow(3), expiresAt: daysFromNow(10),
+    },
+    update: {},
+  });
+
+  const mitchellAgreement = await prisma.agreement.upsert({
+    where: { reservationId: 'res_sarah_mitchell' },
+    create: {
+      id: 'agr_sarah_mitchell',
+      reservationId: mitchellReservation.id,
+      tenantId: custSarah.id,
+      unitId: mitchellUnit.id,
+      siteId: site2.id,
+      status: 'pending_signature',
+      billingCycle: 'monthly',
+      effectiveFrom: daysFromNow(3),
+      terminationRules: { noticePeriodDays: 30, noticeCutoff: 'end_of_month' },
+      pricingSnapshot: { unitTypeId: mitchellUnit.unitTypeId, amountMinor: 4900, billingCycle: 'monthly', currency: 'EUR' },
+      language: 'en',
+    },
+    update: {},
+  });
+
+  await prisma.signatory.upsert({
+    where: { id: 'sig_sarah_mitchell' },
+    create: { id: 'sig_sarah_mitchell', agreementId: mitchellAgreement.id, personId: custSarah.id, status: 'pending' },
+    update: {},
+  });
+
+  await prisma.task.upsert({
+    where: { id: 'task_mitchell_movein' },
+    create: {
+      id: 'task_mitchell_movein',
+      siteId: site2.id, unitId: mitchellUnit.id, tenantId: custSarah.id,
+      bookingId: mitchellReservation.id,
+      type: 'move_in', priority: 'high', status: 'open',
+      title: 'Move-in: Sarah Mitchell — IN-S08',
+      notes: 'Tenant confirmed. Agreement awaiting signature. Prepare unit and issue PIN on move-in day.',
+      dueAt: daysFromNow(3),
+    },
+    update: {},
+  });
+
+  await prisma.task.upsert({
+    where: { id: 'task_mitchell_verify_doc' },
+    create: {
+      id: 'task_mitchell_verify_doc',
+      siteId: site2.id, tenantId: custSarah.id,
+      type: 'verify_document', priority: 'normal', status: 'open',
+      title: 'Verify ID — Sarah Mitchell',
+      notes: 'ID document uploaded via checkout. Please verify before move-in.',
+      dueAt: daysFromNow(2),
+    },
+    update: {},
+  });
+
+  await prisma.inspectionRun.upsert({
+    where: { id: 'insp_run_mitchell_movein' },
+    create: {
+      id: 'insp_run_mitchell_movein',
+      unitId: mitchellUnit.id,
+      templateId: `insp_${site2.id}_movein`,
+      contractId: mitchellAgreement.id,
+      kind: 'move_in',
+      result: null,
+      checklist: null,
+      completedAt: null,
+    },
+    update: {},
+  });
+
+  console.log('✓ Story 2: Sarah Mitchell — confirmed reservation, pending signature, move-in task');
+
   // ─── Summary ─────────────────────────────────────────────────────────────
 
   const [unitCount, siteCount, templateCount] = await Promise.all([
