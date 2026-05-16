@@ -11,16 +11,39 @@ interface DelinquencyPolicy {
   lockoutEnabled: boolean;
 }
 
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  background: '#f8fafc',
+  border: '1px solid #e2e8f0',
+  borderRadius: '8px',
+  padding: '9px 12px',
+  color: '#0f172a',
+  fontSize: '14px',
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+  outline: 'none',
+  boxSizing: 'border-box',
+};
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '12px',
+  fontWeight: 600,
+  color: '#475569',
+  marginBottom: '5px',
+  letterSpacing: '0.03em',
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+};
+
 export default function DelinquencyPolicyPage() {
   const params = useParams<{ siteId: string }>();
   const siteId = params.siteId;
 
-  const [, setPolicy] = useState<DelinquencyPolicy | null>(null);
-  const [overdueDays, setOverdueDays] = useState(14);
-  const [lockoutEnabled, setLockoutEnabled] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [, setPolicy]          = useState<DelinquencyPolicy | null>(null);
+  const [overdueDays, setOverdueDays]         = useState(14);
+  const [lockoutEnabled, setLockoutEnabled]   = useState(true);
+  const [saving, setSaving]                   = useState(false);
+  const [saved, setSaved]                     = useState(false);
+  const [error, setError]                     = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/billing/delinquency-policy?siteId=${siteId}`)
@@ -62,65 +85,76 @@ export default function DelinquencyPolicyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-xl mx-auto">
-        <Link href={`/sites/${siteId}`} className="text-sm text-slate-500 hover:text-slate-700 mb-4 block">
-          &larr; Site settings
-        </Link>
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Delinquency policy</h1>
-        <p className="text-slate-500 text-sm mb-8">
-          Configure when invoices are marked overdue and whether lockout is enforced.
-        </p>
+    <>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+      />
+      <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div style={{ maxWidth: '640px', margin: '0 auto' }}>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow p-6 space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Overdue threshold (days after due date)
-            </label>
-            <input
-              type="number"
-              min={1}
-              max={90}
-              value={overdueDays}
-              onChange={(e) => setOverdueDays(Number(e.target.value))}
-              required
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+          <Link href={`/sites/${siteId}`} style={{ display: 'inline-block', fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', marginBottom: '20px' }}>
+            ← Site settings
+          </Link>
 
-          <div className="flex items-center gap-3">
-            <input
-              id="lockout"
-              type="checkbox"
-              checked={lockoutEnabled}
-              onChange={(e) => setLockoutEnabled(e.target.checked)}
-              className="h-4 w-4 text-blue-600 rounded border-slate-300"
-            />
-            <label htmlFor="lockout" className="text-sm text-slate-700">
-              Enable access lockout for overdue tenants
-            </label>
-          </div>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px', letterSpacing: '-0.02em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            Delinquency policy
+          </h1>
+          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 28px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            Configure when invoices are marked overdue and whether lockout is enforced.
+          </p>
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full bg-blue-600 text-white font-semibold text-sm py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            {saving ? 'Saving…' : 'Save policy'}
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <label style={labelStyle}>OVERDUE THRESHOLD (DAYS AFTER DUE DATE)</label>
+              <input
+                type="number"
+                min={1}
+                max={90}
+                value={overdueDays}
+                onChange={(e) => setOverdueDays(Number(e.target.value))}
+                required
+                style={inputStyle}
+              />
+            </div>
 
-        {saved && (
-          <div className="mt-4 bg-green-50 border border-green-200 text-green-700 rounded-xl p-3 text-sm">
-            Policy saved.
-          </div>
-        )}
-        {error && (
-          <div className="mt-4 bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm">
-            {error}
-          </div>
-        )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                id="lockout"
+                type="checkbox"
+                checked={lockoutEnabled}
+                onChange={(e) => setLockoutEnabled(e.target.checked)}
+                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+              />
+              <label htmlFor="lockout" style={{ fontSize: '14px', color: '#475569', fontFamily: "'Plus Jakarta Sans', sans-serif", cursor: 'pointer' }}>
+                Enable access lockout for overdue tenants
+              </label>
+            </div>
+
+            <div style={{ paddingTop: '4px', borderTop: '1px solid #f1f5f9' }}>
+              <button
+                type="submit"
+                disabled={saving}
+                style={{ background: saving ? '#e2e8f0' : '#0f172a', color: saving ? '#94a3b8' : '#ffffff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontWeight: 700, fontSize: '13px', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", width: '100%' }}
+              >
+                {saving ? 'Saving…' : 'Save policy'}
+              </button>
+            </div>
+          </form>
+
+          {saved && (
+            <div style={{ marginTop: '16px', background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#15803d', borderRadius: '10px', padding: '12px 16px', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              Policy saved successfully.
+            </div>
+          )}
+          {error && (
+            <div style={{ marginTop: '16px', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '10px', padding: '12px 16px', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              {error}
+            </div>
+          )}
+
+        </div>
       </div>
-    </div>
+    </>
   );
 }

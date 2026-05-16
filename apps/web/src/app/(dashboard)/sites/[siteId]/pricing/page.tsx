@@ -7,10 +7,10 @@ interface RateRule { id: string; unitTypeId: string; amountMinor: number; billin
 interface PriceBook { id: string; name: string; status: string; effectiveFrom: string; rules: RateRule[]; }
 interface UnitType { id: string; name: string; }
 
-const STATUS_COLORS: Record<string, string> = {
-  draft: 'bg-slate-100 text-slate-600',
-  published: 'bg-green-100 text-green-700',
-  archived: 'bg-red-100 text-red-600',
+const PB_STATUS: Record<string, { dot: string; text: string; bg: string; border: string; label: string }> = {
+  draft:     { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0', label: 'Draft'     },
+  published: { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', label: 'Published' },
+  archived:  { dot: '#cbd5e1', text: '#94a3b8', bg: '#f8fafc', border: '#e2e8f0', label: 'Archived'  },
 };
 
 export default async function PricingPage({ params }: { params: { siteId: string } }) {
@@ -21,95 +21,127 @@ export default async function PricingPage({ params }: { params: { siteId: string
   ]);
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <Link href={`/sites/${params.siteId}`} className="text-sm text-slate-500 hover:text-slate-700 mb-1 block">&larr; Site</Link>
-            <h1 className="text-2xl font-bold text-slate-900">Pricing</h1>
-          </div>
-          {user.role === 'owner' && (
-            <PricingActions type="create-book" siteId={params.siteId} unitTypes={unitTypes} />
-          )}
-        </div>
+    <>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+      />
+      <style>{`
+        .pricing-row:hover { background: #f8fafc; }
+      `}</style>
 
-        <div className="space-y-6">
-          {priceBooks.length === 0 && (
-            <div className="bg-white rounded-2xl shadow p-8 text-center">
-              <p className="text-slate-500">No price books yet.</p>
+      <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+
+          <Link href={`/sites/${params.siteId}`} style={{ display: 'inline-block', fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', marginBottom: '16px' }}>
+            ← Site
+          </Link>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
+            <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              Pricing
+            </h1>
+            {user.role === 'owner' && (
+              <PricingActions type="create-book" siteId={params.siteId} unitTypes={unitTypes} />
+            )}
+          </div>
+
+          {priceBooks.length === 0 ? (
+            <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '64px 24px', textAlign: 'center' }}>
+              <p style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>No price books yet</p>
+              <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Create a price book to define rates for your unit types.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {priceBooks.map((pb) => {
+                const stat = PB_STATUS[pb.status] ?? PB_STATUS.draft;
+                return (
+                  <div key={pb.id} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
+                    {/* Price book header */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #f1f5f9' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{pb.name}</span>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: stat.bg, color: stat.text, border: `1px solid ${stat.border}`, borderRadius: '20px', padding: '2px 9px', fontSize: '11px', fontWeight: 600, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: stat.dot, display: 'inline-block' }} />
+                          {stat.label}
+                        </span>
+                        <span style={{ fontSize: '12px', color: '#94a3b8', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          from {new Date(pb.effectiveFrom).toLocaleDateString()}
+                        </span>
+                      </div>
+                      {user.role === 'owner' && pb.status !== 'archived' && (
+                        <PricingActions
+                          type="book-actions"
+                          siteId={params.siteId}
+                          priceBookId={pb.id}
+                          bookStatus={pb.status}
+                          unitTypes={unitTypes}
+                        />
+                      )}
+                    </div>
+
+                    {/* Rate rules table */}
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <th style={{ textAlign: 'left', padding: '9px 20px', fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Unit type</th>
+                          <th style={{ textAlign: 'left', padding: '9px 20px', fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Price / month</th>
+                          <th style={{ textAlign: 'left', padding: '9px 20px', fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Billing cycle</th>
+                          {user.role === 'owner' && pb.status === 'draft' && <th style={{ padding: '9px 20px' }} />}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pb.rules.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} style={{ padding: '20px', textAlign: 'center', fontSize: '13px', color: '#94a3b8', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              No rate rules yet.
+                            </td>
+                          </tr>
+                        ) : pb.rules.map((rule, i) => (
+                          <tr key={rule.id} className="pricing-row" style={{ borderBottom: i < pb.rules.length - 1 ? '1px solid #f8fafc' : 'none' }}>
+                            <td style={{ padding: '11px 20px', fontSize: '13px', color: '#475569', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              {unitTypes.find((ut) => ut.id === rule.unitTypeId)?.name ?? rule.unitTypeId}
+                            </td>
+                            <td style={{ padding: '11px 20px', fontSize: '14px', fontWeight: 600, color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                              €{(rule.amountMinor / 100).toFixed(2)}
+                            </td>
+                            <td style={{ padding: '11px 20px', fontSize: '13px', color: '#64748b', fontFamily: "'Plus Jakarta Sans', sans-serif", textTransform: 'capitalize' }}>
+                              {rule.billingCycle.replace('_', ' ')}
+                            </td>
+                            {user.role === 'owner' && pb.status === 'draft' && (
+                              <td style={{ padding: '11px 20px', textAlign: 'right' }}>
+                                <PricingActions
+                                  type="remove-rule"
+                                  siteId={params.siteId}
+                                  priceBookId={pb.id}
+                                  rateRuleId={rule.id}
+                                  unitTypes={unitTypes}
+                                />
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {user.role === 'owner' && pb.status === 'draft' && (
+                      <div style={{ padding: '12px 20px', borderTop: '1px solid #f1f5f9' }}>
+                        <PricingActions
+                          type="add-rule"
+                          siteId={params.siteId}
+                          priceBookId={pb.id}
+                          unitTypes={unitTypes}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
-          {priceBooks.map((pb) => (
-            <div key={pb.id} className="bg-white rounded-2xl shadow overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <h2 className="font-semibold text-slate-800">{pb.name}</h2>
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[pb.status] ?? ''}`}>
-                    {pb.status}
-                  </span>
-                  <span className="text-xs text-slate-400">from {new Date(pb.effectiveFrom).toLocaleDateString()}</span>
-                </div>
-                {user.role === 'owner' && pb.status !== 'archived' && (
-                  <PricingActions
-                    type="book-actions"
-                    siteId={params.siteId}
-                    priceBookId={pb.id}
-                    bookStatus={pb.status}
-                    unitTypes={unitTypes}
-                  />
-                )}
-              </div>
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
-                  <tr>
-                    <th className="text-left px-6 py-2">Unit type</th>
-                    <th className="text-left px-6 py-2">Price / month</th>
-                    <th className="text-left px-6 py-2">Billing cycle</th>
-                    {user.role === 'owner' && pb.status === 'draft' && <th className="px-6 py-2"></th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {pb.rules.map((rule) => (
-                    <tr key={rule.id} className="hover:bg-slate-50">
-                      <td className="px-6 py-3 text-slate-700">
-                        {unitTypes.find((ut) => ut.id === rule.unitTypeId)?.name ?? rule.unitTypeId}
-                      </td>
-                      <td className="px-6 py-3 text-slate-900 font-medium">
-                        €{(rule.amountMinor / 100).toFixed(2)}
-                      </td>
-                      <td className="px-6 py-3 text-slate-500 capitalize">{rule.billingCycle.replace('_', ' ')}</td>
-                      {user.role === 'owner' && pb.status === 'draft' && (
-                        <td className="px-6 py-3 text-right">
-                          <PricingActions
-                            type="remove-rule"
-                            siteId={params.siteId}
-                            priceBookId={pb.id}
-                            rateRuleId={rule.id}
-                            unitTypes={unitTypes}
-                          />
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                  {pb.rules.length === 0 && (
-                    <tr><td colSpan={4} className="px-6 py-4 text-slate-400 text-center">No rate rules yet.</td></tr>
-                  )}
-                </tbody>
-              </table>
-              {user.role === 'owner' && pb.status === 'draft' && (
-                <div className="px-6 py-4 border-t border-slate-100">
-                  <PricingActions
-                    type="add-rule"
-                    siteId={params.siteId}
-                    priceBookId={pb.id}
-                    unitTypes={unitTypes}
-                  />
-                </div>
-              )}
-            </div>
-          ))}
+
         </div>
       </div>
-    </div>
+    </>
   );
 }

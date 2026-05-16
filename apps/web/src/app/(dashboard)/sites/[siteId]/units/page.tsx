@@ -8,12 +8,12 @@ interface Unit {
   status: string; driveUp: boolean; unitType: UnitType;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  available: 'bg-green-100 text-green-700',
-  reserved: 'bg-yellow-100 text-yellow-700',
-  occupied: 'bg-blue-100 text-blue-700',
-  maintenance: 'bg-orange-100 text-orange-700',
-  out_of_service: 'bg-red-100 text-red-700',
+const UNIT_STATUS: Record<string, { dot: string; text: string; bg: string; border: string; label: string }> = {
+  available:      { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', label: 'Available'      },
+  reserved:       { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a', label: 'Reserved'       },
+  occupied:       { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd', label: 'Occupied'       },
+  maintenance:    { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a', label: 'Maintenance'    },
+  out_of_service: { dot: '#f87171', text: '#dc2626', bg: '#fef2f2', border: '#fecaca', label: 'Out of service' },
 };
 
 export default async function UnitsPage({ params }: { params: { siteId: string } }) {
@@ -23,59 +23,97 @@ export default async function UnitsPage({ params }: { params: { siteId: string }
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <Link href={`/sites/${params.siteId}`} className="text-sm text-slate-500 hover:text-slate-700 mb-1 block">&larr; Site</Link>
-            <h1 className="text-2xl font-bold text-slate-900">Units</h1>
-          </div>
-          {(user.role === 'owner' || user.role === 'operator') && (
-            <Link href={`/sites/${params.siteId}/units/new`}
-              className="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-blue-700">
-              + Add unit
-            </Link>
-          )}
-        </div>
+    <>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+      />
+      <style>{`
+        .unit-row { background: #ffffff; }
+        .unit-row:hover { background: #f8fafc; }
+      `}</style>
 
-        {units.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow p-8 text-center">
-            <p className="text-slate-500">No units yet.</p>
+      <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+
+          <Link href={`/sites/${params.siteId}`} style={{ display: 'inline-block', fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', marginBottom: '16px' }}>
+            ← Site
+          </Link>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px' }}>
+            <div>
+              <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                Units
+              </h1>
+              <span style={{ fontSize: '14px', color: '#94a3b8', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                {units.length} unit{units.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+            {(user.role === 'owner' || user.role === 'operator') && (
+              <Link
+                href={`/sites/${params.siteId}/units/new`}
+                style={{ background: '#0f172a', color: '#ffffff', padding: '10px 18px', borderRadius: '8px', fontSize: '13px', fontWeight: 700, textDecoration: 'none', fontFamily: "'Plus Jakarta Sans', sans-serif", display: 'inline-block' }}
+              >
+                + Add unit
+              </Link>
+            )}
           </div>
-        ) : (
-          <div className="bg-white rounded-2xl shadow overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
-                <tr>
-                  <th className="text-left px-6 py-3">Code</th>
-                  <th className="text-left px-6 py-3">Type</th>
-                  <th className="text-left px-6 py-3">Kind</th>
-                  <th className="text-left px-6 py-3">Status</th>
-                  <th className="px-6 py-3"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {units.map((unit) => (
-                  <tr key={unit.id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4 font-mono font-medium text-slate-900">{unit.unitCode}</td>
-                    <td className="px-6 py-4 text-slate-600">{unit.unitType?.name ?? '—'} ({unit.unitType?.sizeSqm}m²)</td>
-                    <td className="px-6 py-4 text-slate-500 capitalize">{unit.kind.replace('_', ' ')}</td>
-                    <td className="px-6 py-4">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${STATUS_COLORS[unit.status] ?? 'bg-slate-100 text-slate-500'}`}>
-                        {unit.status.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Link href={`/sites/${params.siteId}/units/${unit.id}`}
-                        className="text-blue-600 hover:underline text-sm">Edit</Link>
-                    </td>
+
+          {units.length === 0 ? (
+            <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '64px 24px', textAlign: 'center' }}>
+              <p style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>No units yet</p>
+              <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Add your first unit to this site.</p>
+            </div>
+          ) : (
+            <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    {['Code', 'Type', 'Kind', 'Drive-up', 'Status', ''].map((h) => (
+                      <th key={h} style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                        {h}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {units.map((unit, i) => {
+                    const stat = UNIT_STATUS[unit.status] ?? { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0', label: unit.status };
+                    return (
+                      <tr key={unit.id} className="unit-row" style={{ borderBottom: i < units.length - 1 ? '1px solid #f8fafc' : 'none' }}>
+                        <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>
+                          {unit.unitCode}
+                        </td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#64748b', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          {unit.unitType?.name ?? '—'}{unit.unitType?.sizeSqm ? ` (${unit.unitType.sizeSqm}m²)` : ''}
+                        </td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#64748b', fontFamily: "'Plus Jakarta Sans', sans-serif", textTransform: 'capitalize' }}>
+                          {unit.kind.replace('_', ' ')}
+                        </td>
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: unit.driveUp ? '#15803d' : '#94a3b8', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                          {unit.driveUp ? 'Yes' : 'No'}
+                        </td>
+                        <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: stat.bg, color: stat.text, border: `1px solid ${stat.border}`, borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: stat.dot, display: 'inline-block', flexShrink: 0 }} />
+                            {stat.label}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                          <Link href={`/sites/${params.siteId}/units/${unit.id}`} style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                            Edit →
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+        </div>
       </div>
-    </div>
+    </>
   );
 }

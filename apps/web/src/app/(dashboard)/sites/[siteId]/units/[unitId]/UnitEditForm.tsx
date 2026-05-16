@@ -7,10 +7,33 @@ interface Unit { id: string; unitCode: string; kind: string; status: string; dri
 
 const STATUSES = ['available', 'maintenance', 'out_of_service'];
 
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  background: '#f8fafc',
+  border: '1px solid #e2e8f0',
+  borderRadius: '8px',
+  padding: '9px 12px',
+  color: '#0f172a',
+  fontSize: '14px',
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+  outline: 'none',
+  boxSizing: 'border-box',
+};
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '12px',
+  fontWeight: 600,
+  color: '#475569',
+  marginBottom: '5px',
+  letterSpacing: '0.03em',
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+};
+
 export default function UnitEditForm({ unit, siteId }: { unit: Unit; siteId: string }) {
   const router = useRouter();
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError]               = useState('');
+  const [loading, setLoading]           = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   async function handleSave(e: FormEvent<HTMLFormElement>) {
@@ -24,8 +47,8 @@ export default function UnitEditForm({ unit, siteId }: { unit: Unit; siteId: str
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           unitCode: form.get('unitCode'),
-          driveUp: form.get('driveUp') === 'on',
-          status: form.get('status'),
+          driveUp:  form.get('driveUp') === 'on',
+          status:   form.get('status'),
         }),
       });
       const data = await res.json();
@@ -53,34 +76,47 @@ export default function UnitEditForm({ unit, siteId }: { unit: Unit; siteId: str
   }
 
   return (
-    <form onSubmit={handleSave} className="bg-white rounded-2xl shadow p-8 space-y-5">
+    <form onSubmit={handleSave} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Unit code</label>
-        <input name="unitCode" type="text" required defaultValue={unit.unitCode}
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <label style={labelStyle}>UNIT CODE</label>
+        <input name="unitCode" type="text" required defaultValue={unit.unitCode} style={inputStyle} />
       </div>
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-        <select name="status" defaultValue={unit.status}
-          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <label style={labelStyle}>STATUS</label>
+        <select name="status" defaultValue={unit.status} style={inputStyle}>
           {STATUSES.map((s) => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
         </select>
       </div>
-      <div className="flex items-center gap-2">
-        <input name="driveUp" type="checkbox" id="driveUp" defaultChecked={unit.driveUp} className="rounded" />
-        <label htmlFor="driveUp" className="text-sm text-slate-700">Drive-up access</label>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <input name="driveUp" type="checkbox" id="driveUp" defaultChecked={unit.driveUp} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
+        <label htmlFor="driveUp" style={{ fontSize: '14px', color: '#475569', fontFamily: "'Plus Jakarta Sans', sans-serif", cursor: 'pointer' }}>Drive-up access</label>
       </div>
-      {error && <p className="text-red-600 text-sm">{error}</p>}
-      <div className="flex items-center justify-between pt-2">
-        <div className="flex gap-3">
-          <button type="submit" disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2 rounded-lg disabled:opacity-50">
+
+      {error && (
+        <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', padding: '9px 12px', margin: 0 }}>
+          {error}
+        </p>
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px', borderTop: '1px solid #f1f5f9' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{ background: loading ? '#e2e8f0' : '#0f172a', color: loading ? '#94a3b8' : '#ffffff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontWeight: 700, fontSize: '13px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          >
             {loading ? 'Saving…' : 'Save changes'}
           </button>
-          <a href={`/sites/${siteId}/units`} className="text-sm text-slate-500 hover:text-slate-700 px-5 py-2">Cancel</a>
+          <a href={`/sites/${siteId}/units`} style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', padding: '10px 16px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            Cancel
+          </a>
         </div>
-        <button type="button" onClick={handleDelete} disabled={deleteLoading}
-          className="text-sm text-red-500 hover:text-red-700 disabled:opacity-50">
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={deleteLoading}
+          style={{ background: 'none', border: 'none', fontSize: '13px', fontWeight: 600, color: '#dc2626', cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.5 : 1, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+        >
           {deleteLoading ? 'Deleting…' : 'Delete unit'}
         </button>
       </div>
