@@ -1,7 +1,7 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
 import InspectionActions from './InspectionActions';
-import InspectionsTable from './InspectionsTable';
+import InspectionsPageClient from './InspectionsPageClient';
 
 interface InspectionRow {
   id: string;
@@ -14,6 +14,7 @@ interface InspectionRow {
   depositDeduction: number | null;
   completedAt: string | null;
   createdAt: string;
+  photoIds?: string[];
 }
 
 interface Site {
@@ -74,7 +75,7 @@ export default async function InspectionsPage() {
             <InspectionActions sites={sites} />
           </div>
 
-          <InspectionsTable inspections={inspections} />
+          <InspectionsPageClient inspections={inspections} />
         </div>
       </div>
     </>
