@@ -1610,6 +1610,55 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
   console.log('✓ Additional tasks: 6 open tasks across sites');
   console.log('✓ Inspection runs: Weber (move-in complete), Mitchell (scheduled), Schneider (move-out complete)');
 
+  // ─── MetricSnapshots (6 months, 6 sites) ─────────────────────────────────
+
+  const metricSites = [
+    { site: site1,         baseOcc: 72, baseAgreements: 26 },
+    { site: site2,         baseOcc: 85, baseAgreements: 31 },
+    { site: siteFrankfurt, baseOcc: 65, baseAgreements: 23 },
+    { site: siteBerlin,    baseOcc: 78, baseAgreements: 28 },
+    { site: siteHamburg,   baseOcc: 70, baseAgreements: 25 },
+    { site: siteKoeln,     baseOcc: 62, baseAgreements: 22 },
+  ];
+
+  const avgRateMinor = 10500;
+
+  for (let monthOffset = 5; monthOffset >= 0; monthOffset--) {
+    const bucketAt = monthsAgo(monthOffset);
+
+    for (const { site, baseOcc, baseAgreements } of metricSites) {
+      const occupancyPct = Math.min(92, baseOcc + (5 - monthOffset) * 1.8);
+      const activeAgreements = Math.round(occupancyPct / 100 * 36);
+      const revenueMinor = activeAgreements * avgRateMinor;
+      const overdueInvoices = (monthOffset === 0 && site.id === siteFrankfurt.id) ? 1 : 0;
+
+      const snapBase = `ms_${site.id}_${monthOffset}`;
+
+      await prisma.metricSnapshot.upsert({
+        where: { id: `${snapBase}_occ` },
+        create: { id: `${snapBase}_occ`, siteId: site.id, metric: 'occupancy_pct', value: Math.round(occupancyPct * 10) / 10, bucketAt },
+        update: {},
+      });
+      await prisma.metricSnapshot.upsert({
+        where: { id: `${snapBase}_rev` },
+        create: { id: `${snapBase}_rev`, siteId: site.id, metric: 'revenue_eur_minor', value: revenueMinor, bucketAt },
+        update: {},
+      });
+      await prisma.metricSnapshot.upsert({
+        where: { id: `${snapBase}_agr` },
+        create: { id: `${snapBase}_agr`, siteId: site.id, metric: 'active_agreements', value: activeAgreements, bucketAt },
+        update: {},
+      });
+      await prisma.metricSnapshot.upsert({
+        where: { id: `${snapBase}_ovd` },
+        create: { id: `${snapBase}_ovd`, siteId: site.id, metric: 'overdue_invoices', value: overdueInvoices, bucketAt },
+        update: {},
+      });
+    }
+  }
+
+  console.log('✓ MetricSnapshots: 144 records — 4 metrics × 6 months × 6 sites');
+
   // ─── Summary ─────────────────────────────────────────────────────────────
 
   const [unitCount, siteCount, templateCount] = await Promise.all([
