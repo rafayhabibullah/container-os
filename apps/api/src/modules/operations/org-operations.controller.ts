@@ -153,6 +153,10 @@ export class OrgOperationsController {
     if (!Array.isArray(body.checklist) || body.checklist.length === 0) {
       throw new BadRequestException('checklist must be a non-empty array');
     }
+    const validResults = new Set(['pass', 'fail', 'na']);
+    if (body.checklist.some((item) => !validResults.has(item.result) || !item.code || !item.label)) {
+      throw new BadRequestException('Each checklist item must have code, label, and result of pass, fail, or na');
+    }
 
     const run = await this.prisma.inspectionRun.findFirst({ where: { id } });
     if (!run) throw new NotFoundException(`Inspection ${id} not found`);
