@@ -960,6 +960,86 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
   }
   console.log('✓ Listings: 8 published across all sites');
 
+  // ─── Customers ────────────────────────────────────────────────────────────
+
+  const custThomas = await prisma.customer.upsert({
+    where: { id: 'cust_thomas_weber' },
+    create: { id: 'cust_thomas_weber', type: 'business', personOrOrgData: { firstName: 'Thomas', lastName: 'Weber', companyName: 'Weber Logistics GmbH', vatId: 'DE123456789' }, marketingConsent: true },
+    update: {},
+  });
+  await prisma.contact.upsert({
+    where: { id: 'contact_thomas_weber' },
+    create: { id: 'contact_thomas_weber', customerId: custThomas.id, role: 'primary', email: 'thomas.weber@weber-logistics.de', phone: '+49 69 1234567' },
+    update: {},
+  });
+  await prisma.mandate.upsert({
+    where: { reference: 'MANDATE-TW-001' },
+    create: { customerId: custThomas.id, scheme: 'sepa_core', reference: 'MANDATE-TW-001', status: 'active', ibanLast4: '4521', consentSource: 'online_form', signedAt: monthsAgo(6) },
+    update: {},
+  });
+
+  const custSarah = await prisma.customer.upsert({
+    where: { id: 'cust_sarah_mitchell' },
+    create: { id: 'cust_sarah_mitchell', type: 'private', personOrOrgData: { firstName: 'Sarah', lastName: 'Mitchell' }, marketingConsent: false },
+    update: {},
+  });
+  await prisma.contact.upsert({
+    where: { id: 'contact_sarah_mitchell' },
+    create: { id: 'contact_sarah_mitchell', customerId: custSarah.id, role: 'primary', email: 'sarah.mitchell@email.com', phone: '+49 89 9876543' },
+    update: {},
+  });
+  await prisma.mandate.upsert({
+    where: { reference: 'MANDATE-SM-001' },
+    create: { customerId: custSarah.id, scheme: 'card', reference: 'MANDATE-SM-001', status: 'active', consentSource: 'checkout', signedAt: daysFromNow(-2) },
+    update: {},
+  });
+
+  const custKlaus = await prisma.customer.upsert({
+    where: { id: 'cust_klaus_hoffmann' },
+    create: { id: 'cust_klaus_hoffmann', type: 'private', personOrOrgData: { firstName: 'Klaus', lastName: 'Hoffmann' }, marketingConsent: false },
+    update: {},
+  });
+  await prisma.contact.upsert({
+    where: { id: 'contact_klaus_hoffmann' },
+    create: { id: 'contact_klaus_hoffmann', customerId: custKlaus.id, role: 'primary', email: 'k.hoffmann@gmx.de', phone: '+49 69 5551234' },
+    update: {},
+  });
+  // Klaus has no mandate intentionally — triggers delinquency story
+
+  const custEmma = await prisma.customer.upsert({
+    where: { id: 'cust_emma_schneider' },
+    create: { id: 'cust_emma_schneider', type: 'private', personOrOrgData: { firstName: 'Emma', lastName: 'Schneider' }, marketingConsent: true },
+    update: {},
+  });
+  await prisma.contact.upsert({
+    where: { id: 'contact_emma_schneider' },
+    create: { id: 'contact_emma_schneider', customerId: custEmma.id, role: 'primary', email: 'emma.schneider@outlook.com', phone: '+49 30 7778899' },
+    update: {},
+  });
+  await prisma.mandate.upsert({
+    where: { reference: 'MANDATE-ES-001' },
+    create: { customerId: custEmma.id, scheme: 'sepa_core', reference: 'MANDATE-ES-001', status: 'active', ibanLast4: '7732', consentSource: 'online_form', signedAt: monthsAgo(7) },
+    update: {},
+  });
+
+  const custTechstore = await prisma.customer.upsert({
+    where: { id: 'cust_techstore_gmbh' },
+    create: { id: 'cust_techstore_gmbh', type: 'business', personOrOrgData: { firstName: 'Markus', lastName: 'Braun', companyName: 'TechStore GmbH', vatId: 'DE987654321' }, marketingConsent: true },
+    update: {},
+  });
+  await prisma.contact.upsert({
+    where: { id: 'contact_techstore' },
+    create: { id: 'contact_techstore', customerId: custTechstore.id, role: 'primary', email: 'markus.braun@techstore-gmbh.de', phone: '+49 40 3339900' },
+    update: {},
+  });
+  await prisma.mandate.upsert({
+    where: { reference: 'MANDATE-TS-001' },
+    create: { customerId: custTechstore.id, scheme: 'sepa_b2b', reference: 'MANDATE-TS-001', status: 'active', ibanLast4: '9103', consentSource: 'online_form', signedAt: monthsAgo(5) },
+    update: {},
+  });
+
+  console.log('✓ Customers: 5 (Thomas Weber, Sarah Mitchell, Klaus Hoffmann, Emma Schneider, TechStore GmbH)');
+
   // ─── Summary ─────────────────────────────────────────────────────────────
 
   const [unitCount, siteCount, templateCount] = await Promise.all([
