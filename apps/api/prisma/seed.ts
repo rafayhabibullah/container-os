@@ -1,9 +1,53 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('Seeding SiteLager database...');
+
+  // ─── Organisation & Owner User ────────────────────────────────────────────
+
+  const org = await prisma.organisation.upsert({
+    where: { slug: 'sitelager-demo' },
+    create: {
+      legalName: 'SiteLager Demo GmbH',
+      tradingName: 'SiteLager',
+      slug: 'sitelager-demo',
+      countryCode: 'DE',
+      defaultLanguage: 'de',
+      currency: 'EUR',
+      billingEmail: 'billing@sitelager.dev',
+      supportEmail: 'support@sitelager.dev',
+      status: 'active',
+      plan: 'professional',
+    },
+    update: {},
+  });
+
+  const passwordHash = await bcrypt.hash('Test1234!', 12);
+
+  const owner = await prisma.user.upsert({
+    where: { email: 'owner@sitelager.dev' },
+    create: {
+      type: 'owner',
+      email: 'owner@sitelager.dev',
+      name: 'Demo Owner',
+      passwordHash,
+      status: 'active',
+      mfaState: 'disabled',
+    },
+    update: { passwordHash },
+  });
+
+  await prisma.organisationMember.upsert({
+    where: { organisationId_userId: { organisationId: org.id, userId: owner.id } },
+    create: { organisationId: org.id, userId: owner.id, role: 'owner' },
+    update: {},
+  });
+
+  console.log(`✓ Organisation: ${org.tradingName} (${org.slug})`);
+  console.log(`✓ Owner user: ${owner.email} / Test1234!`);
 
   // ─── Sites ────────────────────────────────────────────────────────────────
 
@@ -12,6 +56,7 @@ async function main() {
     create: {
       name: 'Passau Hafen',
       slug: 'passau-hafen',
+      organisationId: org.id,
       timezone: 'Europe/Berlin',
       currency: 'EUR',
       address: {
@@ -31,7 +76,7 @@ async function main() {
       },
       status: 'active',
     },
-    update: {},
+    update: { organisationId: org.id },
   });
 
   const site2 = await prisma.site.upsert({
@@ -39,6 +84,7 @@ async function main() {
     create: {
       name: 'München Nord',
       slug: 'muenchen-nord',
+      organisationId: org.id,
       timezone: 'Europe/Berlin',
       currency: 'EUR',
       address: {
@@ -58,7 +104,7 @@ async function main() {
       },
       status: 'active',
     },
-    update: {},
+    update: { organisationId: org.id },
   });
 
   console.log(`✓ Sites: ${site1.name}, ${site2.name}`);
