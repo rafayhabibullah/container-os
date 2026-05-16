@@ -1317,6 +1317,121 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
 
   console.log('✓ Story 3: Klaus Hoffmann — delinquent tenant, overdue invoice, lockout active');
 
+  // ─── Story 4: Emma Schneider (terminated, moved out) ─────────────────────
+
+  const emmaUnit = await prisma.unit.findFirstOrThrow({ where: { siteId: siteBerlin.id, unitCode: 'IN-M06' } });
+  await prisma.unit.update({ where: { id: emmaUnit.id }, data: { status: 'available' } });
+
+  const emmaReservation = await prisma.reservation.upsert({
+    where: { id: 'res_emma_schneider' },
+    create: {
+      id: 'res_emma_schneider',
+      siteId: siteBerlin.id, unitId: emmaUnit.id, unitTypeId: emmaUnit.unitTypeId,
+      customerId: custEmma.id, status: 'converted', source: 'manual',
+      startDate: monthsAgo(6), expiresAt: monthsAgo(5),
+    },
+    update: {},
+  });
+
+  const emmaAgreement = await prisma.agreement.upsert({
+    where: { reservationId: 'res_emma_schneider' },
+    create: {
+      id: 'agr_emma_schneider',
+      reservationId: emmaReservation.id,
+      tenantId: custEmma.id,
+      unitId: emmaUnit.id,
+      siteId: siteBerlin.id,
+      status: 'terminated',
+      billingCycle: 'monthly',
+      effectiveFrom: monthsAgo(6),
+      terminationRules: { noticePeriodDays: 30, noticeCutoff: 'end_of_month', terminatedAt: monthsAgo(1).toISOString() },
+      pricingSnapshot: { unitTypeId: emmaUnit.unitTypeId, amountMinor: 7900, billingCycle: 'monthly', currency: 'EUR' },
+      language: 'en',
+    },
+    update: {},
+  });
+
+  await prisma.signatory.upsert({
+    where: { id: 'sig_emma_schneider' },
+    create: { id: 'sig_emma_schneider', agreementId: emmaAgreement.id, personId: custEmma.id, status: 'signed', signedAt: monthsAgo(6) },
+    update: {},
+  });
+
+  // 5 paid invoices
+  for (let i = 0; i < 5; i++) {
+    const periodStart = monthsAgo(6 - i);
+    const periodEnd   = monthsAgo(5 - i);
+    const invId = `inv_emma_schneider_${i + 1}`;
+    const inv = await prisma.invoice.upsert({
+      where: { agreementId_periodStart: { agreementId: emmaAgreement.id, periodStart } },
+      create: {
+        id: invId,
+        agreementId: emmaAgreement.id,
+        siteId: siteBerlin.id,
+        status: 'paid',
+        invoiceDate: periodStart,
+        dueDate: new Date(periodStart.getTime() + 15 * 86400000),
+        currency: 'EUR',
+        totalMinor: 9401, // €79 + 19% VAT
+        periodStart,
+        periodEnd,
+      },
+      update: {},
+    });
+    await prisma.invoiceLine.upsert({
+      where: { id: `il_emma_schneider_${i + 1}` },
+      create: { id: `il_emma_schneider_${i + 1}`, invoiceId: inv.id, kind: 'rent', description: '10 m² indoor box IN-M06 — monthly rental', amountMinor: 7900, taxCode: 'DE_STD', vatRate: 0.19 },
+      update: {},
+    });
+    await prisma.payment.upsert({
+      where: { reference: `pay_emma_schneider_${i + 1}` },
+      create: { invoiceId: inv.id, method: 'sepa_core', status: 'succeeded', amountMinor: 9401, reference: `pay_emma_schneider_${i + 1}` },
+      update: {},
+    });
+  }
+
+  await prisma.terminationRequest.upsert({
+    where: { id: 'termreq_emma_schneider' },
+    create: { id: 'termreq_emma_schneider', agreementId: emmaAgreement.id, requestedDate: monthsAgo(2), status: 'approved', operatorNote: 'Tenant confirmed move-out date. Keys returned.' },
+    update: {},
+  });
+
+  await prisma.inspectionRun.upsert({
+    where: { id: 'insp_run_emma_moveout' },
+    create: {
+      id: 'insp_run_emma_moveout',
+      unitId: emmaUnit.id,
+      templateId: `insp_${siteBerlin.id}_moveout`,
+      contractId: emmaAgreement.id,
+      kind: 'move_out',
+      result: 'pass',
+      checklist: [
+        { code: 'empty', label: 'Unit fully cleared?', passed: true },
+        { code: 'clean', label: 'Unit clean and swept?', passed: true },
+        { code: 'damage', label: 'No new damage present?', passed: true },
+        { code: 'door_seal', label: 'Door seal still intact?', passed: true },
+      ],
+      notes: 'Unit left in excellent condition. Full deposit returned.',
+      depositDeduction: 0,
+      completedAt: monthsAgo(1),
+    },
+    update: {},
+  });
+
+  await prisma.task.upsert({
+    where: { id: 'task_emma_clean' },
+    create: {
+      id: 'task_emma_clean',
+      siteId: siteBerlin.id, unitId: emmaUnit.id, tenantId: custEmma.id,
+      type: 'clean_unit', priority: 'low', status: 'completed',
+      title: 'Post-move-out clean — IN-M06 (Emma Schneider)',
+      notes: 'Unit passed inspection. Quick wipe-down done. Ready to re-list.',
+    },
+    update: {},
+  });
+
+  console.log('✓ Story 4: Emma Schneider — terminated, move-out inspection passed');
+
   // ─── Summary ─────────────────────────────────────────────────────────────
 
   const [unitCount, siteCount, templateCount] = await Promise.all([
