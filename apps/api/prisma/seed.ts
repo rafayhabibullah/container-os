@@ -1659,19 +1659,110 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
 
   console.log('✓ MetricSnapshots: 144 records — 4 metrics × 6 months × 6 sites');
 
+  // ─── API Clients, Keys, Webhooks ──────────────────────────────────────────
+
+  const apiClient1 = await prisma.apiClient.upsert({
+    where: { id: 'apiclient_sitelager_erp' },
+    create: {
+      id: 'apiclient_sitelager_erp',
+      name: 'ERP Integration',
+      scopes: ['invoices:read', 'agreements:read', 'payments:read'],
+      siteIds: [site1.id, site2.id, siteFrankfurt.id],
+    },
+    update: {},
+  });
+
+  await prisma.apiKey.upsert({
+    where: { id: 'apikey_sitelager_erp_1' },
+    create: {
+      id: 'apikey_sitelager_erp_1',
+      clientId: apiClient1.id,
+      keyHash: 'slk_live_demo_hashed_key_org1_erp_001',
+      status: 'active',
+      lastUsedAt: daysFromNow(-1),
+    },
+    update: {},
+  });
+
+  await prisma.webhookEndpoint.upsert({
+    where: { id: 'webhook_sitelager_erp_1' },
+    create: {
+      id: 'webhook_sitelager_erp_1',
+      clientId: apiClient1.id,
+      url: 'https://erp.example.com/webhooks/sitelager',
+      secret: 'whsec_demo_secret_org1',
+      subscriptions: ['invoice.paid', 'agreement.activated', 'agreement.terminated'],
+      status: 'active',
+    },
+    update: {},
+  });
+
+  const apiClient2 = await prisma.apiClient.upsert({
+    where: { id: 'apiclient_nordlager_wms' },
+    create: {
+      id: 'apiclient_nordlager_wms',
+      name: 'WMS Integration',
+      scopes: ['invoices:read', 'agreements:read', 'units:read'],
+      siteIds: [siteBerlin.id, siteHamburg.id, siteKoeln.id],
+    },
+    update: {},
+  });
+
+  await prisma.apiKey.upsert({
+    where: { id: 'apikey_nordlager_wms_1' },
+    create: {
+      id: 'apikey_nordlager_wms_1',
+      clientId: apiClient2.id,
+      keyHash: 'slk_live_demo_hashed_key_org2_wms_001',
+      status: 'active',
+      lastUsedAt: daysFromNow(-3),
+    },
+    update: {},
+  });
+
+  await prisma.webhookEndpoint.upsert({
+    where: { id: 'webhook_nordlager_wms_1' },
+    create: {
+      id: 'webhook_nordlager_wms_1',
+      clientId: apiClient2.id,
+      url: 'https://wms.nordlager-internal.de/hooks/sitelager',
+      secret: 'whsec_demo_secret_org2',
+      subscriptions: ['invoice.paid', 'reservation.confirmed'],
+      status: 'active',
+    },
+    update: {},
+  });
+
+  console.log('✓ API clients: ERP Integration (Org 1), WMS Integration (Org 2) — each with key + webhook');
+
   // ─── Summary ─────────────────────────────────────────────────────────────
 
-  const [unitCount, siteCount, templateCount] = await Promise.all([
+  const [unitCount, siteCount, templateCount, customerCount, agreementCount, invoiceCount, taskCount] = await Promise.all([
     prisma.unit.count(),
     prisma.site.count(),
     prisma.notificationTemplate.count(),
+    prisma.customer.count(),
+    prisma.agreement.count(),
+    prisma.invoice.count(),
+    prisma.task.count(),
   ]);
 
   console.log('\n═══════════════════════════════════════');
-  console.log(`Seed complete!`);
+  console.log('Seed complete!');
+  console.log(`  Organisations:          2 (SiteLager Demo, NordLager)`);
   console.log(`  Sites:                  ${siteCount}`);
   console.log(`  Units:                  ${unitCount}`);
+  console.log(`  Customers:              ${customerCount}`);
+  console.log(`  Agreements:             ${agreementCount}`);
+  console.log(`  Invoices:               ${invoiceCount}`);
+  console.log(`  Tasks:                  ${taskCount}`);
   console.log(`  Notification templates: ${templateCount}`);
+  console.log('═══════════════════════════════════════\n');
+  console.log('Demo logins:');
+  console.log('  owner@sitelager.dev    / Test1234!  (Org 1: Passau, München, Frankfurt)');
+  console.log('  operator@sitelager.dev / Test1234!');
+  console.log('  owner@nordlager.dev    / Test1234!  (Org 2: Berlin, Hamburg, Köln)');
+  console.log('  operator@nordlager.dev / Test1234!');
   console.log('═══════════════════════════════════════\n');
 }
 
