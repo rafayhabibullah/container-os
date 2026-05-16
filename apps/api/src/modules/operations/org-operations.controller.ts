@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, ForbiddenException, Get, NotFoundException, Param, Patch, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
@@ -140,7 +140,8 @@ export class OrgOperationsController {
 
   @Patch('inspection-runs/:id')
   @ApiOperation({ summary: 'Complete an in-progress inspection run' })
-  completeInspectionRun(
+  async completeInspectionRun(
+    @Param('organisationId') orgId: string,
     @Param('id') id: string,
     @Body() body: {
       checklist: { code: string; label: string; result: string; note?: string }[];
@@ -149,6 +150,19 @@ export class OrgOperationsController {
       depositDeduction?: number;
     },
   ) {
+    if (!Array.isArray(body.checklist) || body.checklist.length === 0) {
+      throw new BadRequestException('checklist must be a non-empty array');
+    }
+
+    const run = await this.prisma.inspectionRun.findFirst({ where: { id } });
+    if (!run) throw new NotFoundException(`Inspection ${id} not found`);
+
+    const unit = await this.prisma.unit.findFirst({ where: { id: run.unitId }, select: { siteId: true } });
+    const site = unit
+      ? await this.prisma.site.findFirst({ where: { id: unit.siteId, organisationId: orgId } })
+      : null;
+    if (!site) throw new ForbiddenException('Inspection does not belong to this organisation');
+
     return this.inspections.completeInspectionRun(id, {
       checklist: body.checklist as any,
       notes: body.notes,
