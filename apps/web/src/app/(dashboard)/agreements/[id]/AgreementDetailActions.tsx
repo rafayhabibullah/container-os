@@ -8,6 +8,29 @@ interface Agreement {
   status: string;
 }
 
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '12px',
+  fontWeight: 600,
+  color: '#475569',
+  marginBottom: '5px',
+  letterSpacing: '0.03em',
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+};
+
+const inputStyle: React.CSSProperties = {
+  background: '#f8fafc',
+  border: '1px solid #e2e8f0',
+  borderRadius: '8px',
+  padding: '9px 12px',
+  color: '#0f172a',
+  fontSize: '14px',
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+  outline: 'none',
+  width: '100%',
+  boxSizing: 'border-box',
+};
+
 export default function AgreementDetailActions({ agreement }: { agreement: Agreement }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -42,49 +65,71 @@ export default function AgreementDetailActions({ agreement }: { agreement: Agree
   if (agreement.status === 'terminated') return null;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
       {agreement.status === 'draft' && (
         <button
           onClick={sendForSignature}
           disabled={loading}
-          className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          style={{ background: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '10px 18px', fontWeight: 700, fontSize: '13px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", opacity: loading ? 0.5 : 1 }}
         >
           Send for signature
         </button>
       )}
+
       {(agreement.status === 'active' || agreement.status === 'signed') && !showTerminate && (
         <button
           onClick={() => setShowTerminate(true)}
-          className="border border-red-300 text-red-600 text-sm font-medium px-4 py-2 rounded-lg hover:bg-red-50"
+          style={{ border: '1px solid #fecaca', color: '#dc2626', background: '#fef2f2', borderRadius: '8px', padding: '10px 18px', fontWeight: 600, fontSize: '13px', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
           Request termination
         </button>
       )}
+
       {showTerminate && (
-        <form onSubmit={submitTermination} className="border border-slate-200 rounded-xl p-4 space-y-3 bg-slate-50">
-          <p className="text-sm font-medium text-slate-700">Termination request</p>
+        <form
+          onSubmit={submitTermination}
+          style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}
+        >
+          <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            Termination request
+          </p>
+
           <div>
-            <label className="block text-xs text-slate-600 mb-1">Requested end date</label>
+            <label style={labelStyle}>Requested end date</label>
             <input
               type="date"
               value={requestedDate}
               onChange={(e) => setRequestedDate(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+              style={inputStyle}
               required
             />
           </div>
+
           <div>
-            <label className="block text-xs text-slate-600 mb-1">Operator note (optional)</label>
+            <label style={labelStyle}>Operator note (optional)</label>
             <textarea
               value={operatorNote}
               onChange={(e) => setOperatorNote(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
               rows={2}
+              style={{ ...inputStyle, resize: 'vertical' }}
             />
           </div>
-          <div className="flex gap-2">
-            <button type="button" onClick={() => setShowTerminate(false)} className="flex-1 border border-slate-300 text-slate-600 text-sm py-1.5 rounded-lg hover:bg-slate-100">Cancel</button>
-            <button type="submit" disabled={loading} className="flex-1 bg-red-600 text-white text-sm font-medium py-1.5 rounded-lg hover:bg-red-700 disabled:opacity-50">Submit</button>
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={() => setShowTerminate(false)}
+              style={{ flex: 1, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 16px', color: '#64748b', fontWeight: 600, fontSize: '13px', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              style={{ flex: 1, background: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '10px 16px', fontWeight: 700, fontSize: '13px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", opacity: loading ? 0.5 : 1 }}
+            >
+              Submit
+            </button>
           </div>
         </form>
       )}

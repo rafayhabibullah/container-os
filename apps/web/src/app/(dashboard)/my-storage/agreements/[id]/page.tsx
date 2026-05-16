@@ -19,67 +19,114 @@ interface Agreement {
   signatories: Signatory[];
 }
 
-const STATUS_STYLES: Record<string, string> = {
-  pending_signature: 'bg-yellow-100 text-yellow-700',
-  signed: 'bg-blue-100 text-blue-700',
-  active: 'bg-green-100 text-green-700',
-  terminated: 'bg-red-100 text-red-600',
+const AGREEMENT_STATUS_PILL: Record<string, React.CSSProperties> = {
+  pending_signature: { background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '5px' },
+  signed: { background: '#f0f9ff', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '5px' },
+  active: { background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#15803d', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '5px' },
+  terminated: { background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '5px' },
 };
+
+const AGREEMENT_DOT_COLOR: Record<string, string> = {
+  pending_signature: '#f59e0b',
+  signed: '#0ea5e9',
+  active: '#16a34a',
+  terminated: '#f87171',
+};
+
+function StatusPill({ status }: { status: string }) {
+  const pillStyle = AGREEMENT_STATUS_PILL[status] ?? { background: '#f8fafc', border: '1px solid #e2e8f0', color: '#475569', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '5px' };
+  const dotColor = AGREEMENT_DOT_COLOR[status] ?? '#94a3b8';
+  return (
+    <span style={pillStyle}>
+      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: dotColor, display: 'inline-block', flexShrink: 0 }} />
+      {status.replace(/_/g, ' ')}
+    </span>
+  );
+}
+
+function SignatoryPill({ status, signedAt }: { status: string; signedAt: string | null }) {
+  const isSigned = status === 'signed';
+  const pillStyle: React.CSSProperties = isSigned
+    ? { background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#15803d', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-block' }
+    : { background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-block' };
+  return (
+    <span style={pillStyle}>
+      {status}{signedAt ? ` · ${new Date(signedAt).toLocaleDateString('de-DE')}` : ''}
+    </span>
+  );
+}
 
 export default async function TenantAgreementPage({ params }: { params: { id: string } }) {
   await requireAuth();
   const agreement = await serverFetch<Agreement>(`/v1/tenant/agreements/${params.id}`).catch(() => null);
   if (!agreement) return notFound();
 
+  const cardStyle: React.CSSProperties = { background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '24px', marginBottom: '16px' };
+  const dtStyle: React.CSSProperties = { fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '4px' };
+  const ddStyle: React.CSSProperties = { color: '#475569', fontSize: '13px', margin: 0 };
+
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-2xl mx-auto">
-        <Link href="/my-storage" className="text-sm text-slate-500 hover:text-slate-700 mb-6 block">&larr; My Storage</Link>
+    <>
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+      <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <Link href="/my-storage" style={{ display: 'inline-block', fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', marginBottom: '20px' }}>
+            &larr; My Storage
+          </Link>
 
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Storage Agreement</h1>
-            <p className="text-xs font-mono text-slate-400 mt-1">{agreement.id}</p>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
+            <div>
+              <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 4px', letterSpacing: '-0.02em' }}>Storage Agreement</h1>
+              <p style={{ fontSize: '12px', color: '#94a3b8', fontFamily: 'monospace', margin: 0 }}>{agreement.id}</p>
+            </div>
+            <StatusPill status={agreement.status} />
           </div>
-          <span className={`text-sm font-medium px-3 py-1 rounded-full ${STATUS_STYLES[agreement.status] ?? 'bg-slate-100 text-slate-500'}`}>
-            {agreement.status.replace('_', ' ')}
-          </span>
-        </div>
 
-        <div className="bg-white rounded-2xl shadow p-6 mb-4 space-y-4">
-          <dl className="grid grid-cols-2 gap-4 text-sm">
-            <div><dt className="text-slate-400 text-xs uppercase tracking-wide mb-1">Unit</dt><dd className="text-slate-700 font-mono text-xs">{agreement.unitId}</dd></div>
-            <div><dt className="text-slate-400 text-xs uppercase tracking-wide mb-1">Billing cycle</dt><dd className="text-slate-700 capitalize">{agreement.billingCycle.replace('_', ' ')}</dd></div>
-            <div><dt className="text-slate-400 text-xs uppercase tracking-wide mb-1">Start date</dt><dd className="text-slate-700">{agreement.effectiveFrom ? new Date(agreement.effectiveFrom).toLocaleDateString('de-DE') : '—'}</dd></div>
-            <div><dt className="text-slate-400 text-xs uppercase tracking-wide mb-1">Language</dt><dd className="text-slate-700 uppercase">{agreement.language}</dd></div>
-          </dl>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow p-6 mb-4">
-          <p className="text-xs uppercase text-slate-400 font-medium tracking-wide mb-3">Termination rules</p>
-          <pre className="text-xs text-slate-600 overflow-auto">{JSON.stringify(agreement.terminationRules, null, 2)}</pre>
-        </div>
-
-        {agreement.signatories.length > 0 && (
-          <div className="bg-white rounded-2xl shadow p-6 mb-4">
-            <p className="text-xs uppercase text-slate-400 font-medium tracking-wide mb-3">Signatories</p>
-            <ul className="space-y-2">
-              {agreement.signatories.map((s) => (
-                <li key={s.id} className="flex justify-between text-sm">
-                  <span className="font-mono text-xs text-slate-600">{s.personId}</span>
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${s.status === 'signed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                    {s.status}{s.signedAt ? ` · ${new Date(s.signedAt).toLocaleDateString('de-DE')}` : ''}
-                  </span>
-                </li>
-              ))}
-            </ul>
+          <div style={cardStyle}>
+            <dl style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', margin: 0 }}>
+              <div>
+                <dt style={dtStyle}>Unit</dt>
+                <dd style={{ ...ddStyle, fontFamily: 'monospace', fontSize: '12px' }}>{agreement.unitId}</dd>
+              </div>
+              <div>
+                <dt style={dtStyle}>Billing cycle</dt>
+                <dd style={{ ...ddStyle, textTransform: 'capitalize' }}>{agreement.billingCycle.replace(/_/g, ' ')}</dd>
+              </div>
+              <div>
+                <dt style={dtStyle}>Start date</dt>
+                <dd style={ddStyle}>{agreement.effectiveFrom ? new Date(agreement.effectiveFrom).toLocaleDateString('de-DE') : '—'}</dd>
+              </div>
+              <div>
+                <dt style={dtStyle}>Language</dt>
+                <dd style={{ ...ddStyle, textTransform: 'uppercase' }}>{agreement.language}</dd>
+              </div>
+            </dl>
           </div>
-        )}
 
-        <div className="text-center">
-          <PrintButton />
+          <div style={cardStyle}>
+            <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 12px' }}>Termination rules</p>
+            <pre style={{ fontSize: '12px', color: '#475569', overflow: 'auto', margin: 0, fontFamily: 'monospace' }}>{JSON.stringify(agreement.terminationRules, null, 2)}</pre>
+          </div>
+
+          {agreement.signatories.length > 0 && (
+            <div style={cardStyle}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 12px' }}>Signatories</p>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {agreement.signatories.map((s) => (
+                  <li key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#475569' }}>{s.personId}</span>
+                    <SignatoryPill status={s.status} signedAt={s.signedAt} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div style={{ textAlign: 'center', marginTop: '8px' }}>
+            <PrintButton />
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

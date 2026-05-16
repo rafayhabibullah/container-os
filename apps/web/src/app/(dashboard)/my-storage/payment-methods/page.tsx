@@ -1,6 +1,5 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
-import { Badge } from '@sitelager/ui';
 
 interface Mandate {
   id: string;
@@ -10,11 +9,11 @@ interface Mandate {
   signedAt: string | null;
 }
 
-const STATUS_VARIANT: Record<string, 'default' | 'success' | 'destructive' | 'outline'> = {
-  pending: 'default',
-  active: 'success',
-  cancelled: 'destructive',
-  revoked: 'outline',
+const MANDATE_STATUS_PILL: Record<string, React.CSSProperties> = {
+  pending: { background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-block' },
+  active: { background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-block' },
+  cancelled: { background: '#f8fafc', color: '#94a3b8', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-block' },
+  revoked: { background: '#f8fafc', color: '#94a3b8', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-block' },
 };
 
 export default async function PaymentMethodsPage() {
@@ -22,36 +21,42 @@ export default async function PaymentMethodsPage() {
   const mandates = await serverFetch<Mandate[]>(`/v1/tenant/mandates`).catch(() => [] as Mandate[]);
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-slate-900">Payment Methods</h1>
-        <p className="text-sm text-slate-400 mt-0.5">Your registered SEPA direct debit mandates</p>
-      </div>
+    <>
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+      <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>Payment Methods</h1>
+          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 28px' }}>Your registered SEPA direct debit mandates</p>
 
-      {mandates.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-10 text-center">
-          <p className="text-sm text-slate-500">No payment methods registered.</p>
-          <p className="text-xs text-slate-400 mt-2">Your operator will set up a payment mandate when you sign your contract.</p>
-        </div>
-      ) : (
-        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-          {mandates.map((mandate, i) => (
-            <div key={mandate.id}
-              className={`flex items-center justify-between px-5 py-4 ${i < mandates.length - 1 ? 'border-b border-slate-100' : ''}`}>
-              <div>
-                <p className="font-medium text-slate-900 capitalize">
-                  {mandate.scheme.replace(/_/g, ' ')}
-                  {mandate.ibanLast4 && <span className="text-slate-400 font-normal ml-2">···· {mandate.ibanLast4}</span>}
-                </p>
-                {mandate.signedAt && (
-                  <p className="text-xs text-slate-400 mt-0.5">Signed {new Date(mandate.signedAt).toLocaleDateString('de-DE')}</p>
-                )}
-              </div>
-              <Badge variant={STATUS_VARIANT[mandate.status] ?? 'default'}>{mandate.status}</Badge>
+          {mandates.length === 0 ? (
+            <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '40px', textAlign: 'center' }}>
+              <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 8px' }}>No payment methods registered.</p>
+              <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Your operator will set up a payment mandate when you sign your contract.</p>
             </div>
-          ))}
+          ) : (
+            <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
+              {mandates.map((mandate, i) => (
+                <div key={mandate.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: i < mandates.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+                  <div>
+                    <p style={{ fontWeight: 600, color: '#0f172a', fontSize: '14px', margin: '0 0 2px', textTransform: 'capitalize' }}>
+                      {mandate.scheme.replace(/_/g, ' ')}
+                      {mandate.ibanLast4 && (
+                        <span style={{ color: '#94a3b8', fontWeight: 400, marginLeft: '8px' }}>···· {mandate.ibanLast4}</span>
+                      )}
+                    </p>
+                    {mandate.signedAt && (
+                      <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Signed {new Date(mandate.signedAt).toLocaleDateString('de-DE')}</p>
+                    )}
+                  </div>
+                  <span style={MANDATE_STATUS_PILL[mandate.status] ?? MANDATE_STATUS_PILL.pending}>
+                    {mandate.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 }

@@ -29,65 +29,79 @@ export default function MoveOutPage() {
 
   if (submitted) {
     return (
-      <div className="p-8 max-w-2xl mx-auto">
-        <div className="bg-green-50 border border-green-200 rounded-xl p-8 text-center">
-          <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
-            <span className="text-white text-lg">✓</span>
+      <>
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+        <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ maxWidth: '480px', width: '100%' }}>
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#15803d', borderRadius: '10px', padding: '40px', textAlign: 'center' }}>
+              <div style={{ width: '48px', height: '48px', background: '#f0fdf4', border: '2px solid #bbf7d0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <span style={{ color: '#16a34a', fontSize: '22px', fontWeight: 700 }}>✓</span>
+              </div>
+              <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', margin: '0 0 8px' }}>Move-out request submitted</h2>
+              <p style={{ fontSize: '14px', color: '#475569', margin: 0 }}>Your operator will review your request and confirm the move-out date.</p>
+            </div>
           </div>
-          <h2 className="text-lg font-semibold text-slate-900 mb-1">Move-out request submitted</h2>
-          <p className="text-sm text-slate-500">Your operator will review your request and confirm the move-out date.</p>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-slate-900">Request move-out</h1>
-        <p className="text-sm text-slate-400 mt-0.5">Submit a move-out request to end your rental agreement</p>
-      </div>
+    <>
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+      <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>Request move-out</h1>
+          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 28px' }}>Submit a move-out request to end your rental agreement</p>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6">
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">{error}</div>
-          )}
+          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '24px' }}>
+            <form onSubmit={handleSubmit}>
+              {error && (
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '6px', padding: '9px 12px', fontSize: '13px', marginBottom: '12px' }}>
+                  {error}
+                </div>
+              )}
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Agreement ID</label>
-            <input
-              type="text"
-              value={agreementId}
-              onChange={(e) => setAgreementId(e.target.value)}
-              placeholder="Your agreement ID from your contract"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '5px', letterSpacing: '0.03em' }}>
+                  Agreement ID
+                </label>
+                <input
+                  type="text"
+                  value={agreementId}
+                  onChange={(e) => setAgreementId(e.target.value)}
+                  placeholder="Your agreement ID from your contract"
+                  style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px 12px', color: '#0f172a', fontSize: '14px', fontFamily: "'Plus Jakarta Sans', sans-serif", outline: 'none', width: '100%', boxSizing: 'border-box' }}
+                  required
+                />
+              </div>
+
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '5px', letterSpacing: '0.03em' }}>
+                  Requested move-out date
+                </label>
+                <input
+                  type="date"
+                  value={requestedDate}
+                  onChange={(e) => setRequestedDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px 12px', color: '#0f172a', fontSize: '14px', fontFamily: "'Plus Jakarta Sans', sans-serif", outline: 'none', width: '100%', boxSizing: 'border-box' }}
+                  required
+                />
+                <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px', marginBottom: 0 }}>Check your agreement for minimum notice period requirements.</p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                style={{ background: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontWeight: 700, fontSize: '13px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", width: '100%', opacity: loading ? 0.6 : 1 }}
+              >
+                {loading ? 'Submitting…' : 'Submit move-out request'}
+              </button>
+            </form>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Requested move-out date</label>
-            <input
-              type="date"
-              value={requestedDate}
-              onChange={(e) => setRequestedDate(e.target.value)}
-              min={new Date().toISOString().split('T')[0]}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-            <p className="text-xs text-slate-400 mt-1">Check your agreement for minimum notice period requirements.</p>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors"
-          >
-            {loading ? 'Submitting…' : 'Submit move-out request'}
-          </button>
-        </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

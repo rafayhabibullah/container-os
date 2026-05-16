@@ -45,12 +45,14 @@ interface InvoiceDetail {
   };
 }
 
-const STATUS_STYLES: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-700',
-  sent: 'bg-blue-100 text-blue-700',
-  paid: 'bg-green-100 text-green-700',
-  overdue: 'bg-red-100 text-red-700',
-  void: 'bg-slate-100 text-slate-400',
+type StatusKey = 'pending' | 'sent' | 'paid' | 'overdue' | 'void';
+
+const STATUS_PILL: Record<StatusKey, { dot: string; color: string; bg: string; border: string }> = {
+  pending: { dot: '#f59e0b', color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
+  sent:    { dot: '#0ea5e9', color: '#0369a1', bg: '#f0f9ff', border: '#bae6fd' },
+  paid:    { dot: '#16a34a', color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+  overdue: { dot: '#f87171', color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
+  void:    { dot: '#cbd5e1', color: '#94a3b8', bg: '#f8fafc', border: '#e2e8f0' },
 };
 
 function formatMinor(minor: number, currency: string) {
@@ -64,6 +66,27 @@ function tenantName(customer: InvoiceDetail['agreement']['customer']) {
   return [d.firstName, d.lastName].filter(Boolean).join(' ') || customer.id;
 }
 
+function StatusPill({ status }: { status: string }) {
+  const pill = STATUS_PILL[status as StatusKey] ?? STATUS_PILL.void;
+  return (
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      borderRadius: '20px',
+      padding: '3px 10px',
+      fontSize: '12px',
+      fontWeight: 600,
+      color: pill.color,
+      background: pill.bg,
+      border: `1px solid ${pill.border}`,
+    }}>
+      <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: pill.dot, flexShrink: 0 }} />
+      {status}
+    </span>
+  );
+}
+
 export default async function InvoiceDetailPage({ params }: { params: { id: string } }) {
   const user = await requireAuth();
   const invoice = await serverFetch<InvoiceDetail>(
@@ -73,146 +96,165 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
   const canPay = ['pending', 'sent', 'overdue'].includes(invoice.status);
   const canVoid = user.role === 'owner' && ['pending', 'sent', 'overdue'].includes(invoice.status);
 
+  const cardStyle: React.CSSProperties = {
+    background: '#ffffff',
+    borderRadius: '12px',
+    border: '1px solid #e2e8f0',
+    boxShadow: '0 1px 3px rgba(15,23,42,0.06)',
+    overflow: 'hidden',
+    marginBottom: '20px',
+  };
+
+  const thStyle: React.CSSProperties = {
+    textAlign: 'left',
+    padding: '10px 16px',
+    fontSize: '11px',
+    fontWeight: 700,
+    color: '#94a3b8',
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-3xl mx-auto">
-        <Link href="/invoices" className="text-sm text-slate-500 hover:text-slate-700 mb-4 block">
-          &larr; Invoices
-        </Link>
+    <>
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+      <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
 
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Invoice</h1>
-            <p className="text-slate-500 text-sm font-mono">{invoice.id}</p>
-          </div>
-          <span
-            className={`text-sm font-medium px-3 py-1 rounded-full ${STATUS_STYLES[invoice.status] ?? 'bg-slate-100 text-slate-500'}`}
-          >
-            {invoice.status}
-          </span>
-        </div>
+          <Link href="/invoices" style={{ display: 'inline-block', fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', marginBottom: '20px' }}>
+            ← Invoices
+          </Link>
 
-        {/* Meta */}
-        <div className="bg-white rounded-2xl shadow p-6 mb-6 grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="text-slate-400 mb-0.5">Tenant</p>
-            <p className="font-medium text-slate-900">{tenantName(invoice.agreement.customer)}</p>
+          {/* Header row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+            <div>
+              <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>Invoice</h1>
+              <p style={{ margin: 0, fontSize: '13px', fontFamily: 'monospace', color: '#64748b' }}>{invoice.id}</p>
+            </div>
+            <StatusPill status={invoice.status} />
           </div>
-          <div>
-            <p className="text-slate-400 mb-0.5">Invoice date</p>
-            <p className="font-medium text-slate-900">
-              {new Date(invoice.invoiceDate).toLocaleDateString('de-DE')}
-            </p>
-          </div>
-          <div>
-            <p className="text-slate-400 mb-0.5">Due date</p>
-            <p className="font-medium text-slate-900">
-              {new Date(invoice.dueDate).toLocaleDateString('de-DE')}
-            </p>
-          </div>
-          <div>
-            <p className="text-slate-400 mb-0.5">Period</p>
-            <p className="font-medium text-slate-900">
-              {new Date(invoice.periodStart).toLocaleDateString('de-DE')} –{' '}
-              {new Date(invoice.periodEnd).toLocaleDateString('de-DE')}
-            </p>
-          </div>
-        </div>
 
-        {/* Lines */}
-        <div className="bg-white rounded-2xl shadow overflow-hidden mb-6">
-          <h2 className="text-sm font-semibold text-slate-700 px-6 py-4 border-b border-slate-100">
-            Line items
-          </h2>
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
-              <tr>
-                <th className="text-left px-6 py-3">Description</th>
-                <th className="text-left px-6 py-3">Kind</th>
-                <th className="text-right px-6 py-3">Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {invoice.lines.map((line) => (
-                <tr key={line.id}>
-                  <td className="px-6 py-3 text-slate-900">{line.description}</td>
-                  <td className="px-6 py-3 text-slate-500">{line.kind}</td>
-                  <td className="px-6 py-3 text-right font-mono text-slate-900">
-                    {formatMinor(line.amountMinor, invoice.currency)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot className="bg-slate-50">
-              <tr>
-                <td colSpan={2} className="px-6 py-3 font-semibold text-slate-700 text-right">
-                  Total
-                </td>
-                <td className="px-6 py-3 text-right font-bold text-slate-900 font-mono">
-                  {formatMinor(invoice.totalMinor, invoice.currency)}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+          {/* Meta card */}
+          <div style={{ ...cardStyle, padding: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', fontSize: '14px' }}>
+              <div>
+                <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Tenant</p>
+                <p style={{ margin: 0, fontWeight: 600, color: '#0f172a' }}>{tenantName(invoice.agreement.customer)}</p>
+              </div>
+              <div>
+                <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Invoice date</p>
+                <p style={{ margin: 0, fontWeight: 600, color: '#0f172a' }}>{new Date(invoice.invoiceDate).toLocaleDateString('de-DE')}</p>
+              </div>
+              <div>
+                <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Due date</p>
+                <p style={{ margin: 0, fontWeight: 600, color: '#0f172a' }}>{new Date(invoice.dueDate).toLocaleDateString('de-DE')}</p>
+              </div>
+              <div>
+                <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Period</p>
+                <p style={{ margin: 0, fontWeight: 600, color: '#0f172a' }}>
+                  {new Date(invoice.periodStart).toLocaleDateString('de-DE')} – {new Date(invoice.periodEnd).toLocaleDateString('de-DE')}
+                </p>
+              </div>
+            </div>
+          </div>
 
-        {/* Payment history */}
-        {invoice.payments.length > 0 && (
-          <div className="bg-white rounded-2xl shadow overflow-hidden mb-6">
-            <h2 className="text-sm font-semibold text-slate-700 px-6 py-4 border-b border-slate-100">
-              Payment history
-            </h2>
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
-                <tr>
-                  <th className="text-left px-6 py-3">Method</th>
-                  <th className="text-left px-6 py-3">Status</th>
-                  <th className="text-right px-6 py-3">Amount</th>
-                  <th className="text-left px-6 py-3">Date</th>
+          {/* Line items */}
+          <div style={cardStyle}>
+            <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0' }}>
+              <h2 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#475569' }}>Line items</h2>
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                  <th style={thStyle}>Description</th>
+                  <th style={thStyle}>Kind</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>Amount</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                {invoice.payments.map((pay) => (
-                  <tr key={pay.id}>
-                    <td className="px-6 py-3 text-slate-700">{pay.method}</td>
-                    <td className="px-6 py-3 text-slate-500">{pay.status}</td>
-                    <td className="px-6 py-3 text-right font-mono">{formatMinor(pay.amountMinor, invoice.currency)}</td>
-                    <td className="px-6 py-3 text-slate-400">{new Date(pay.createdAt).toLocaleDateString('de-DE')}</td>
+              <tbody>
+                {invoice.lines.map((line) => (
+                  <tr key={line.id} style={{ borderBottom: '1px solid #f8fafc' }}>
+                    <td style={{ padding: '12px 16px', color: '#0f172a' }}>{line.description}</td>
+                    <td style={{ padding: '12px 16px', color: '#64748b' }}>{line.kind}</td>
+                    <td style={{ padding: '12px 16px', textAlign: 'right', fontFamily: 'monospace', color: '#0f172a' }}>
+                      {formatMinor(line.amountMinor, invoice.currency)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
+              <tfoot>
+                <tr style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+                  <td colSpan={2} style={{ padding: '12px 16px', fontWeight: 700, color: '#475569', textAlign: 'right' }}>Total</td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 800, color: '#0f172a', fontFamily: 'monospace' }}>
+                    {formatMinor(invoice.totalMinor, invoice.currency)}
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
-        )}
 
-        {/* Credit notes */}
-        {invoice.credits.length > 0 && (
-          <div className="bg-white rounded-2xl shadow overflow-hidden mb-6">
-            <h2 className="text-sm font-semibold text-slate-700 px-6 py-4 border-b border-slate-100">
-              Credit notes
-            </h2>
-            <ul className="divide-y divide-slate-100">
-              {invoice.credits.map((cn) => (
-                <li key={cn.id} className="px-6 py-3 flex justify-between text-sm">
-                  <span className="text-slate-700">{cn.reason}</span>
-                  <span className="font-mono text-slate-900">{formatMinor(cn.amountMinor, invoice.currency)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex gap-3">
-          {canPay && (
-            <PayNowButton orgId={user.organisationId} invoiceId={invoice.id} />
+          {/* Payment history */}
+          {invoice.payments.length > 0 && (
+            <div style={cardStyle}>
+              <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0' }}>
+                <h2 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#475569' }}>Payment history</h2>
+              </div>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                    <th style={thStyle}>Method</th>
+                    <th style={thStyle}>Status</th>
+                    <th style={{ ...thStyle, textAlign: 'right' }}>Amount</th>
+                    <th style={thStyle}>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoice.payments.map((pay) => (
+                    <tr key={pay.id} style={{ borderBottom: '1px solid #f8fafc' }}>
+                      <td style={{ padding: '12px 16px', color: '#0f172a' }}>{pay.method}</td>
+                      <td style={{ padding: '12px 16px', color: '#64748b' }}>{pay.status}</td>
+                      <td style={{ padding: '12px 16px', textAlign: 'right', fontFamily: 'monospace', color: '#0f172a' }}>
+                        {formatMinor(pay.amountMinor, invoice.currency)}
+                      </td>
+                      <td style={{ padding: '12px 16px', color: '#94a3b8' }}>
+                        {new Date(pay.createdAt).toLocaleDateString('de-DE')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
-          {canVoid && (
-            <VoidInvoiceButton orgId={user.organisationId} invoiceId={invoice.id} />
+
+          {/* Credit notes */}
+          {invoice.credits.length > 0 && (
+            <div style={cardStyle}>
+              <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0' }}>
+                <h2 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#475569' }}>Credit notes</h2>
+              </div>
+              <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                {invoice.credits.map((cn) => (
+                  <li key={cn.id} style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', fontSize: '14px', borderBottom: '1px solid #f8fafc' }}>
+                    <span style={{ color: '#475569' }}>{cn.reason}</span>
+                    <span style={{ fontFamily: 'monospace', color: '#0f172a', fontWeight: 600 }}>
+                      {formatMinor(cn.amountMinor, invoice.currency)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Actions */}
+          {(canPay || canVoid) && (
+            <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+              {canPay && <PayNowButton orgId={user.organisationId} invoiceId={invoice.id} />}
+              {canVoid && <VoidInvoiceButton orgId={user.organisationId} invoiceId={invoice.id} />}
+            </div>
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -225,7 +267,7 @@ function PayNowButton({ orgId, invoiceId }: { orgId: string; invoiceId: string }
       <input type="hidden" name="invoiceId" value={invoiceId} />
       <button
         type="submit"
-        className="bg-blue-600 text-white text-sm font-semibold px-5 py-2 rounded-lg hover:bg-blue-700"
+        style={{ background: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '10px 18px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}
       >
         Pay now (Mollie)
       </button>
@@ -240,7 +282,7 @@ function VoidInvoiceButton({ orgId, invoiceId }: { orgId: string; invoiceId: str
       <input type="hidden" name="invoiceId" value={invoiceId} />
       <button
         type="submit"
-        className="border border-red-300 text-red-600 text-sm font-semibold px-5 py-2 rounded-lg hover:bg-red-50"
+        style={{ border: '1px solid #fecaca', color: '#dc2626', background: '#fef2f2', borderRadius: '8px', padding: '10px 18px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}
       >
         Void invoice
       </button>

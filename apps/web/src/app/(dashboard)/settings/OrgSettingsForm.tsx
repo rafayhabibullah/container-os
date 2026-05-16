@@ -15,6 +15,35 @@ interface Organisation {
   taxNumber: string | null;
 }
 
+const inputStyle: React.CSSProperties = {
+  background: '#f8fafc',
+  border: '1px solid #e2e8f0',
+  borderRadius: '8px',
+  padding: '9px 12px',
+  color: '#0f172a',
+  fontSize: '14px',
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+  outline: 'none',
+  width: '100%',
+  boxSizing: 'border-box',
+};
+
+const disabledInputStyle: React.CSSProperties = {
+  ...inputStyle,
+  background: '#f1f5f9',
+  color: '#94a3b8',
+  cursor: 'not-allowed',
+};
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '12px',
+  fontWeight: 600,
+  color: '#475569',
+  marginBottom: '5px',
+  letterSpacing: '0.03em',
+};
+
 export default function OrgSettingsForm({ org }: { org: Organisation }) {
   const router = useRouter();
   const [error, setError] = useState('');
@@ -50,38 +79,94 @@ export default function OrgSettingsForm({ org }: { org: Organisation }) {
     }
   }
 
-  const field = (label: string, name: string, defaultValue: string | null, type = 'text') => (
-    <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
-      <input name={name} type={type} defaultValue={defaultValue ?? ''}
-        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-    </div>
-  );
-
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow p-8 space-y-5">
+    <form
+      onSubmit={handleSubmit}
+      style={{
+        background: '#ffffff',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 1px 3px rgba(15,23,42,0.06)',
+        padding: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '18px',
+      }}
+    >
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Legal name</label>
-        <input value={org.legalName} disabled
-          className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-slate-50 text-slate-400 cursor-not-allowed" />
-        <p className="text-xs text-slate-400 mt-1">Contact support to change your legal name.</p>
+        <label style={labelStyle}>Legal name</label>
+        <input value={org.legalName} disabled style={disabledInputStyle} readOnly />
+        <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px', marginBottom: 0 }}>
+          Contact support to change your legal name.
+        </p>
       </div>
 
-      {field('Trading name', 'tradingName', org.tradingName)}
-      {field('Billing email', 'billingEmail', org.billingEmail, 'email')}
-      {field('Support email', 'supportEmail', org.supportEmail, 'email')}
-      {field('Phone', 'phone', org.phone)}
-      {field('Website', 'website', org.website)}
-      {field('VAT ID', 'vatId', org.vatId)}
-      {field('Tax number', 'taxNumber', org.taxNumber)}
+      <div>
+        <label style={labelStyle}>Trading name</label>
+        <input name="tradingName" type="text" defaultValue={org.tradingName ?? ''} style={inputStyle} />
+      </div>
 
-      {error && <p className="text-red-600 text-sm">{error}</p>}
-      {success && <p className="text-green-600 text-sm">Settings saved.</p>}
+      <div>
+        <label style={labelStyle}>Billing email</label>
+        <input name="billingEmail" type="email" defaultValue={org.billingEmail} style={inputStyle} />
+      </div>
 
-      <button type="submit" disabled={loading}
-        className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2 rounded-lg disabled:opacity-50">
-        {loading ? 'Saving…' : 'Save settings'}
-      </button>
+      <div>
+        <label style={labelStyle}>Support email</label>
+        <input name="supportEmail" type="email" defaultValue={org.supportEmail ?? ''} style={inputStyle} />
+      </div>
+
+      <div>
+        <label style={labelStyle}>Phone</label>
+        <input name="phone" type="text" defaultValue={org.phone ?? ''} style={inputStyle} />
+      </div>
+
+      <div>
+        <label style={labelStyle}>Website</label>
+        <input name="website" type="text" defaultValue={org.website ?? ''} style={inputStyle} />
+      </div>
+
+      <div>
+        <label style={labelStyle}>VAT ID</label>
+        <input name="vatId" type="text" defaultValue={org.vatId ?? ''} style={inputStyle} />
+      </div>
+
+      <div>
+        <label style={labelStyle}>Tax number</label>
+        <input name="taxNumber" type="text" defaultValue={org.taxNumber ?? ''} style={inputStyle} />
+      </div>
+
+      {error && (
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '6px', padding: '9px 12px', fontSize: '13px' }}>
+          {error}
+        </div>
+      )}
+      {success && (
+        <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#15803d', borderRadius: '6px', padding: '9px 12px', fontSize: '13px' }}>
+          Settings saved.
+        </div>
+      )}
+
+      <div>
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            background: '#0f172a',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '10px 20px',
+            fontWeight: 700,
+            fontSize: '13px',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            opacity: loading ? 0.6 : 1,
+          }}
+        >
+          {loading ? 'Saving…' : 'Save settings'}
+        </button>
+      </div>
     </form>
   );
 }

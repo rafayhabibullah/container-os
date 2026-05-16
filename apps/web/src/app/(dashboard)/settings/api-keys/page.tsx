@@ -14,44 +14,58 @@ export default async function ApiKeysPage() {
   const clients = await serverFetch<ApiClient[]>(`/v1/organisations/${user.organisationId}/api-keys`).catch(() => []);
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <Link href="/settings" className="text-sm text-slate-500 hover:text-slate-700 mb-1 block">&larr; Settings</Link>
-          <h1 className="text-2xl font-bold text-slate-900">API Keys</h1>
-        </div>
-        <div className="bg-white rounded-2xl shadow mb-6 p-6">
-          <h2 className="font-semibold text-slate-800 mb-4">Create API client</h2>
-          <ApiKeyActions type="create" />
-        </div>
-        <div className="space-y-4">
-          {clients.map((client) => (
-            <div key={client.id} className="bg-white rounded-2xl shadow p-6">
-              <div className="mb-3">
-                <h3 className="font-semibold text-slate-800">{client.name}</h3>
-                <p className="text-slate-400 text-xs mt-0.5">Scopes: {client.scopes.join(', ') || 'none'}</p>
+    <>
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+      <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+          <div style={{ marginBottom: '28px' }}>
+            <Link
+              href="/settings"
+              style={{ display: 'inline-block', fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', marginBottom: '20px' }}
+            >
+              &larr; Settings
+            </Link>
+            <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+              API Keys
+            </h1>
+          </div>
+
+          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '24px', marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>Create API client</h2>
+            <ApiKeyActions type="create" />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {clients.map((client) => (
+              <div key={client.id} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '24px' }}>
+                <div style={{ marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>{client.name}</h3>
+                  <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Scopes: {client.scopes.join(', ') || 'none'}</p>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {client.keys.map((key) => (
+                    <div key={key.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', borderRadius: '8px', padding: '10px 16px' }}>
+                      <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>
+                        Expires {new Date(key.expiresAt).toLocaleDateString()}{' · '}
+                        Last used: {key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString() : 'never'}
+                      </p>
+                      <ApiKeyActions type="revoke" apiKeyId={key.id} />
+                    </div>
+                  ))}
+                  {client.keys.length === 0 && (
+                    <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>No active keys.</p>
+                  )}
+                </div>
               </div>
-              <div className="space-y-2">
-                {client.keys.map((key) => (
-                  <div key={key.id} className="flex items-center justify-between bg-slate-50 rounded-lg px-4 py-2">
-                    <p className="text-slate-500 text-xs">
-                      Expires {new Date(key.expiresAt).toLocaleDateString()} ·{' '}
-                      Last used: {key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString() : 'never'}
-                    </p>
-                    <ApiKeyActions type="revoke" apiKeyId={key.id} />
-                  </div>
-                ))}
-                {client.keys.length === 0 && <p className="text-slate-400 text-xs">No active keys.</p>}
+            ))}
+            {clients.length === 0 && (
+              <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '48px 24px', textAlign: 'center' }}>
+                <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>No API clients yet.</p>
               </div>
-            </div>
-          ))}
-          {clients.length === 0 && (
-            <div className="bg-white rounded-2xl shadow p-8 text-center">
-              <p className="text-slate-500">No API clients yet.</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

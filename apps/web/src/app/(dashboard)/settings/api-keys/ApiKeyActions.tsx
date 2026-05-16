@@ -5,6 +5,28 @@ import { useRouter } from 'next/navigation';
 
 interface Props { type: 'create' | 'revoke'; apiKeyId?: string; }
 
+const inputStyle: React.CSSProperties = {
+  background: '#f8fafc',
+  border: '1px solid #e2e8f0',
+  borderRadius: '8px',
+  padding: '9px 12px',
+  color: '#0f172a',
+  fontSize: '14px',
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+  outline: 'none',
+  width: '192px',
+  boxSizing: 'border-box',
+};
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '12px',
+  fontWeight: 600,
+  color: '#475569',
+  marginBottom: '5px',
+  letterSpacing: '0.03em',
+};
+
 export default function ApiKeyActions({ type, apiKeyId }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -28,7 +50,8 @@ export default function ApiKeyActions({ type, apiKeyId }: Props) {
           }
         }}
         disabled={loading}
-        className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50">
+        style={{ background: 'none', border: 'none', color: '#dc2626', fontSize: '13px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1 }}
+      >
         {loading ? '…' : 'Revoke'}
       </button>
     );
@@ -36,13 +59,17 @@ export default function ApiKeyActions({ type, apiKeyId }: Props) {
 
   if (newKey) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <p className="text-sm font-medium text-yellow-800 mb-2">Copy your API key — it will not be shown again:</p>
-        <code className="block bg-white border border-yellow-200 rounded px-3 py-2 text-xs font-mono break-all text-slate-800">
+      <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '16px' }}>
+        <p style={{ fontSize: '13px', fontWeight: 600, color: '#92400e', margin: '0 0 10px' }}>
+          Copy your API key — it will not be shown again:
+        </p>
+        <code style={{ display: 'block', background: '#ffffff', border: '1px solid #fde68a', borderRadius: '6px', padding: '10px 12px', fontSize: '12px', fontFamily: 'monospace', wordBreak: 'break-all', color: '#0f172a' }}>
           {newKey}
         </code>
-        <button onClick={() => { setNewKey(null); router.refresh(); }}
-          className="mt-3 text-sm text-yellow-700 hover:text-yellow-900 underline">
+        <button
+          onClick={() => { setNewKey(null); router.refresh(); }}
+          style={{ marginTop: '12px', background: 'none', border: 'none', color: '#92400e', fontSize: '13px', cursor: 'pointer', textDecoration: 'underline', padding: 0, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+        >
           I have copied the key
         </button>
       </div>
@@ -50,36 +77,55 @@ export default function ApiKeyActions({ type, apiKeyId }: Props) {
   }
 
   return (
-    <form onSubmit={async (e: FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      setLoading(true);
-      setError('');
-      const form = new FormData(e.currentTarget);
-      try {
-        const res = await fetch('/api/settings/api-keys', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: form.get('name'), scopes: [] }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message ?? 'Failed');
-        setNewKey(data.rawKey);
-        (e.target as HTMLFormElement).reset();
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Failed');
-      } finally {
-        setLoading(false);
-      }
-    }} className="flex gap-2 items-end">
+    <form
+      onSubmit={async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+        const form = new FormData(e.currentTarget);
+        try {
+          const res = await fetch('/api/settings/api-keys', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: form.get('name'), scopes: [] }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message ?? 'Failed');
+          setNewKey(data.rawKey);
+          (e.target as HTMLFormElement).reset();
+        } catch (err: unknown) {
+          setError(err instanceof Error ? err.message : 'Failed');
+        } finally {
+          setLoading(false);
+        }
+      }}
+      style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}
+    >
       <div>
-        <label className="block text-xs text-slate-600 mb-1">Client name</label>
-        <input name="name" type="text" required placeholder="Mobile App"
-          className="border border-slate-300 rounded-lg px-3 py-2 text-sm w-48" />
+        <label style={labelStyle}>Client name</label>
+        <input name="name" type="text" required placeholder="Mobile App" style={inputStyle} />
       </div>
-      <button type="submit" disabled={loading} className="bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
+      <button
+        type="submit"
+        disabled={loading}
+        style={{
+          background: '#0f172a',
+          color: '#ffffff',
+          border: 'none',
+          borderRadius: '8px',
+          padding: '10px 20px',
+          fontWeight: 700,
+          fontSize: '13px',
+          cursor: loading ? 'not-allowed' : 'pointer',
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          opacity: loading ? 0.6 : 1,
+        }}
+      >
         {loading ? 'Creating…' : 'Create key'}
       </button>
-      {error && <p className="text-red-600 text-xs">{error}</p>}
+      {error && (
+        <p style={{ color: '#dc2626', fontSize: '13px', margin: 0 }}>{error}</p>
+      )}
     </form>
   );
 }

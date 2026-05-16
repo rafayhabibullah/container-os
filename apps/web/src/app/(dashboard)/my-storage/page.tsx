@@ -1,6 +1,5 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
-import { Badge } from '@sitelager/ui';
 import Link from 'next/link';
 
 interface Agreement {
@@ -13,12 +12,30 @@ interface Agreement {
   pricingSnapshot: { amountMinor?: number };
 }
 
-const STATUS_VARIANT: Record<string, 'default' | 'success' | 'warning' | 'destructive' | 'outline'> = {
-  pending_signature: 'warning',
-  signed: 'default',
-  active: 'success',
-  terminated: 'destructive',
+const AGREEMENT_STATUS_PILL: Record<string, React.CSSProperties> = {
+  pending_signature: { background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '5px' },
+  signed: { background: '#f0f9ff', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '5px' },
+  active: { background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#15803d', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '5px' },
+  terminated: { background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '5px' },
 };
+
+const AGREEMENT_DOT_COLOR: Record<string, string> = {
+  pending_signature: '#f59e0b',
+  signed: '#0ea5e9',
+  active: '#16a34a',
+  terminated: '#f87171',
+};
+
+function StatusPill({ status }: { status: string }) {
+  const pillStyle = AGREEMENT_STATUS_PILL[status] ?? { background: '#f8fafc', border: '1px solid #e2e8f0', color: '#475569', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '5px' };
+  const dotColor = AGREEMENT_DOT_COLOR[status] ?? '#94a3b8';
+  return (
+    <span style={pillStyle}>
+      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: dotColor, display: 'inline-block', flexShrink: 0 }} />
+      {status.replace(/_/g, ' ')}
+    </span>
+  );
+}
 
 function formatCents(minor?: number): string {
   if (!minor) return '—';
@@ -30,63 +47,72 @@ export default async function MyStoragePage() {
   const agreements = await serverFetch<Agreement[]>('/v1/tenant/agreements').catch(() => [] as Agreement[]);
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-slate-900">My Storage</h1>
-      </div>
+    <>
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+      <style>{`.ms-nav-card:hover { box-shadow: 0 4px 16px rgba(15,23,42,0.10); }`}</style>
+      <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>My Storage</h1>
+          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 28px' }}>Manage your storage agreements and payments</p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8">
-        <Link href="/my-storage/invoices"
-          className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-300 hover:shadow-sm transition-all">
-          <h3 className="font-semibold text-slate-900 text-sm">Invoices</h3>
-          <p className="text-xs text-slate-400 mt-1">View your billing history</p>
-        </Link>
-        <Link href="/my-storage/payment-methods"
-          className="bg-white border border-slate-200 rounded-xl p-5 hover:border-blue-300 hover:shadow-sm transition-all">
-          <h3 className="font-semibold text-slate-900 text-sm">Payment Methods</h3>
-          <p className="text-xs text-slate-400 mt-1">Manage your SEPA mandates</p>
-        </Link>
-        <Link href="/my-storage/move-out"
-          className="bg-white border border-slate-200 rounded-xl p-5 hover:border-slate-300 transition-all">
-          <h3 className="font-semibold text-slate-900 text-sm">Request Move-out</h3>
-          <p className="text-xs text-slate-400 mt-1">End your rental agreement</p>
-        </Link>
-      </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '32px' }}>
+            <Link href="/my-storage/invoices" className="ms-nav-card" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '20px', textDecoration: 'none', display: 'block', transition: 'box-shadow 0.15s' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>Invoices</h3>
+              <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>View your billing history</p>
+            </Link>
+            <Link href="/my-storage/payment-methods" className="ms-nav-card" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '20px', textDecoration: 'none', display: 'block', transition: 'box-shadow 0.15s' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>Payment Methods</h3>
+              <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Manage your SEPA mandates</p>
+            </Link>
+            <Link href="/my-storage/move-out" className="ms-nav-card" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '20px', textDecoration: 'none', display: 'block', transition: 'box-shadow 0.15s' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>Request Move-out</h3>
+              <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>End your rental agreement</p>
+            </Link>
+          </div>
 
-      {agreements.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-10 text-center">
-          <p className="text-slate-500 text-sm">You have no active storage agreements.</p>
-          <Link href="/storage" className="text-blue-600 text-sm hover:underline mt-2 block">
-            Find a storage unit &rarr;
-          </Link>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {agreements.map((a) => (
-            <div key={a.id} className="bg-white border border-slate-200 rounded-xl p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <p className="font-semibold text-slate-900">Unit {a.unitId.slice(0, 8)}…</p>
-                  <p className="text-xs text-slate-400 font-mono mt-0.5">{a.id}</p>
-                </div>
-                <Badge variant={STATUS_VARIANT[a.status] ?? 'outline'}>
-                  {a.status.replace(/_/g, ' ')}
-                </Badge>
-              </div>
-              <dl className="grid grid-cols-2 gap-3 text-sm">
-                <div><dt className="text-slate-400 text-xs">Billing</dt><dd className="text-slate-700 capitalize">{a.billingCycle.replace(/_/g, ' ')}</dd></div>
-                <div><dt className="text-slate-400 text-xs">Monthly rate</dt><dd className="text-slate-700">{formatCents(a.pricingSnapshot?.amountMinor)}</dd></div>
-                <div><dt className="text-slate-400 text-xs">Start date</dt><dd className="text-slate-700">{a.effectiveFrom ? new Date(a.effectiveFrom).toLocaleDateString('de-DE') : '—'}</dd></div>
-              </dl>
-              <div className="mt-4 pt-4 border-t border-slate-100">
-                <Link href={`/my-storage/agreements/${a.id}`} className="text-sm text-blue-600 font-medium hover:text-blue-700">
-                  View agreement &rarr;
-                </Link>
-              </div>
+          {agreements.length === 0 ? (
+            <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '40px', textAlign: 'center' }}>
+              <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 8px' }}>You have no active storage agreements.</p>
+              <Link href="/storage" style={{ color: '#64748b', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>
+                Find a storage unit &rarr;
+              </Link>
             </div>
-          ))}
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {agreements.map((a) => (
+                <div key={a.id} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <div>
+                      <p style={{ fontWeight: 700, color: '#0f172a', fontSize: '14px', margin: '0 0 2px' }}>Unit {a.unitId.slice(0, 8)}…</p>
+                      <p style={{ fontSize: '11px', color: '#94a3b8', fontFamily: 'monospace', margin: 0 }}>{a.id}</p>
+                    </div>
+                    <StatusPill status={a.status} />
+                  </div>
+                  <dl style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', margin: 0 }}>
+                    <div>
+                      <dt style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '2px' }}>Billing</dt>
+                      <dd style={{ color: '#475569', textTransform: 'capitalize', margin: 0 }}>{a.billingCycle.replace(/_/g, ' ')}</dd>
+                    </div>
+                    <div>
+                      <dt style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '2px' }}>Monthly rate</dt>
+                      <dd style={{ color: '#475569', margin: 0 }}>{formatCents(a.pricingSnapshot?.amountMinor)}</dd>
+                    </div>
+                    <div>
+                      <dt style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '2px' }}>Start date</dt>
+                      <dd style={{ color: '#475569', margin: 0 }}>{a.effectiveFrom ? new Date(a.effectiveFrom).toLocaleDateString('de-DE') : '—'}</dd>
+                    </div>
+                  </dl>
+                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+                    <Link href={`/my-storage/agreements/${a.id}`} style={{ color: '#64748b', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>
+                      View agreement &rarr;
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 }

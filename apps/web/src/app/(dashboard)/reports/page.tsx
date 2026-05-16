@@ -4,6 +4,25 @@ import { serverFetch } from '@/lib/server-api';
 interface OccupancyItem { siteId: string; occupancyPct: number; totalUnits: number; occupiedUnits: number; }
 interface RevenueItem { siteId: string; totalMinor: number; currency: string; }
 
+const thStyle: React.CSSProperties = {
+  textAlign: 'left',
+  padding: '10px 16px',
+  fontSize: '11px',
+  fontWeight: 700,
+  color: '#94a3b8',
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  whiteSpace: 'nowrap',
+};
+
+const cardStyle: React.CSSProperties = {
+  background: '#ffffff',
+  borderRadius: '12px',
+  border: '1px solid #e2e8f0',
+  boxShadow: '0 1px 3px rgba(15,23,42,0.06)',
+  overflow: 'hidden',
+};
+
 export default async function ReportsPage() {
   const user = await requireAuth();
   const orgId = user.organisationId;
@@ -19,53 +38,79 @@ export default async function ReportsPage() {
     : 0;
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-xl font-bold text-slate-900">Reports</h1>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-        <div className="bg-white border border-slate-200 rounded-xl p-5">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Avg Occupancy</p>
-          <p className="text-3xl font-bold text-slate-900">{avgOccupancy}%</p>
+    <>
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+      <style>{`.tbl-row:hover { background: #f8fafc; }`}</style>
+      <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+            Reports
+          </h1>
+          <p style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '32px' }}>
+            Overview of your organisation's performance
+          </p>
+
+          {/* Stat cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '32px' }}>
+            <div style={{ ...cardStyle, padding: '20px 24px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 8px' }}>
+                Avg Occupancy
+              </p>
+              <p style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a', margin: 0 }}>{avgOccupancy}%</p>
+            </div>
+            <div style={{ ...cardStyle, padding: '20px 24px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 8px' }}>
+                Revenue (this month)
+              </p>
+              <p style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a', margin: 0 }}>€{(totalRevenue / 100).toFixed(2)}</p>
+            </div>
+          </div>
+
+          {/* Occupancy by site table */}
+          <div style={cardStyle}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9' }}>
+              <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Occupancy by site</h2>
+            </div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <th style={thStyle}>Site</th>
+                  <th style={thStyle}>Occupancy</th>
+                  <th style={thStyle}>Units</th>
+                </tr>
+              </thead>
+              <tbody>
+                {occupancy.map((o) => (
+                  <tr key={o.siteId} className="tbl-row" style={{ borderBottom: '1px solid #f8fafc' }}>
+                    <td style={{ padding: '12px 16px' }}>
+                      <span style={{ background: '#f1f5f9', color: '#475569', borderRadius: '5px', padding: '2px 8px', fontSize: '12px', fontFamily: 'monospace' }}>
+                        {o.siteId}
+                      </span>
+                    </td>
+                    <td style={{ padding: '12px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ background: '#e2e8f0', height: '6px', borderRadius: '3px', width: '100px', flexShrink: 0 }}>
+                          <div style={{ background: '#0f172a', height: '6px', borderRadius: '3px', width: `${o.occupancyPct}%` }} />
+                        </div>
+                        <span style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{o.occupancyPct}%</span>
+                      </div>
+                    </td>
+                    <td style={{ padding: '12px 16px', color: '#475569' }}>{o.occupiedUnits} / {o.totalUnits}</td>
+                  </tr>
+                ))}
+                {occupancy.length === 0 && (
+                  <tr>
+                    <td colSpan={3} style={{ padding: '64px 24px', textAlign: 'center' }}>
+                      <p style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>No data yet</p>
+                      <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>Occupancy data will appear here once sites are active.</p>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div className="bg-white border border-slate-200 rounded-xl p-5">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Revenue (this month)</p>
-          <p className="text-3xl font-bold text-slate-900">€{(totalRevenue / 100).toFixed(2)}</p>
-        </div>
       </div>
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-          <h2 className="text-sm font-semibold text-slate-900">Occupancy by site</h2>
-        </div>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="bg-slate-50 border-b border-slate-100">
-              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Site</th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Occupancy</th>
-              <th className="text-left px-5 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">Units</th>
-            </tr>
-          </thead>
-          <tbody>
-            {occupancy.map((o, i) => (
-              <tr key={o.siteId} className={`border-b border-slate-50 hover:bg-blue-50/30 transition-colors ${i % 2 === 1 ? 'bg-slate-50/50' : 'bg-white'}`}>
-                <td className="px-5 py-3.5 font-mono text-xs text-slate-500">{o.siteId}</td>
-                <td className="px-5 py-3.5">
-                  <div className="flex items-center gap-2">
-                    <div className="w-24 bg-slate-100 rounded-full h-2">
-                      <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${o.occupancyPct}%` }} />
-                    </div>
-                    <span className="text-slate-700 font-medium text-sm">{o.occupancyPct}%</span>
-                  </div>
-                </td>
-                <td className="px-5 py-3.5 text-slate-500">{o.occupiedUnits} / {o.totalUnits}</td>
-              </tr>
-            ))}
-            {occupancy.length === 0 && (
-              <tr><td colSpan={3} className="px-5 py-8 text-center text-sm text-slate-400">No data yet.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    </>
   );
 }

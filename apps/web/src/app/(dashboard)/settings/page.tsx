@@ -25,18 +25,23 @@ export default async function SettingsPage() {
   const org = await serverFetch<Organisation>(`/v1/organisations/${user.organisationId}`);
 
   return (
-    <div className="p-8 max-w-2xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-slate-900">Organisation settings</h1>
-        <p className="text-sm text-slate-400 mt-0.5">
-          Plan: <span className="font-medium text-slate-600 capitalize">{org.plan}</span>
-          {' · '}
-          Status: <span className="font-medium text-slate-600 capitalize">{org.status}</span>
-        </p>
+    <>
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+      <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <div style={{ marginBottom: '24px' }}>
+            <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
+              Organisation settings
+            </h1>
+            <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>
+              Plan: <span style={{ fontWeight: 600, color: '#475569', textTransform: 'capitalize' }}>{org.plan}</span>
+              {' · '}
+              Status: <span style={{ fontWeight: 600, color: '#475569', textTransform: 'capitalize' }}>{org.status}</span>
+            </p>
+          </div>
+          <OrgSettingsForm org={org} />
+        </div>
       </div>
-      <div className="bg-white border border-slate-200 rounded-xl p-8">
-        <OrgSettingsForm org={org} />
-      </div>
-    </div>
+    </>
   );
 }

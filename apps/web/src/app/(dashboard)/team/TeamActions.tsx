@@ -9,6 +9,27 @@ interface Props {
   label: string;
 }
 
+const inputStyle: React.CSSProperties = {
+  background: '#f8fafc',
+  border: '1px solid #e2e8f0',
+  borderRadius: '8px',
+  padding: '9px 12px',
+  color: '#0f172a',
+  fontSize: '14px',
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+  outline: 'none',
+  boxSizing: 'border-box',
+};
+
+const labelStyle: React.CSSProperties = {
+  display: 'block',
+  fontSize: '12px',
+  fontWeight: 600,
+  color: '#475569',
+  marginBottom: '5px',
+  letterSpacing: '0.03em',
+};
+
 export default function TeamActions({ type, id, label }: Props) {
   const router = useRouter();
   const [error, setError] = useState('');
@@ -72,8 +93,11 @@ export default function TeamActions({ type, id, label }: Props) {
 
   if (type === 'remove-member') {
     return (
-      <button onClick={handleRemoveMember} disabled={loading}
-        className="text-sm text-red-500 hover:text-red-700 disabled:opacity-50">
+      <button
+        onClick={handleRemoveMember}
+        disabled={loading}
+        style={{ background: 'none', border: 'none', color: '#dc2626', fontSize: '13px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1 }}
+      >
         {loading ? '…' : label}
       </button>
     );
@@ -81,33 +105,53 @@ export default function TeamActions({ type, id, label }: Props) {
 
   if (type === 'revoke-invitation') {
     return (
-      <button onClick={handleRevokeInvitation} disabled={loading}
-        className="text-sm text-slate-500 hover:text-slate-700 disabled:opacity-50">
+      <button
+        onClick={handleRevokeInvitation}
+        disabled={loading}
+        style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 16px', color: '#64748b', fontWeight: 600, fontSize: '13px', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1 }}
+      >
         {loading ? '…' : label}
       </button>
     );
   }
 
   return (
-    <form onSubmit={handleInvite} className="flex gap-3 items-end flex-wrap">
+    <form onSubmit={handleInvite} style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-        <input name="email" type="email" required placeholder="colleague@company.de"
-          className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64" />
+        <label style={labelStyle}>Email</label>
+        <input name="email" type="email" required placeholder="colleague@company.de" style={{ ...inputStyle, width: '240px' }} />
       </div>
       <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
-        <select name="role"
-          className="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <label style={labelStyle}>Role</label>
+        <select
+          name="role"
+          style={{ ...inputStyle, width: 'auto' }}
+        >
           <option value="operator">Operator</option>
           <option value="tenant">Tenant</option>
         </select>
       </div>
-      <button type="submit" disabled={loading}
-        className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50">
+      <button
+        type="submit"
+        disabled={loading}
+        style={{
+          background: '#0f172a',
+          color: '#ffffff',
+          border: 'none',
+          borderRadius: '8px',
+          padding: '10px 20px',
+          fontWeight: 700,
+          fontSize: '13px',
+          cursor: loading ? 'not-allowed' : 'pointer',
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          opacity: loading ? 0.6 : 1,
+        }}
+      >
         {loading ? 'Sending…' : 'Send invite'}
       </button>
-      {error && <p className="text-red-600 text-sm w-full mt-1">{error}</p>}
+      {error && (
+        <p style={{ color: '#dc2626', fontSize: '13px', margin: '4px 0 0', width: '100%' }}>{error}</p>
+      )}
     </form>
   );
 }

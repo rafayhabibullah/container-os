@@ -36,17 +36,36 @@ export default function ReservationActions({ reservation }: { reservation: Reser
     else router.refresh();
   }
 
-  if (reservation.status === 'cancelled' || reservation.status === 'expired' || reservation.status === 'converted') {
-    return <span className="text-slate-400 text-xs">—</span>;
+  if (
+    reservation.status === 'cancelled' ||
+    reservation.status === 'expired' ||
+    reservation.status === 'converted'
+  ) {
+    return <span style={{ color: '#cbd5e1', fontSize: '12px' }}>—</span>;
   }
 
+  const baseBtn: React.CSSProperties = {
+    borderRadius: '6px',
+    padding: '5px 11px',
+    fontSize: '12px',
+    fontWeight: 600,
+    opacity: loading ? 0.5 : 1,
+    cursor: loading ? 'not-allowed' : 'pointer',
+    fontFamily: 'inherit',
+  };
+
   return (
-    <div className="flex items-center gap-2 justify-end">
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
       {reservation.status === 'pending_signature' && (
         <button
           onClick={() => updateStatus('confirmed')}
           disabled={loading}
-          className="text-xs text-green-700 border border-green-300 rounded px-2 py-1 hover:bg-green-50 disabled:opacity-50"
+          style={{
+            ...baseBtn,
+            background: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            color: '#15803d',
+          }}
         >
           Confirm
         </button>
@@ -55,16 +74,28 @@ export default function ReservationActions({ reservation }: { reservation: Reser
         <button
           onClick={createAgreement}
           disabled={loading}
-          className="text-xs text-purple-700 border border-purple-300 rounded px-2 py-1 hover:bg-purple-50 disabled:opacity-50"
+          style={{
+            ...baseBtn,
+            background: '#faf5ff',
+            border: '1px solid #ddd6fe',
+            color: '#6d28d9',
+          }}
         >
           Create agreement
         </button>
       )}
-      {(reservation.status === 'pending' || reservation.status === 'pending_signature' || reservation.status === 'confirmed') && (
+      {(reservation.status === 'pending' ||
+        reservation.status === 'pending_signature' ||
+        reservation.status === 'confirmed') && (
         <button
           onClick={() => updateStatus('cancelled')}
           disabled={loading}
-          className="text-xs text-red-600 border border-red-300 rounded px-2 py-1 hover:bg-red-50 disabled:opacity-50"
+          style={{
+            ...baseBtn,
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626',
+          }}
         >
           Cancel
         </button>
