@@ -1040,6 +1040,87 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
 
   console.log('✓ Customers: 5 (Thomas Weber, Sarah Mitchell, Klaus Hoffmann, Emma Schneider, TechStore GmbH)');
 
+  // ─── Story 1: Thomas Weber (active, 6 months) ────────────────────────────
+
+  const weberUnit = await prisma.unit.findFirstOrThrow({ where: { siteId: site1.id, unitCode: 'A16' } });
+  await prisma.unit.update({ where: { id: weberUnit.id }, data: { status: 'occupied' } });
+
+  const weberReservation = await prisma.reservation.upsert({
+    where: { id: 'res_thomas_weber' },
+    create: {
+      id: 'res_thomas_weber',
+      siteId: site1.id, unitId: weberUnit.id, unitTypeId: weberUnit.unitTypeId,
+      customerId: custThomas.id, status: 'converted', source: 'manual',
+      startDate: monthsAgo(6), expiresAt: monthsAgo(5),
+    },
+    update: {},
+  });
+
+  const weberAgreement = await prisma.agreement.upsert({
+    where: { reservationId: 'res_thomas_weber' },
+    create: {
+      id: 'agr_thomas_weber',
+      reservationId: weberReservation.id,
+      tenantId: custThomas.id,
+      unitId: weberUnit.id,
+      siteId: site1.id,
+      status: 'active',
+      billingCycle: 'monthly',
+      effectiveFrom: monthsAgo(6),
+      terminationRules: { noticePeriodDays: 30, noticeCutoff: 'end_of_month' },
+      pricingSnapshot: { unitTypeId: weberUnit.unitTypeId, amountMinor: 11900, billingCycle: 'monthly', currency: 'EUR' },
+      language: 'en',
+    },
+    update: {},
+  });
+
+  await prisma.signatory.upsert({
+    where: { id: 'sig_thomas_weber' },
+    create: { id: 'sig_thomas_weber', agreementId: weberAgreement.id, personId: custThomas.id, status: 'signed', signedAt: monthsAgo(6) },
+    update: {},
+  });
+
+  // 6 months of paid invoices
+  for (let i = 0; i < 6; i++) {
+    const periodStart = monthsAgo(6 - i);
+    const periodEnd   = monthsAgo(5 - i);
+    const invId = `inv_thomas_weber_${i + 1}`;
+    const inv = await prisma.invoice.upsert({
+      where: { agreementId_periodStart: { agreementId: weberAgreement.id, periodStart } },
+      create: {
+        id: invId,
+        agreementId: weberAgreement.id,
+        siteId: site1.id,
+        status: 'paid',
+        invoiceDate: periodStart,
+        dueDate: new Date(periodStart.getTime() + 15 * 86400000),
+        currency: 'EUR',
+        totalMinor: 14161, // €119 + 19% VAT
+        periodStart,
+        periodEnd,
+      },
+      update: {},
+    });
+    await prisma.invoiceLine.upsert({
+      where: { id: `il_thomas_weber_${i + 1}` },
+      create: { id: `il_thomas_weber_${i + 1}`, invoiceId: inv.id, kind: 'rent', description: '20ft container A16 — monthly rental', amountMinor: 11900, taxCode: 'DE_STD', vatRate: 0.19 },
+      update: {},
+    });
+    await prisma.payment.upsert({
+      where: { reference: `pay_thomas_weber_${i + 1}` },
+      create: { invoiceId: inv.id, method: 'sepa_core', status: 'succeeded', amountMinor: 14161, reference: `pay_thomas_weber_${i + 1}` },
+      update: {},
+    });
+  }
+
+  await prisma.accessCredential.upsert({
+    where: { agreementId: weberAgreement.id },
+    create: { agreementId: weberAgreement.id, credentialType: 'pin', maskedValue: '****4521', status: 'active' },
+    update: {},
+  });
+
+  console.log('✓ Story 1: Thomas Weber — active 6-month tenant, 6 paid invoices');
+
   // ─── Summary ─────────────────────────────────────────────────────────────
 
   const [unitCount, siteCount, templateCount] = await Promise.all([
