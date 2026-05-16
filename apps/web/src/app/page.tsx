@@ -78,7 +78,7 @@ export default function HomePage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
             {POPULAR_CITIES.map((city) => (
               <Link key={city.name}
-                href={`/storage?city=${city.name.toLowerCase()}`}
+                href={`/storage?city=${encodeURIComponent(city.name)}`}
                 className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center hover:border-blue-300 hover:bg-blue-50 transition-colors group">
                 <p className="font-semibold text-slate-900 group-hover:text-blue-600">{city.name}</p>
                 <p className="text-xs text-slate-400 mt-0.5">{city.country}</p>
