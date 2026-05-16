@@ -842,6 +842,31 @@ async function main() {
     seoDescription: 'Rent storage in Cologne Ehrenfeld. Climate-controlled indoor boxes and drive-up containers.',
   });
 
+  // ─── Agreement Templates ──────────────────────────────────────────────────
+
+  const agreementBody = `STORAGE RENTAL AGREEMENT
+
+This agreement is entered into between SiteLager ("Operator") and the Tenant named above.
+
+1. UNIT. Operator leases to Tenant the storage unit described above for the exclusive storage of personal or business goods.
+2. TERM. This agreement begins on the effective date and continues month-to-month until terminated by either party with 30 days' written notice.
+3. RENT. Tenant agrees to pay the monthly rent stated above, due on the first day of each rental month.
+4. PERMITTED USE. The unit may only be used for storage of lawful goods. Hazardous materials, perishables, and living beings are strictly prohibited.
+5. ACCESS. Tenant may access the unit during posted site hours using the access credentials provided.
+6. LIABILITY. Operator is not liable for loss, damage, or theft. Tenant is advised to maintain appropriate insurance.
+7. TERMINATION. Either party may terminate with 30 days' written notice. Operator may terminate immediately for breach of any term.`;
+
+  const allSiteIds = [site1.id, site2.id, siteFrankfurt.id, siteBerlin.id, siteHamburg.id, siteKoeln.id];
+
+  for (const siteId of allSiteIds) {
+    await prisma.agreementTemplate.upsert({
+      where: { siteId_language_version: { siteId, language: 'en', version: '1.0' } },
+      create: { siteId, version: '1.0', language: 'en', body: agreementBody, active: true },
+      update: {},
+    });
+  }
+  console.log('✓ Agreement templates: 1 per site (en, v1.0)');
+
   // ─── Summary ─────────────────────────────────────────────────────────────
 
   const [unitCount, siteCount, templateCount] = await Promise.all([
