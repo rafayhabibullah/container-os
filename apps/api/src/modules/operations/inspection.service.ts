@@ -15,6 +15,13 @@ interface CreateInspectionInput {
   depositDeduction?: number;
 }
 
+interface CompleteInspectionInput {
+  checklist: ChecklistItem[];
+  notes?: string;
+  photoIds?: string[];
+  depositDeduction?: number;
+}
+
 @Injectable()
 export class InspectionService {
   constructor(private prisma: PrismaClient) {}
@@ -40,10 +47,35 @@ export class InspectionService {
       },
     });
 
-    // Fix 5: move_out inspection affects unit status
     if (kind === 'move_out') {
       const newStatus = overallResult === 'pass' ? 'available' : 'maintenance';
       await this.prisma.unit.update({ where: { id: unitId }, data: { status: newStatus as any } });
+    }
+
+    return { inspectionId: run.id, result: overallResult };
+  }
+
+  async completeInspectionRun(id: string, input: CompleteInspectionInput) {
+    const { checklist, notes, photoIds = [], depositDeduction } = input;
+
+    const existing = await this.prisma.inspectionRun.findUniqueOrThrow({ where: { id } });
+    const overallResult = checklist.every((item) => item.result !== 'fail') ? 'pass' : 'fail';
+
+    const run = await this.prisma.inspectionRun.update({
+      where: { id },
+      data: {
+        checklist: checklist as any,
+        notes,
+        photoIds,
+        depositDeduction,
+        result: overallResult,
+        completedAt: new Date(),
+      },
+    });
+
+    if (existing.kind === 'move_out') {
+      const newStatus = overallResult === 'pass' ? 'available' : 'maintenance';
+      await this.prisma.unit.update({ where: { id: existing.unitId }, data: { status: newStatus as any } });
     }
 
     return { inspectionId: run.id, result: overallResult };
