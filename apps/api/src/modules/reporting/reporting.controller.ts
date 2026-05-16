@@ -1,21 +1,22 @@
 import { ApiTags } from '@nestjs/swagger';
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
+import { OrganisationGuard } from '../../common/guards/organisation.guard';
 import { ReportingService } from './reporting.service';
 
 @ApiTags('operator')
-@Controller('operator/v1/reports')
-@UseGuards(JwtAuthGuard)
+@Controller('v1/organisations/:organisationId/reports')
+@UseGuards(JwtAuthGuard, OrganisationGuard)
 export class ReportingController {
   constructor(private reporting: ReportingService) {}
 
   @Get('occupancy')
-  getOccupancy(@Query('siteIds') siteIds: string, @Query('from') from: string, @Query('to') to: string) {
-    return this.reporting.getOccupancyReport(siteIds.split(','), new Date(from), new Date(to));
+  getOccupancy(@Param('organisationId') orgId: string) {
+    return this.reporting.getOccupancyReport(orgId);
   }
 
   @Get('revenue')
-  getRevenue(@Query('siteIds') siteIds: string, @Query('from') from: string, @Query('to') to: string) {
-    return this.reporting.getRevenueReport(siteIds.split(','), new Date(from), new Date(to));
+  getRevenue(@Param('organisationId') orgId: string) {
+    return this.reporting.getRevenueReport(orgId);
   }
 }

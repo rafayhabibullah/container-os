@@ -1,7 +1,7 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
 
-interface OccupancyItem { siteId: string; occupancyPct: number; totalUnits: number; occupiedUnits: number; }
+interface OccupancyItem { siteId: string; siteName: string; occupancyPct: number; totalUnits: number; occupiedUnits: number; }
 interface RevenueItem { siteId: string; totalMinor: number; currency: string; }
 
 const thStyle: React.CSSProperties = {
@@ -82,10 +82,8 @@ export default async function ReportsPage() {
               <tbody>
                 {occupancy.map((o) => (
                   <tr key={o.siteId} className="tbl-row" style={{ borderBottom: '1px solid #f8fafc' }}>
-                    <td style={{ padding: '12px 16px' }}>
-                      <span style={{ background: '#f1f5f9', color: '#475569', borderRadius: '5px', padding: '2px 8px', fontSize: '12px', fontFamily: 'monospace' }}>
-                        {o.siteId}
-                      </span>
+                    <td style={{ padding: '12px 16px', fontWeight: 500, color: '#0f172a' }}>
+                      {o.siteName}
                     </td>
                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
