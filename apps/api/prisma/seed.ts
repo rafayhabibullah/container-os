@@ -867,6 +867,99 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
   }
   console.log('✓ Agreement templates: 1 per site (en, v1.0)');
 
+  // ─── Listings ─────────────────────────────────────────────────────────────
+
+  // Look up unit IDs for available units to list
+  const listingUnits = await Promise.all([
+    prisma.unit.findFirst({ where: { siteId: site1.id, unitCode: 'A01', status: 'available' } }),
+    prisma.unit.findFirst({ where: { siteId: site1.id, unitCode: 'IN-S01', status: 'available' } }),
+    prisma.unit.findFirst({ where: { siteId: site2.id, unitCode: 'A11', status: 'available' } }),
+    prisma.unit.findFirst({ where: { siteId: siteFrankfurt.id, unitCode: 'A01', status: 'available' } }),
+    prisma.unit.findFirst({ where: { siteId: siteFrankfurt.id, unitCode: 'IN-M01', status: 'available' } }),
+    prisma.unit.findFirst({ where: { siteId: siteBerlin.id, unitCode: 'A11', status: 'available' } }),
+    prisma.unit.findFirst({ where: { siteId: siteHamburg.id, unitCode: 'B07', status: 'available' } }),
+    prisma.unit.findFirst({ where: { siteId: siteKoeln.id, unitCode: 'IN-S01', status: 'available' } }),
+  ]);
+
+  const listingDefs = [
+    {
+      orgId: org.id, siteId: site1.id, unit: listingUnits[0],
+      slug: 'passau-hafen-10ft-a01', title: '10ft Drive-Up Container — Passau Hafen',
+      description: 'Weatherproof 10ft shipping container with drive-up access and roll-up door. Ideal for household goods, furniture, or workshop overflow. Ground-level loading.',
+      publicPriceMinor: 6900, depositMinor: 9900, bookingMode: 'instant_booking' as const,
+    },
+    {
+      orgId: org.id, siteId: site1.id, unit: listingUnits[1],
+      slug: 'passau-hafen-indoor-s01', title: 'Climate-Controlled Indoor Box 5 m² — Passau Hafen',
+      description: 'Clean, dry indoor storage box. Perfect for documents, electronics, clothing, or valuables. Climate-controlled building with swing door.',
+      publicPriceMinor: 4900, depositMinor: 9900, bookingMode: 'approval_required' as const,
+    },
+    {
+      orgId: org.id, siteId: site2.id, unit: listingUnits[2],
+      slug: 'muenchen-nord-20ft-a11', title: '20ft Container — München Nord (24/7 Access)',
+      description: 'Spacious 20ft container at our 24/7 accessible Munich site. Drive-up, weathersealed, ground level. Perfect for business inventory or long-term storage.',
+      publicPriceMinor: 11900, depositMinor: 9900, bookingMode: 'instant_booking' as const,
+    },
+    {
+      orgId: org.id, siteId: siteFrankfurt.id, unit: listingUnits[3],
+      slug: 'frankfurt-westend-10ft-a01', title: '10ft Business Container — Frankfurt Westend',
+      description: 'Compact 10ft container steps from Frankfurt city centre. Drive-up access, SEPA billing, monthly rolling contract.',
+      publicPriceMinor: 6900, depositMinor: 9900, bookingMode: 'approval_required' as const,
+    },
+    {
+      orgId: org.id, siteId: siteFrankfurt.id, unit: listingUnits[4],
+      slug: 'frankfurt-westend-indoor-m01', title: '10 m² Indoor Box — Frankfurt Westend',
+      description: 'Spacious 10 m² climate-controlled indoor storage. Ideal for archive boxes, sample stock, or sensitive equipment.',
+      publicPriceMinor: 7900, depositMinor: 9900, bookingMode: 'instant_booking' as const,
+    },
+    {
+      orgId: org2.id, siteId: siteBerlin.id, unit: listingUnits[5],
+      slug: 'berlin-mitte-20ft-a11', title: '20ft Container Berlin Mitte — 24/7 Access',
+      description: '24/7 accessible 20ft container in central Berlin. CCTV monitored, weathersealed, drive-up. No minimum term.',
+      publicPriceMinor: 11900, depositMinor: 9900, bookingMode: 'instant_booking' as const,
+    },
+    {
+      orgId: org2.id, siteId: siteHamburg.id, unit: listingUnits[6],
+      slug: 'hamburg-hafen-40ft-b07', title: '40ft Drive-Up Container — Hamburg Hafen',
+      description: 'Massive 40ft container at Hamburg\'s waterfront storage facility. Ideal for large inventories, removals, or long-term archival. Daily access 06:00–23:00.',
+      publicPriceMinor: 18900, depositMinor: 9900, bookingMode: 'approval_required' as const,
+    },
+    {
+      orgId: org2.id, siteId: siteKoeln.id, unit: listingUnits[7],
+      slug: 'koeln-ehrenfeld-indoor-s01', title: 'Indoor Storage Box 5 m² — Köln Ehrenfeld',
+      description: 'Affordable 5 m² indoor unit in Cologne\'s trendy Ehrenfeld district. Climate controlled, secure, and easy to access.',
+      publicPriceMinor: 4900, depositMinor: 9900, bookingMode: 'instant_booking' as const,
+    },
+  ];
+
+  for (const def of listingDefs) {
+    if (!def.unit) { console.warn(`⚠ Listing skipped — unit not found for slug ${def.slug}`); continue; }
+    await prisma.listing.upsert({
+      where: { slug: def.slug },
+      create: {
+        organisationId: def.orgId,
+        siteId: def.siteId,
+        unitId: def.unit.id,
+        slug: def.slug,
+        title: def.title,
+        description: def.description,
+        publicPriceMinor: def.publicPriceMinor,
+        showPrice: true,
+        depositMinor: def.depositMinor,
+        availableFrom: new Date(),
+        bookingMode: def.bookingMode,
+        status: 'published',
+        requiredDocs: def.bookingMode === 'approval_required' ? ['id_document'] : [],
+        seoTitle: def.title,
+        seoDescription: def.description?.slice(0, 160),
+        commissionRateBp: 0,
+        source: 'manual',
+      },
+      update: {},
+    });
+  }
+  console.log('✓ Listings: 8 published across all sites');
+
   // ─── Summary ─────────────────────────────────────────────────────────────
 
   const [unitCount, siteCount, templateCount] = await Promise.all([
