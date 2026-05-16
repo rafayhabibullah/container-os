@@ -138,6 +138,25 @@ export class OrgOperationsController {
     });
   }
 
+  @Patch('inspection-runs/:id')
+  @ApiOperation({ summary: 'Complete an in-progress inspection run' })
+  completeInspectionRun(
+    @Param('id') id: string,
+    @Body() body: {
+      checklist: { code: string; label: string; result: string; note?: string }[];
+      notes?: string;
+      photoIds?: string[];
+      depositDeduction?: number;
+    },
+  ) {
+    return this.inspections.completeInspectionRun(id, {
+      checklist: body.checklist as any,
+      notes: body.notes,
+      photoIds: body.photoIds,
+      depositDeduction: body.depositDeduction,
+    });
+  }
+
   @Post('inspection-photos')
   @ApiOperation({ summary: 'Upload an inspection photo and return a storage key' })
   @UseInterceptors(FileInterceptor('file'))
