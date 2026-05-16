@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { DomainException, ErrorCodes } from '@sitelager/domain-types';
 
@@ -59,6 +59,9 @@ export class InspectionService {
     const { checklist, notes, photoIds = [], depositDeduction } = input;
 
     const existing = await this.prisma.inspectionRun.findUniqueOrThrow({ where: { id } });
+    if (existing.completedAt) {
+      throw new BadRequestException(`Inspection ${id} is already completed`);
+    }
     const overallResult = checklist.every((item) => item.result !== 'fail') ? 'pass' : 'fail';
 
     const run = await this.prisma.inspectionRun.update({

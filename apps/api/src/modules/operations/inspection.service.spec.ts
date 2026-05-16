@@ -80,5 +80,12 @@ describe('InspectionService', () => {
       });
       expect(mockPrisma.unit.update).not.toHaveBeenCalled();
     });
+
+    it('throws when inspection is already completed', async () => {
+      mockPrisma.inspectionRun.findUniqueOrThrow.mockResolvedValue({ id: 'ins_06', unitId: 'u1', kind: 'routine', completedAt: new Date() });
+      await expect(
+        service.completeInspectionRun('ins_06', { checklist: [{ code: 'DOOR', label: 'Door', result: 'pass' }] })
+      ).rejects.toThrow('already completed');
+    });
   });
 });
