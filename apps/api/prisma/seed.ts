@@ -1432,6 +1432,109 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
 
   console.log('✓ Story 4: Emma Schneider — terminated, move-out inspection passed');
 
+  // ─── Story 5: TechStore GmbH (large tenant, credit note) ─────────────────
+
+  const techUnit = await prisma.unit.findFirstOrThrow({ where: { siteId: siteHamburg.id, unitCode: 'B07' } });
+  await prisma.unit.update({ where: { id: techUnit.id }, data: { status: 'occupied' } });
+
+  const techReservation = await prisma.reservation.upsert({
+    where: { id: 'res_techstore_gmbh' },
+    create: {
+      id: 'res_techstore_gmbh',
+      siteId: siteHamburg.id, unitId: techUnit.id, unitTypeId: techUnit.unitTypeId,
+      customerId: custTechstore.id, status: 'converted', source: 'manual',
+      startDate: monthsAgo(4), expiresAt: monthsAgo(3),
+    },
+    update: {},
+  });
+
+  const techAgreement = await prisma.agreement.upsert({
+    where: { reservationId: 'res_techstore_gmbh' },
+    create: {
+      id: 'agr_techstore_gmbh',
+      reservationId: techReservation.id,
+      tenantId: custTechstore.id,
+      unitId: techUnit.id,
+      siteId: siteHamburg.id,
+      status: 'active',
+      billingCycle: 'monthly',
+      effectiveFrom: monthsAgo(4),
+      terminationRules: { noticePeriodDays: 30, noticeCutoff: 'end_of_month' },
+      pricingSnapshot: { unitTypeId: techUnit.unitTypeId, amountMinor: 18900, billingCycle: 'monthly', currency: 'EUR' },
+      language: 'en',
+    },
+    update: {},
+  });
+
+  await prisma.signatory.upsert({
+    where: { id: 'sig_techstore' },
+    create: { id: 'sig_techstore', agreementId: techAgreement.id, personId: custTechstore.id, status: 'signed', signedAt: monthsAgo(4) },
+    update: {},
+  });
+
+  await prisma.accessCredential.upsert({
+    where: { agreementId: techAgreement.id },
+    create: { agreementId: techAgreement.id, credentialType: 'pin', maskedValue: '****9103', status: 'active' },
+    update: {},
+  });
+
+  // 5 invoices: first 4 paid, 5th sent with a credit note
+  for (let i = 0; i < 5; i++) {
+    const periodStart = monthsAgo(4 - i);
+    const periodEnd   = monthsAgo(3 - i);
+    const invId = `inv_techstore_${i + 1}`;
+    const isLast = i === 4;
+    const inv = await prisma.invoice.upsert({
+      where: { agreementId_periodStart: { agreementId: techAgreement.id, periodStart } },
+      create: {
+        id: invId,
+        agreementId: techAgreement.id,
+        siteId: siteHamburg.id,
+        status: isLast ? 'sent' : 'paid',
+        invoiceDate: periodStart,
+        dueDate: new Date(periodStart.getTime() + 15 * 86400000),
+        currency: 'EUR',
+        totalMinor: 22491, // €189 + 19% VAT
+        periodStart,
+        periodEnd,
+      },
+      update: {},
+    });
+    await prisma.invoiceLine.upsert({
+      where: { id: `il_techstore_${i + 1}` },
+      create: { id: `il_techstore_${i + 1}`, invoiceId: inv.id, kind: 'rent', description: '40ft container B07 — monthly rental', amountMinor: 18900, taxCode: 'DE_STD', vatRate: 0.19 },
+      update: {},
+    });
+    if (!isLast) {
+      await prisma.payment.upsert({
+        where: { reference: `pay_techstore_${i + 1}` },
+        create: { invoiceId: inv.id, method: 'sepa_b2b', status: 'succeeded', amountMinor: 22491, reference: `pay_techstore_${i + 1}` },
+        update: {},
+      });
+    } else {
+      await prisma.creditNote.upsert({
+        where: { id: 'cn_techstore_1' },
+        create: { id: 'cn_techstore_1', invoiceId: inv.id, amountMinor: 5000, reason: 'Partial credit — site access unavailable for 1 day due to scheduled maintenance (2026-04-28).' },
+        update: {},
+      });
+    }
+  }
+
+  await prisma.incident.upsert({
+    where: { id: 'incident_techstore_access' },
+    create: {
+      id: 'incident_techstore_access',
+      siteId: siteHamburg.id,
+      severity: 'low',
+      type: 'access_fault',
+      status: 'resolved',
+      resolutionNote: 'Gate controller firmware updated. Access restored within 4 hours. Credit note issued to affected tenants.',
+    },
+    update: {},
+  });
+
+  console.log('✓ Story 5: TechStore GmbH — active 40ft tenant, 4 paid + 1 with credit note');
+
   // ─── Summary ─────────────────────────────────────────────────────────────
 
   const [unitCount, siteCount, templateCount] = await Promise.all([
