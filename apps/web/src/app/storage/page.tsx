@@ -18,9 +18,10 @@ interface ListingSearchResult {
 export default async function StoragePage({
   searchParams,
 }: {
-  searchParams: { city?: string; country?: string; minSize?: string; maxSize?: string; mode?: string };
+  searchParams: { q?: string; city?: string; country?: string; minSize?: string; maxSize?: string; mode?: string };
 }) {
   const params = new URLSearchParams();
+  if (searchParams.q) params.set('q', searchParams.q);
   if (searchParams.city) params.set('city', searchParams.city);
   if (searchParams.country) params.set('country', searchParams.country);
   if (searchParams.minSize) params.set('minSizeSqm', searchParams.minSize);
@@ -28,12 +29,16 @@ export default async function StoragePage({
   if (searchParams.mode) params.set('bookingMode', searchParams.mode);
   params.set('limit', '40');
 
-  const listings = await fetch(`${API_URL}/public/v1/listings?${params.toString()}`, {
-    cache: 'no-store',
-  }).then(async (r) => {
-    const data = await r.json();
-    return Array.isArray(data) ? (data as ListingSearchResult[]) : [];
-  }).catch(() => [] as ListingSearchResult[]);
+  const [listings, allListings] = await Promise.all([
+    fetch(`${API_URL}/public/v1/listings?${params.toString()}`, { cache: 'no-store' })
+      .then(async (r) => { const d = await r.json(); return Array.isArray(d) ? (d as ListingSearchResult[]) : []; })
+      .catch(() => [] as ListingSearchResult[]),
+    fetch(`${API_URL}/public/v1/listings?limit=200`, { cache: 'no-store' })
+      .then(async (r) => { const d = await r.json(); return Array.isArray(d) ? (d as ListingSearchResult[]) : []; })
+      .catch(() => [] as ListingSearchResult[]),
+  ]);
+
+  const cities = Array.from(new Set(allListings.map((l) => l.site.address.city))).sort();
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -50,13 +55,13 @@ export default async function StoragePage({
       </header>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
-        <form method="GET" className="bg-white border border-slate-200 rounded-xl p-4 mb-6 flex flex-wrap gap-3 items-end">
-          <div className="flex-1 min-w-[160px]">
-            <label className="block text-xs text-slate-500 font-medium mb-1">City</label>
+        <form method="GET" className="bg-white border border-slate-200 rounded-xl p-4 mb-4 flex flex-wrap gap-3 items-end">
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-xs text-slate-500 font-medium mb-1">Search</label>
             <div className="flex items-center gap-2 border border-slate-200 rounded-lg px-3 py-2">
               <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              <input name="city" type="text" defaultValue={searchParams.city}
-                placeholder="Berlin, Hamburg…"
+              <input name="q" type="text" defaultValue={searchParams.q}
+                placeholder="Search listings…"
                 className="text-sm outline-none flex-1 placeholder-slate-400" />
             </div>
           </div>
@@ -86,6 +91,23 @@ export default async function StoragePage({
             <Filter className="w-4 h-4" /> Filter
           </button>
         </form>
+
+        {cities.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            {cities.map((city) => (
+              <Link
+                key={city}
+                href={searchParams.city === city ? '/storage' : `/storage?city=${encodeURIComponent(city)}`}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                  searchParams.city === city
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-600'
+                }`}>
+                {city}
+              </Link>
+            ))}
+          </div>
+        )}
 
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-lg font-bold text-slate-900">

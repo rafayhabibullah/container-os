@@ -41,6 +41,7 @@ export class SiteInventoryController {
 
   @Get('public/v1/listings')
   searchListings(
+    @Query('q') q?: string,
     @Query('city') city?: string,
     @Query('country') country?: string,
     @Query('minSizeSqm') minSizeSqm?: string,
@@ -50,7 +51,7 @@ export class SiteInventoryController {
     @Query('offset') offset?: string,
   ) {
     try {
-      return this.listingsService.searchPublicListings({ city, country, minSizeSqm, maxSizeSqm, bookingMode, limit, offset });
+      return this.listingsService.searchPublicListings({ q, city, country, minSizeSqm, maxSizeSqm, bookingMode, limit, offset });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Bad request';
       throw new BadRequestException(message);

@@ -82,6 +82,7 @@ export class ListingsService {
   }
 
   searchPublicListings(filters: {
+    q?: string;
     city?: string;
     country?: string;
     minSizeSqm?: string;
@@ -103,6 +104,10 @@ export class ListingsService {
     return this.prisma.listing.findMany({
       where: {
         status: 'published',
+        ...(filters.q ? { OR: [
+          { title: { contains: filters.q, mode: 'insensitive' } },
+          { description: { contains: filters.q, mode: 'insensitive' } },
+        ] } : {}),
         ...(filters.bookingMode ? { bookingMode: filters.bookingMode as 'approval_required' | 'instant_booking' | 'request_price' } : {}),
         ...(filters.city || filters.country ? {
           site: {
