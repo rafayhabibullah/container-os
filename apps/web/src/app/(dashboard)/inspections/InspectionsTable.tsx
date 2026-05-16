@@ -36,7 +36,7 @@ const FILTERS = [
   { key: 'in_progress', label: 'In progress' },
 ] as const;
 
-export default function InspectionsTable({ inspections }: { inspections: InspectionRow[] }) {
+export default function InspectionsTable({ inspections, onContinue }: { inspections: InspectionRow[]; onContinue: (inspection: InspectionRow) => void }) {
   const [query,        setQuery]        = useState('');
   const [resultFilter, setResultFilter] = useState<string>('all');
 
@@ -166,7 +166,7 @@ export default function InspectionsTable({ inspections }: { inspections: Inspect
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                {['Site', 'Unit', 'Kind', 'Result', 'Checklist', 'Deposit', 'Completed', 'Created'].map((h) => (
+                {['Site', 'Unit', 'Kind', 'Result', 'Checklist', 'Deposit', 'Completed', 'Created', ''].map((h) => (
                   <th key={h} style={{
                     textAlign: 'left', padding: '10px 20px',
                     fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -264,6 +264,28 @@ export default function InspectionsTable({ inspections }: { inspections: Inspect
                       <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8' }}>
                         {new Date(insp.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </span>
+                    </td>
+
+                    {/* Continue action */}
+                    <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                      {!insp.result && (
+                        <button
+                          onClick={() => onContinue(insp)}
+                          style={{
+                            fontFamily: "'Plus Jakarta Sans', sans-serif",
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            color: '#0369a1',
+                            background: '#f0f9ff',
+                            border: '1px solid #bae6fd',
+                            borderRadius: '6px',
+                            padding: '4px 12px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Continue
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );
