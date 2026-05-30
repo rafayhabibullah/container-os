@@ -19,6 +19,7 @@ import {
   Receipt,
   PanelLeftClose,
   PanelLeftOpen,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -98,8 +99,8 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Settings pinned at bottom */}
-      <div className="p-1.5 shrink-0 border-t border-slate-100">
+      {/* Settings + Logout pinned at bottom */}
+      <div className="p-1.5 shrink-0 border-t border-slate-100 flex flex-col gap-0.5">
         <Link
           href="/settings"
           className={cn(
@@ -112,6 +113,15 @@ export function Sidebar() {
           <Settings className="w-4 h-4 shrink-0" />
           {open && <span className="text-sm font-medium">Settings</span>}
         </Link>
+        <form action="/api/auth/logout" method="POST">
+          <button
+            type="submit"
+            className="w-full flex items-center gap-3 px-2 py-2 rounded-lg border border-transparent text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors"
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            {open && <span className="text-sm font-medium">Log out</span>}
+          </button>
+        </form>
       </div>
     </aside>
   );
