@@ -199,7 +199,7 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
                     key={i}
                     style={{
                       textAlign: 'left',
-                      padding: '10px 20px',
+                      padding: '10px 16px',
                       fontSize: '11px',
                       fontFamily: "'Plus Jakarta Sans', sans-serif",
                       fontWeight: 700,
@@ -229,7 +229,7 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
                     }}
                   >
                     {/* Severity */}
-                    <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
                       <span style={{
                         display: 'inline-flex', alignItems: 'center', gap: '6px',
                         background: sev.bg, color: sev.text,
@@ -247,7 +247,7 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
                     </td>
 
                     {/* Incident type */}
-                    <td style={{ padding: '14px 20px' }}>
+                    <td style={{ padding: '12px 16px' }}>
                       <span style={{
                         fontFamily: "'Plus Jakarta Sans', sans-serif",
                         fontSize: '14px', fontWeight: 600, color: '#0f172a',
@@ -257,7 +257,7 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
                     </td>
 
                     {/* Site */}
-                    <td style={{ padding: '14px 20px' }}>
+                    <td style={{ padding: '12px 16px' }}>
                       <span style={{
                         fontFamily: "'Plus Jakarta Sans', sans-serif",
                         fontSize: '13px', color: '#64748b',
@@ -270,7 +270,7 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
                     </td>
 
                     {/* Status */}
-                    <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
                       <span style={{
                         display: 'inline-flex', alignItems: 'center', gap: '6px',
                         background: stat.bg, color: stat.text,
@@ -288,7 +288,7 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
                     </td>
 
                     {/* Time */}
-                    <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
                       <span style={{
                         fontFamily: "'Plus Jakarta Sans', sans-serif",
                         fontSize: '13px', color: '#94a3b8',
@@ -298,7 +298,7 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
                     </td>
 
                     {/* Actions */}
-                    <td style={{ padding: '14px 20px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                       {inc.status !== 'resolved' && (
                         <IncidentActions type="update" incidentId={inc.id} currentStatus={inc.status} />
                       )}

@@ -198,7 +198,7 @@ export default async function DashboardPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: '32px',
+            marginBottom: '28px',
           }}
         >
           <div>

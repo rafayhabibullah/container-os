@@ -177,7 +177,7 @@ export default function AgreementsTable({ agreements, documents }: Props) {
                         cursor: 'pointer',
                       }}
                     >
-                      <td style={{ padding: '12px 16px', fontFamily: 'ui-monospace, monospace', fontSize: '12px', color: '#94a3b8' }}>{a.id.slice(0, 12)}…</td>
+                      <td style={{ padding: '12px 16px', fontFamily: 'ui-monospace, monospace', fontSize: '12px', color: '#94a3b8' }}>{a.id.slice(0, 8)}…</td>
                       <td style={{ padding: '12px 16px', fontFamily: 'ui-monospace, monospace', fontSize: '12px', color: '#475569' }}>{a.tenantId.slice(0, 10)}…</td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', textTransform: 'capitalize', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{a.billingCycle.replace('_', ' ')}</td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{a.effectiveFrom ? new Date(a.effectiveFrom).toLocaleDateString('de-DE') : '—'}</td>

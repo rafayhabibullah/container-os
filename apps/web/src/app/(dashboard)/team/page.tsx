@@ -56,7 +56,7 @@ export default async function TeamPage() {
       <style>{`.tbl-row:hover { background: #f8fafc; }`}</style>
       <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-          <div style={{ marginBottom: '24px' }}>
+          <div style={{ marginBottom: '28px' }}>
             <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>Team</h1>
             <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>
               {members.length} member{members.length !== 1 ? 's' : ''}

@@ -191,7 +191,7 @@ export default function ReservationsTable({ reservations }: Props) {
                     }}
                   >
                     <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontSize: '12px', color: '#94a3b8' }}>
-                      {r.id.slice(0, 12)}…
+                      {r.id.slice(0, 8)}…
                     </td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                       {r.customerName ?? r.customerId.slice(0, 10) + '…'}

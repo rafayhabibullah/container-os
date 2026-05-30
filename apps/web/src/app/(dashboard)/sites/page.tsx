@@ -47,7 +47,7 @@ export default async function SitesPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: '24px',
+              marginBottom: '28px',
             }}
           >
             <div>

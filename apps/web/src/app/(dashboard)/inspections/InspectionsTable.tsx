@@ -170,7 +170,7 @@ export default function InspectionsTable({ inspections, onContinue }: { inspecti
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
                 {['Site', 'Unit', 'Kind', 'Result', 'Checklist', 'Deposit', 'Completed', 'Created', ''].map((h, i) => (
                   <th key={i} style={{
-                    textAlign: 'left', padding: '10px 20px',
+                    textAlign: 'left', padding: '10px 16px',
                     fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif",
                     fontWeight: 700, color: '#94a3b8',
                     letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap',
@@ -193,28 +193,28 @@ export default function InspectionsTable({ inspections, onContinue }: { inspecti
                     }}
                   >
                     {/* Site */}
-                    <td style={{ padding: '14px 20px' }}>
+                    <td style={{ padding: '12px 16px' }}>
                       <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#64748b', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '5px', padding: '2px 8px' }}>
                         {insp.siteName ?? (insp.siteId ? insp.siteId.slice(0, 8) + '…' : '—')}
                       </span>
                     </td>
 
                     {/* Unit */}
-                    <td style={{ padding: '14px 20px' }}>
+                    <td style={{ padding: '12px 16px' }}>
                       <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#64748b', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '5px', padding: '2px 8px' }}>
                         {insp.unitCode ?? insp.unitId.slice(0, 8) + '…'}
                       </span>
                     </td>
 
                     {/* Kind */}
-                    <td style={{ padding: '14px 20px' }}>
+                    <td style={{ padding: '12px 16px' }}>
                       <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>
                         {KIND_LABEL[insp.kind] ?? insp.kind}
                       </span>
                     </td>
 
                     {/* Result */}
-                    <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
                       <span style={{
                         display: 'inline-flex', alignItems: 'center', gap: '6px',
                         background: res.bg, color: res.text,
@@ -229,7 +229,7 @@ export default function InspectionsTable({ inspections, onContinue }: { inspecti
                     </td>
 
                     {/* Checklist summary */}
-                    <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
                       {insp.checklist && insp.checklist.length > 0 ? (
                         <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '12px', color: '#64748b' }}>
                           {insp.checklist.filter((i) => i.result === 'pass').length}✓{' '}
@@ -244,7 +244,7 @@ export default function InspectionsTable({ inspections, onContinue }: { inspecti
                     </td>
 
                     {/* Deposit deduction */}
-                    <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
                       {insp.depositDeduction ? (
                         <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#dc2626', fontWeight: 600 }}>
                           €{insp.depositDeduction.toFixed(2)}
@@ -255,21 +255,21 @@ export default function InspectionsTable({ inspections, onContinue }: { inspecti
                     </td>
 
                     {/* Completed */}
-                    <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
                       <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8' }}>
                         {insp.completedAt ? new Date(insp.completedAt).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
                       </span>
                     </td>
 
                     {/* Created */}
-                    <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
                       <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8' }}>
                         {new Date(insp.createdAt).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </span>
                     </td>
 
                     {/* Continue action */}
-                    <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
                       {!insp.result && (
                         <button
                           onClick={() => onContinue(insp)}

@@ -61,7 +61,7 @@ export default async function CustomersPage() {
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
             Customers
           </h1>
-          <p style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '24px' }}>
+          <p style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '28px' }}>
             {customers.length} customer{customers.length !== 1 ? 's' : ''}
           </p>
 

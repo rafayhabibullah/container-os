@@ -37,7 +37,7 @@ export default async function AgreementsPage() {
       <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
 
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 20px', letterSpacing: '-0.02em' }}>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 28px', letterSpacing: '-0.02em' }}>
             Agreements
           </h1>
 
