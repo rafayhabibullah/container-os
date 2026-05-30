@@ -158,7 +158,7 @@ export default function AgreementsTable({ agreements, documents }: Props) {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  {['ID', 'Tenant', 'Billing', 'Effective from', 'Status'].map((h) => (
+                  {['ID', 'Customer', 'Billing', 'Effective from', 'Status'].map((h) => (
                     <th key={h} style={thStyle}>{h}</th>
                   ))}
                 </tr>

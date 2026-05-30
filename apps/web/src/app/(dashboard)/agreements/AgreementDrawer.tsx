@@ -196,9 +196,9 @@ export default function AgreementDrawer({ agreement, onClose }: { agreement: Agr
         {/* Body */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-          {/* Tenant */}
+          {/* Customer */}
           <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '14px 16px' }}>
-            <SectionHeader title="Tenant" icon={
+            <SectionHeader title="Customer" icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="#64748b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
             } />
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
