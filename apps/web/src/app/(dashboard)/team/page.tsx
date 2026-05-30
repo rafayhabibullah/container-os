@@ -45,6 +45,7 @@ export default async function TeamPage() {
   const orgId = user.organisationId;
 
   const members = await serverFetch<Member[]>(`/v1/organisations/${orgId}/members`);
+  const ownerCount = members.filter((m) => m.role === 'owner').length;
   const invitations = user.role === 'owner'
     ? await serverFetch<Invitation[]>(`/v1/organisations/${orgId}/invitations`).catch(() => [])
     : [];
@@ -88,7 +89,7 @@ export default async function TeamPage() {
                     </td>
                     {user.role === 'owner' && (
                       <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                        {m.user.id !== user.sub && (
+                        {!(m.role === 'owner' && ownerCount === 1) && (
                           <TeamActions type="remove-member" id={m.id} label="Remove" />
                         )}
                       </td>

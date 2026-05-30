@@ -127,8 +127,8 @@ export default function TeamActions({ type, id, label }: Props) {
           name="role"
           style={{ ...inputStyle, width: 'auto' }}
         >
+          <option value="owner">Owner</option>
           <option value="operator">Operator</option>
-          <option value="tenant">Tenant</option>
         </select>
       </div>
       <button

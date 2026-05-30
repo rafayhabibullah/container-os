@@ -20,7 +20,13 @@ export class TeamService {
       where: { id: memberId, organisationId: orgId },
     });
     if (!member) throw new NotFoundException('MEMBER_NOT_FOUND');
-    if (member.userId === requestingUserId) throw new BadRequestException('CANNOT_REMOVE_SELF');
+
+    if (member.role === 'owner') {
+      const ownerCount = await this.prisma.organisationMember.count({
+        where: { organisationId: orgId, role: 'owner' },
+      });
+      if (ownerCount <= 1) throw new BadRequestException('LAST_OWNER');
+    }
 
     await this.prisma.organisationMember.delete({ where: { id: memberId } });
   }

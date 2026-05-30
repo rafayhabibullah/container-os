@@ -149,8 +149,28 @@ async function main() {
     update: {},
   });
 
+  const owner2Sitelager = await prisma.user.upsert({
+    where: { email: 'owner2@sitelager.dev' },
+    create: {
+      type: 'owner',
+      email: 'owner2@sitelager.dev',
+      name: 'Demo Owner 2',
+      passwordHash,
+      status: 'active',
+      mfaState: 'disabled',
+    },
+    update: { passwordHash },
+  });
+
+  await prisma.organisationMember.upsert({
+    where: { organisationId_userId: { organisationId: org.id, userId: owner2Sitelager.id } },
+    create: { organisationId: org.id, userId: owner2Sitelager.id, role: 'owner' },
+    update: {},
+  });
+
   console.log(`✓ Organisation: ${org.tradingName} (${org.slug})`);
   console.log(`✓ Owner user: ${owner.email} / Test1234!`);
+  console.log(`✓ Owner user 2: ${owner2Sitelager.email} / Test1234!`);
 
   // ─── Sites ────────────────────────────────────────────────────────────────
 
@@ -1760,6 +1780,7 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
   console.log('═══════════════════════════════════════\n');
   console.log('Demo logins:');
   console.log('  owner@sitelager.dev    / Test1234!  (Org 1: Passau, München, Frankfurt)');
+  console.log('  owner2@sitelager.dev   / Test1234!  (Org 1: second owner)');
   console.log('  operator@sitelager.dev / Test1234!');
   console.log('  owner@nordlager.dev    / Test1234!  (Org 2: Berlin, Hamburg, Köln)');
   console.log('  operator@nordlager.dev / Test1234!');

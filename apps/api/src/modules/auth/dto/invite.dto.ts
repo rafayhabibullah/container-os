@@ -2,8 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsEnum } from 'class-validator';
 
 export enum InviteRole {
+  owner = 'owner',
   operator = 'operator',
-  tenant = 'tenant',
 }
 
 export class InviteDto {
