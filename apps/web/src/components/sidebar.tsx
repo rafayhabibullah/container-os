@@ -28,7 +28,7 @@ const NAV_ITEMS = [
   { href: '/sites', label: 'Sites', icon: Building2 },
   { href: '/listings', label: 'Listings', icon: Globe },
   { href: '/reservations', label: 'Reservations', icon: CalendarCheck },
-  { href: '/customers', label: 'Customers', icon: Users, wip: true },
+  { href: '/customers', label: 'Customers', icon: Users },
   { href: '/agreements', label: 'Agreements', icon: BookOpen },
   { href: '/invoices', label: 'Invoices', icon: FileText },
   { href: '/payments', label: 'Payments', icon: CreditCard },
