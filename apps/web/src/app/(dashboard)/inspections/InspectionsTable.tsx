@@ -168,8 +168,8 @@ export default function InspectionsTable({ inspections, onContinue }: { inspecti
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                {['Site', 'Unit', 'Kind', 'Result', 'Checklist', 'Deposit', 'Completed', 'Created', ''].map((h) => (
-                  <th key={h} style={{
+                {['Site', 'Unit', 'Kind', 'Result', 'Checklist', 'Deposit', 'Completed', 'Created', ''].map((h, i) => (
+                  <th key={i} style={{
                     textAlign: 'left', padding: '10px 20px',
                     fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif",
                     fontWeight: 700, color: '#94a3b8',
@@ -257,14 +257,14 @@ export default function InspectionsTable({ inspections, onContinue }: { inspecti
                     {/* Completed */}
                     <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
                       <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8' }}>
-                        {insp.completedAt ? new Date(insp.completedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                        {insp.completedAt ? new Date(insp.completedAt).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
                       </span>
                     </td>
 
                     {/* Created */}
                     <td style={{ padding: '14px 20px', whiteSpace: 'nowrap' }}>
                       <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8' }}>
-                        {new Date(insp.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        {new Date(insp.createdAt).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </span>
                     </td>
 

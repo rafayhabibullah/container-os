@@ -133,7 +133,7 @@ export default async function TeamPage() {
                         </span>
                       </td>
                       <td style={{ padding: '12px 16px', fontSize: '12px', color: '#64748b' }}>
-                        {new Date(inv.expiresAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        {new Date(inv.expiresAt).toLocaleDateString('de-DE', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </td>
                       <td style={{ padding: '12px 16px', textAlign: 'right' }}>
                         <TeamActions type="revoke-invitation" id={inv.id} label="Revoke" />

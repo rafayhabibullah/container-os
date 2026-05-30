@@ -295,7 +295,7 @@ export default function InspectionActions({ sites = [] }: Props) {
                 <option value="">{contractsLoading ? 'Loading contracts…' : contracts.length === 0 ? 'No active contracts for this unit' : 'Select a contract…'}</option>
                 {contracts.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.id.slice(0, 8)}… · {c.status.replace(/_/g, ' ')} {c.effectiveFrom ? `· from ${new Date(c.effectiveFrom).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}
+                    {c.id.slice(0, 8)}… · {c.status.replace(/_/g, ' ')} {c.effectiveFrom ? `· from ${new Date(c.effectiveFrom).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}
                   </option>
                 ))}
               </select>

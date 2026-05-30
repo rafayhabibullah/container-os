@@ -46,7 +46,7 @@ export default async function ListingsPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', gap: '20px', flexWrap: 'wrap' }}>
             <div>
               <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 10px', letterSpacing: '-0.02em' }}>
-                Marketplace Listings
+                Listings
               </h1>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {published > 0 && (

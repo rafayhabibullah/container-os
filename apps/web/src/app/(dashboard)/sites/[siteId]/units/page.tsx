@@ -69,8 +69,8 @@ export default async function UnitsPage({ params }: { params: { siteId: string }
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    {['Code', 'Type', 'Kind', 'Drive-up', 'Status', ''].map((h) => (
-                      <th key={h} style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                    {['Code', 'Type', 'Kind', 'Drive-up', 'Status', ''].map((h, i) => (
+                      <th key={i} style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
                         {h}
                       </th>
                     ))}

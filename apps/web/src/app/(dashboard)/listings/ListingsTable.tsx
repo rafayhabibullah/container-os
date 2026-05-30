@@ -163,8 +163,8 @@ export default function ListingsTable({ listings, orgId }: Props) {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                {['Title', 'Site', 'Unit', 'Mode', 'Price', 'Status', ''].map((h) => (
-                  <th key={h} style={{
+                {['Title', 'Site', 'Unit', 'Mode', 'Price', 'Status', ''].map((h, i) => (
+                  <th key={i} style={{
                     textAlign: 'left', padding: '10px 16px',
                     fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif",
                     fontWeight: 700, color: '#94a3b8',

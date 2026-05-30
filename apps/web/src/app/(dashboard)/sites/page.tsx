@@ -151,9 +151,8 @@ export default async function SitesPage() {
                 textAlign: 'center',
               }}
             >
-              <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 12px' }}>
-                No sites yet.
-              </p>
+              <p style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>No sites yet</p>
+              <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 12px' }}>Sites will appear here once added.</p>
               {user.role === 'owner' && (
                 <Link
                   href="/sites/new"

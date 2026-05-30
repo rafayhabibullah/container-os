@@ -194,9 +194,9 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                {['Severity', 'Incident', 'Site', 'Status', 'Reported', ''].map((h) => (
+                {['Severity', 'Incident', 'Site', 'Status', 'Reported', ''].map((h, i) => (
                   <th
-                    key={h}
+                    key={i}
                     style={{
                       textAlign: 'left',
                       padding: '10px 20px',

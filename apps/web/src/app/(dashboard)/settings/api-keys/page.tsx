@@ -46,8 +46,8 @@ export default async function ApiKeysPage() {
                   {client.keys.map((key) => (
                     <div key={key.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', borderRadius: '8px', padding: '10px 16px' }}>
                       <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>
-                        Expires {new Date(key.expiresAt).toLocaleDateString()}{' · '}
-                        Last used: {key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString() : 'never'}
+                        Expires {new Date(key.expiresAt).toLocaleDateString('de-DE')}{' · '}
+                        Last used: {key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString('de-DE') : 'never'}
                       </p>
                       <ApiKeyActions type="revoke" apiKeyId={key.id} />
                     </div>

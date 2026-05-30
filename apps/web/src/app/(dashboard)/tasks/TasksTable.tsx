@@ -154,8 +154,8 @@ export default function TasksTable({ tasks, sitesById, membersById }: Props) {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                {['Site', 'Title', 'Type', 'Priority', 'Assignee', 'Status', 'Due', ''].map((h) => (
-                  <th key={h} style={{
+                {['Site', 'Title', 'Type', 'Priority', 'Assignee', 'Status', 'Due', ''].map((h, i) => (
+                  <th key={i} style={{
                     textAlign: 'left', padding: '10px 16px',
                     fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif",
                     fontWeight: 700, color: '#94a3b8',
@@ -271,7 +271,7 @@ export default function TasksTable({ tasks, sitesById, membersById }: Props) {
                           fontWeight: overdue ? 600 : 400,
                         }}>
                           {overdue && '⚠ '}
-                          {new Date(task.dueAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {new Date(task.dueAt).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </span>
                       ) : (
                         <span style={{ color: '#cbd5e1', fontSize: '13px' }}>—</span>

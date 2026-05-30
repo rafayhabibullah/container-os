@@ -102,7 +102,7 @@ function tenantName(customer: InvoiceRow['agreement']['customer']) {
 }
 
 function fmtCurrency(minor: number, currency: string) {
-  return new Intl.NumberFormat('en-GB', { style: 'currency', currency: currency.toUpperCase() }).format(minor / 100);
+  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: currency.toUpperCase() }).format(minor / 100);
 }
 
 export default async function DashboardPage() {
@@ -221,7 +221,7 @@ export default async function DashboardPage() {
                 marginBottom: 0,
               }}
             >
-              {new Date().toLocaleDateString('en-GB', {
+              {new Date().toLocaleDateString('de-DE', {
                 weekday: 'long',
                 day: 'numeric',
                 month: 'long',
@@ -335,7 +335,7 @@ export default async function DashboardPage() {
                       <span style={{
                         display: 'inline-flex', alignItems: 'center', gap: '5px',
                         background: s.bg, color: s.color, border: `1px solid ${s.border}`,
-                        borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600,
+                        borderRadius: '20px', padding: '2px 8px', fontSize: '12px', fontWeight: 600,
                       }}>
                         <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: s.dot, display: 'inline-block' }} />
                         {b.status}
@@ -364,7 +364,7 @@ export default async function DashboardPage() {
                         {tenantName(inv.agreement.customer)}
                       </span>
                       <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                        Due {new Date(inv.dueDate).toLocaleDateString('en-GB')}
+                        Due {new Date(inv.dueDate).toLocaleDateString('de-DE')}
                       </span>
                     </div>
                     <span style={{ fontSize: '14px', fontWeight: 700, color: '#991b1b' }}>
@@ -396,14 +396,14 @@ export default async function DashboardPage() {
                         </span>
                         {t.dueAt && (
                           <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                            Due {new Date(t.dueAt).toLocaleDateString('en-GB')}
+                            Due {new Date(t.dueAt).toLocaleDateString('de-DE')}
                           </span>
                         )}
                       </div>
                       <span style={{
                         display: 'inline-flex', alignItems: 'center',
                         background: p.bg, color: p.color, border: `1px solid ${p.border}`,
-                        borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600,
+                        borderRadius: '20px', padding: '2px 8px', fontSize: '12px', fontWeight: 600,
                         marginLeft: '12px', flexShrink: 0, textTransform: 'capitalize',
                       }}>
                         {t.priority}
@@ -434,13 +434,13 @@ export default async function DashboardPage() {
                           {inc.type.replace(/_/g, ' ')}
                         </span>
                         <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                          {new Date(inc.createdAt).toLocaleDateString('en-GB')}
+                          {new Date(inc.createdAt).toLocaleDateString('de-DE')}
                         </span>
                       </div>
                       <span style={{
                         display: 'inline-flex', alignItems: 'center',
                         background: s.bg, color: s.color, border: `1px solid ${s.border}`,
-                        borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600,
+                        borderRadius: '20px', padding: '2px 8px', fontSize: '12px', fontWeight: 600,
                         textTransform: 'capitalize',
                       }}>
                         {inc.severity}
