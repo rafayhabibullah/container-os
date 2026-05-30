@@ -28,10 +28,30 @@ export class OperatorAgreementsService {
 
   async getAgreement(organisationId: string, agreementId: string) {
     const siteIds = await this.getSiteIds(organisationId);
-    return this.prisma.agreement.findFirstOrThrow({
+    const agreement = await this.prisma.agreement.findFirstOrThrow({
       where: { id: agreementId, siteId: { in: siteIds } },
       include: { signatories: true, amendments: true },
     });
+
+    const [unit, site] = await Promise.all([
+      this.prisma.unit.findFirst({
+        where: { id: agreement.unitId },
+        select: { id: true, unitCode: true, kind: true, status: true, driveUp: true, conditionState: true },
+      }),
+      this.prisma.site.findFirst({
+        where: { id: agreement.siteId },
+        select: { id: true, name: true, slug: true, address: true, status: true, timezone: true, currency: true },
+      }),
+    ]);
+
+    const unitType = unit
+      ? await this.prisma.unitType.findFirst({
+          where: { units: { some: { id: unit.id } } },
+          select: { id: true, name: true, sizeSqm: true, sizeCbm: true, doorType: true, features: true },
+        })
+      : null;
+
+    return { ...agreement, unit, unitType, site };
   }
 
   async sendForSignature(organisationId: string, agreementId: string, personIds: string[], actorId: string) {
