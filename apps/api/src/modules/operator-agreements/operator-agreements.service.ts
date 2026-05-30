@@ -15,7 +15,7 @@ export class OperatorAgreementsService {
 
   async listAgreements(organisationId: string, filter: ListAgreementsFilter) {
     const siteIds = await this.getSiteIds(organisationId);
-    return this.prisma.agreement.findMany({
+    const agreements = await this.prisma.agreement.findMany({
       where: {
         siteId: { in: siteIds },
         ...(filter.siteId ? { siteId: filter.siteId } : {}),
@@ -23,6 +23,23 @@ export class OperatorAgreementsService {
         ...(filter.status ? { status: filter.status as any } : {}),
       },
       orderBy: { createdAt: 'desc' },
+    });
+
+    const customerIds = [...new Set(agreements.map((a) => a.tenantId))];
+    const customers = await this.prisma.customer.findMany({
+      where: { id: { in: customerIds } },
+      select: { id: true, personOrOrgData: true, contacts: { select: { email: true }, where: { role: 'primary' }, take: 1 } },
+    });
+    const customerMap = new Map(customers.map((c) => [c.id, c]));
+
+    return agreements.map((a) => {
+      const customer = customerMap.get(a.tenantId);
+      const data = customer?.personOrOrgData as Record<string, string> | null;
+      return {
+        ...a,
+        customerName:  data?.name ?? null,
+        customerEmail: customer?.contacts[0]?.email ?? null,
+      };
     });
   }
 

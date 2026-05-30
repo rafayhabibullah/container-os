@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AgreementDrawer from './AgreementDrawer';
+import AgreementActions from './AgreementActions';
 
 interface Agreement {
   id: string;
@@ -14,6 +14,8 @@ interface Agreement {
   billingCycle: 'monthly' | 'fixed_term';
   effectiveFrom: string | null;
   createdAt: string;
+  customerName: string | null;
+  customerEmail: string | null;
 }
 
 interface DocumentRow {
@@ -38,6 +40,15 @@ const STATUS: Record<string, { dot: string; text: string; bg: string; border: st
   terminated:        { dot: '#f87171', text: '#dc2626', bg: '#fef2f2', border: '#fecaca', label: 'Terminated'        },
 };
 
+const AGR_FILTERS = [
+  { key: 'all',               label: 'All'               },
+  { key: 'draft',             label: 'Draft'             },
+  { key: 'pending_signature', label: 'Pending signature' },
+  { key: 'signed',            label: 'Signed'            },
+  { key: 'active',            label: 'Active'            },
+  { key: 'terminated',        label: 'Terminated'        },
+] as const;
+
 const KIND_PILL: Record<string, { dot: string; color: string; bg: string; border: string }> = {
   contract:    { dot: '#16a34a', color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
   invoice:     { dot: '#0ea5e9', color: '#0369a1', bg: '#f0f9ff', border: '#bae6fd' },
@@ -57,16 +68,22 @@ export default function AgreementsTable({ agreements, documents }: Props) {
   const searchParams = useSearchParams();
   const tab = searchParams.get('tab') ?? 'agreements';
   const router = useRouter();
-  const [query, setQuery] = useState('');
-  const [selected, setSelected] = useState<Agreement | null>(null);
+  const [query,        setQuery]        = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selected,     setSelected]     = useState<Agreement | null>(null);
 
   const filteredAgreements = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return agreements;
-    return agreements.filter((a) =>
-      a.id.toLowerCase().includes(q) || a.tenantId.toLowerCase().includes(q) || a.status.includes(q),
-    );
-  }, [agreements, query]);
+    return agreements.filter((a) => {
+      const matchQ = !q ||
+        a.id.toLowerCase().includes(q) ||
+        (a.customerName ?? a.tenantId).toLowerCase().includes(q) ||
+        (a.customerEmail ?? '').toLowerCase().includes(q) ||
+        a.status.includes(q);
+      const matchS = statusFilter === 'all' || a.status === statusFilter;
+      return matchQ && matchS;
+    });
+  }, [agreements, query, statusFilter]);
 
   const filteredDocuments = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -88,6 +105,8 @@ export default function AgreementsTable({ agreements, documents }: Props) {
         @keyframes agr-row-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
         .agr-row { animation: agr-row-in 0.25s ease both; }
         .agr-row:hover { background: #f8fafc !important; }
+        .agr-filter-btn { transition: all 0.12s ease; }
+        .agr-filter-btn:hover { color: #0f172a !important; }
         .agr-search-box:focus-within { border-color: #94a3b8 !important; box-shadow: 0 0 0 3px rgba(148,163,184,0.15) !important; }
       `}</style>
 
@@ -98,7 +117,7 @@ export default function AgreementsTable({ agreements, documents }: Props) {
           return (
             <button
               key={t.id}
-              onClick={() => { setQuery(''); router.push(`/agreements?tab=${t.id}`); }}
+              onClick={() => { setQuery(''); setStatusFilter('all'); router.push(`/agreements?tab=${t.id}`); }}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '6px',
                 padding: '6px 14px', borderRadius: '6px', fontSize: '13px', fontWeight: 600,
@@ -116,50 +135,98 @@ export default function AgreementsTable({ agreements, documents }: Props) {
         })}
       </div>
 
-      {/* Search */}
-      <div
-        className="agr-search-box"
-        style={{
-          background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px',
-          padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px',
-          marginBottom: '16px', transition: 'border-color 0.15s, box-shadow 0.15s',
-        }}
-      >
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ color: '#94a3b8', flexShrink: 0 }}>
-          <path d="M7 13A6 6 0 1 0 7 1a6 6 0 0 0 0 12zM14 14l-3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={`Search ${tab}…`}
-          style={{
-            flex: 1, background: 'transparent', border: 'none', outline: 'none',
-            fontSize: '14px', color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif",
-          }}
-        />
-        {query && (
-          <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '12px', padding: '1px' }}>✕</button>
-        )}
-      </div>
-
       {tab === 'agreements' ? (
-        filteredAgreements.length === 0 ? (
-          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '64px 24px', textAlign: 'center' }}>
-            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>
-              {agreements.length === 0 ? 'No agreements yet' : 'No results found'}
-            </p>
-            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: 0 }}>
-              {agreements.length === 0 ? 'Agreements will appear here once created.' : 'Try adjusting your search.'}
-            </p>
+        <div style={{
+          background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04)',
+          overflow: 'hidden',
+        }}>
+          {/* Toolbar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 20px', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap' }}>
+              {AGR_FILTERS.map((f) => {
+                const active = statusFilter === f.key;
+                const count  = f.key === 'all' ? agreements.length : agreements.filter((a) => a.status === f.key).length;
+                return (
+                  <button
+                    key={f.key}
+                    onClick={() => setStatusFilter(f.key)}
+                    className="agr-filter-btn"
+                    style={{
+                      padding: '6px 12px', borderRadius: '6px', border: 'none',
+                      background: active ? '#f1f5f9' : 'transparent',
+                      color: active ? '#0f172a' : '#94a3b8',
+                      fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif",
+                      fontWeight: active ? 600 : 500, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                    }}
+                  >
+                    {f.label}
+                    <span style={{
+                      background: active ? '#e2e8f0' : '#f8fafc',
+                      color: active ? '#475569' : '#cbd5e1',
+                      borderRadius: '4px', padding: '1px 6px',
+                      fontSize: '11px', fontWeight: 600,
+                      minWidth: '20px', textAlign: 'center',
+                    }}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div style={{ flex: 1 }} />
+
+            <div
+              className="agr-search-box"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                background: '#f8fafc', border: '1px solid #e2e8f0',
+                borderRadius: '8px', padding: '7px 12px',
+                minWidth: '220px', transition: 'border-color 0.15s, box-shadow 0.15s',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, color: '#94a3b8' }}>
+                <path d="M7 13A6 6 0 1 0 7 1a6 6 0 0 0 0 12zM14 14l-3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search agreements…"
+                style={{
+                  flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                  color: '#0f172a', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif",
+                }}
+              />
+              {query && (
+                <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '12px', padding: '1px' }}>✕</button>
+              )}
+            </div>
           </div>
-        ) : (
-          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+
+          {filteredAgreements.length === 0 ? (
+            <div style={{ padding: '64px 24px', textAlign: 'center' }}>
+              <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>
+                {agreements.length === 0 ? 'No agreements yet' : 'No results found'}
+              </p>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: 0 }}>
+                {agreements.length === 0 ? 'Agreements will appear here once created.' : 'Try adjusting your search or filter.'}
+              </p>
+            </div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  {['ID', 'Customer', 'Billing', 'Effective from', 'Status'].map((h) => (
-                    <th key={h} style={thStyle}>{h}</th>
+                  {['ID', 'Customer', 'Billing', 'Effective from', 'Status', ''].map((h, i) => (
+                    <th key={i} style={thStyle}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -178,10 +245,15 @@ export default function AgreementsTable({ agreements, documents }: Props) {
                       }}
                     >
                       <td style={{ padding: '12px 16px', fontFamily: 'ui-monospace, monospace', fontSize: '12px', color: '#94a3b8' }}>{a.id.slice(0, 8)}…</td>
-                      <td style={{ padding: '12px 16px', fontFamily: 'ui-monospace, monospace', fontSize: '12px', color: '#475569' }}>{a.tenantId.slice(0, 10)}…</td>
+                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                        {a.customerName ?? a.tenantId.slice(0, 10) + '…'}
+                        {a.customerEmail && (
+                          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '1px' }}>{a.customerEmail}</div>
+                        )}
+                      </td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', textTransform: 'capitalize', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{a.billingCycle.replace('_', ' ')}</td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{a.effectiveFrom ? new Date(a.effectiveFrom).toLocaleDateString('de-DE') : '—'}</td>
-                      <td style={{ padding: '12px 16px' }}>
+                      <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
                         <span style={{
                           display: 'inline-flex', alignItems: 'center', gap: '6px',
                           background: stat.bg, color: stat.text, border: `1px solid ${stat.border}`,
@@ -192,25 +264,72 @@ export default function AgreementsTable({ agreements, documents }: Props) {
                           {stat.label}
                         </span>
                       </td>
+                      <td style={{ padding: '12px 16px', textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
+                        <AgreementActions agreement={a} />
+                      </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
-          </div>
-        )
+          )}
+        </div>
       ) : (
-        filteredDocuments.length === 0 ? (
-          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '64px 24px', textAlign: 'center' }}>
-            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>
-              {documents.length === 0 ? 'No documents stored yet' : 'No results found'}
-            </p>
-            <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: 0 }}>
-              {documents.length === 0 ? 'Documents will appear here once created.' : 'Try adjusting your search.'}
-            </p>
+        <div style={{
+          background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04)',
+          overflow: 'hidden',
+        }}>
+          {/* Documents toolbar */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            padding: '16px 20px', borderBottom: '1px solid #f1f5f9',
+          }}>
+            <div style={{ flex: 1 }} />
+            <div
+              className="agr-search-box"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                background: '#f8fafc', border: '1px solid #e2e8f0',
+                borderRadius: '8px', padding: '7px 12px',
+                minWidth: '220px', transition: 'border-color 0.15s, box-shadow 0.15s',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, color: '#94a3b8' }}>
+                <path d="M7 13A6 6 0 1 0 7 1a6 6 0 0 0 0 12zM14 14l-3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search documents…"
+                style={{
+                  flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                  color: '#0f172a', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif",
+                }}
+              />
+              {query && (
+                <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '12px', padding: '1px' }}>✕</button>
+              )}
+            </div>
           </div>
-        ) : (
-          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
+
+          {filteredDocuments.length === 0 ? (
+            <div style={{ padding: '64px 24px', textAlign: 'center' }}>
+              <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>
+                {documents.length === 0 ? 'No documents stored yet' : 'No results found'}
+              </p>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: 0 }}>
+                {documents.length === 0 ? 'Documents will appear here once created.' : 'Try adjusting your search.'}
+              </p>
+            </div>
+          ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
@@ -245,8 +364,8 @@ export default function AgreementsTable({ agreements, documents }: Props) {
                 })}
               </tbody>
             </table>
-          </div>
-        )
+          )}
+        </div>
       )}
     </>
   );

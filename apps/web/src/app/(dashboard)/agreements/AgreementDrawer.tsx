@@ -12,6 +12,8 @@ interface AgreementSummary {
   billingCycle: string;
   effectiveFrom: string | null;
   createdAt: string;
+  customerName: string | null;
+  customerEmail: string | null;
 }
 
 interface Signatory { id: string; personId: string; status: string; signedAt: string | null; }
@@ -208,9 +210,16 @@ export default function AgreementDrawer({ agreement, onClose }: { agreement: Agr
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: '#fff', fontSize: '14px', fontWeight: 700, flexShrink: 0,
               }}>
-                {agreement.tenantId.slice(0, 1).toUpperCase()}
+                {(agreement.customerName ?? agreement.tenantId).slice(0, 1).toUpperCase()}
               </div>
-              <div style={{ fontFamily: 'monospace', fontSize: '12px', color: '#94a3b8' }}>{agreement.tenantId}</div>
+              <div>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>
+                  {agreement.customerName ?? <span style={{ fontFamily: 'monospace', fontSize: '12px', color: '#94a3b8' }}>{agreement.tenantId}</span>}
+                </div>
+                {agreement.customerEmail && (
+                  <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>{agreement.customerEmail}</div>
+                )}
+              </div>
             </div>
           </div>
 

@@ -12,6 +12,8 @@ interface Agreement {
   billingCycle: 'monthly' | 'fixed_term';
   effectiveFrom: string | null;
   createdAt: string;
+  customerName: string | null;
+  customerEmail: string | null;
 }
 
 interface DocumentRow {
