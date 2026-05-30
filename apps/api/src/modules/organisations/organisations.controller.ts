@@ -52,6 +52,18 @@ export class OrganisationController {
     return this.organisations.updateOrganisation(orgId, dto, member.role);
   }
 
+  @Get('customers')
+  @ApiOperation({ summary: 'List customers for organisation' })
+  listCustomers(@Param('organisationId') orgId: string) {
+    return this.organisations.listCustomers(orgId);
+  }
+
+  @Get('customers/:customerId')
+  @ApiOperation({ summary: 'Get a single customer' })
+  getCustomer(@Param('organisationId') orgId: string, @Param('customerId') customerId: string) {
+    return this.organisations.getCustomer(orgId, customerId);
+  }
+
   @Get('sites')
   @ApiOperation({ summary: 'List sites in organisation' })
   listSites(@Param('organisationId') orgId: string) {
