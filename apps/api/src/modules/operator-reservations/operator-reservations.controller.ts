@@ -23,6 +23,14 @@ export class OperatorReservationsController {
     return this.service.listReservations(orgId, { siteId, status });
   }
 
+  @Get(':reservationId')
+  getDetails(
+    @Param('organisationId') orgId: string,
+    @Param('reservationId') reservationId: string,
+  ) {
+    return this.service.getReservationDetails(orgId, reservationId);
+  }
+
   @Patch(':reservationId')
   updateStatus(
     @Param('organisationId') orgId: string,

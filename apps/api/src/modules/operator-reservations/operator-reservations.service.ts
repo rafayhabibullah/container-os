@@ -16,7 +16,7 @@ export class OperatorReservationsService {
 
   async listReservations(organisationId: string, filter: ListReservationsFilter) {
     const siteIds = await this.getSiteIds(organisationId);
-    return this.prisma.reservation.findMany({
+    const reservations = await this.prisma.reservation.findMany({
       where: {
         siteId: { in: siteIds },
         ...(filter.siteId ? { siteId: filter.siteId } : {}),
@@ -24,6 +24,59 @@ export class OperatorReservationsService {
       },
       orderBy: { createdAt: 'desc' },
     });
+
+    const customerIds = [...new Set(reservations.map((r) => r.customerId))];
+    const customers = await this.prisma.customer.findMany({
+      where: { id: { in: customerIds } },
+      select: { id: true, personOrOrgData: true, contacts: { select: { email: true }, where: { role: 'primary' }, take: 1 } },
+    });
+    const customerMap = new Map(customers.map((c) => [c.id, c]));
+
+    return reservations.map((r) => {
+      const customer = customerMap.get(r.customerId);
+      const data     = customer?.personOrOrgData as Record<string, string> | null;
+      return {
+        ...r,
+        customerName:  data?.name ?? null,
+        customerEmail: customer?.contacts[0]?.email ?? null,
+      };
+    });
+  }
+
+  async getReservationDetails(organisationId: string, reservationId: string) {
+    const siteIds = await this.getSiteIds(organisationId);
+    const r = await this.prisma.reservation.findFirstOrThrow({ where: { id: reservationId, siteId: { in: siteIds } } });
+
+    const [customer, unit, unitType, site] = await Promise.all([
+      this.prisma.customer.findFirst({
+        where: { id: r.customerId },
+        select: { id: true, type: true, personOrOrgData: true, contacts: { select: { email: true, phone: true }, where: { role: 'primary' }, take: 1 } },
+      }),
+      this.prisma.unit.findFirst({
+        where: { id: r.unitId },
+        select: { id: true, unitCode: true, kind: true, status: true, driveUp: true, conditionState: true, photoUrl: true },
+      }),
+      this.prisma.unitType.findFirst({
+        where: { id: r.unitTypeId },
+        select: { id: true, name: true, sizeSqm: true, sizeCbm: true, doorType: true, features: true },
+      }),
+      this.prisma.site.findFirst({
+        where: { id: r.siteId },
+        select: { id: true, name: true, slug: true, address: true, status: true, timezone: true, currency: true },
+      }),
+    ]);
+
+    const data = customer?.personOrOrgData as Record<string, string> | null;
+    return {
+      ...r,
+      customerName:  data?.name ?? null,
+      customerEmail: customer?.contacts[0]?.email ?? null,
+      customerPhone: customer?.contacts[0]?.phone ?? null,
+      customerType:  customer?.type ?? null,
+      unit,
+      unitType,
+      site,
+    };
   }
 
   async updateReservationStatus(organisationId: string, reservationId: string, status: string, actorId: string) {

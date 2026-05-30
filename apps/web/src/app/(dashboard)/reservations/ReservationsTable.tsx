@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import ReservationActions from './ReservationActions';
+import ReservationDrawer from './ReservationDrawer';
 
 interface Reservation {
   id: string;
@@ -9,7 +10,10 @@ interface Reservation {
   unitId: string;
   unitTypeId: string;
   customerId: string;
+  customerName: string | null;
+  customerEmail: string | null;
   status: 'pending' | 'pending_signature' | 'confirmed' | 'expired' | 'cancelled' | 'converted';
+  source: string;
   startDate: string;
   expiresAt: string;
   createdAt: string;
@@ -41,11 +45,12 @@ const FILTERS = [
 export default function ReservationsTable({ reservations }: Props) {
   const [query,        setQuery]        = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selected,     setSelected]     = useState<Reservation | null>(null);
 
   const filtered = useMemo(() =>
     reservations.filter((r) => {
       const q      = query.trim().toLowerCase();
-      const matchQ = !q || r.id.toLowerCase().includes(q) || r.customerId.toLowerCase().includes(q);
+      const matchQ = !q || r.id.toLowerCase().includes(q) || (r.customerName ?? r.customerId).toLowerCase().includes(q) || (r.customerEmail ?? '').toLowerCase().includes(q);
       const matchS = statusFilter === 'all' || r.status === statusFilter;
       return matchQ && matchS;
     }),
@@ -54,6 +59,7 @@ export default function ReservationsTable({ reservations }: Props) {
 
   return (
     <>
+      {selected && <ReservationDrawer reservation={selected} onClose={() => setSelected(null)} />}
       <style>{`
         @keyframes reservation-row-in {
           from { opacity: 0; transform: translateY(4px); }
@@ -177,16 +183,21 @@ export default function ReservationsTable({ reservations }: Props) {
                   <tr
                     key={r.id}
                     className="reservation-row"
+                    onClick={() => setSelected(r)}
                     style={{
                       animationDelay: `${i * 30}ms`,
                       borderBottom: i < filtered.length - 1 ? '1px solid #f8fafc' : 'none',
+                      cursor: 'pointer',
                     }}
                   >
                     <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontSize: '12px', color: '#94a3b8' }}>
                       {r.id.slice(0, 12)}…
                     </td>
-                    <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontSize: '12px', color: '#475569' }}>
-                      {r.customerId.slice(0, 10)}…
+                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      {r.customerName ?? r.customerId.slice(0, 10) + '…'}
+                      {r.customerEmail && (
+                        <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '1px' }}>{r.customerEmail}</div>
+                      )}
                     </td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                       {new Date(r.startDate).toLocaleDateString('de-DE')}
@@ -205,7 +216,7 @@ export default function ReservationsTable({ reservations }: Props) {
                         {stat.label}
                       </span>
                     </td>
-                    <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                    <td style={{ padding: '12px 16px', textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
                       <ReservationActions reservation={r} />
                     </td>
                   </tr>

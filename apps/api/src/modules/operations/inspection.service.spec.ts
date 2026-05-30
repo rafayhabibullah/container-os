@@ -10,7 +10,7 @@ const mockPrisma = {
 const service = new InspectionService(mockPrisma as any);
 
 describe('InspectionService', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => { vi.clearAllMocks(); });
 
   it('creates inspection run with pass result', async () => {
     mockPrisma.inspectionTemplate.findFirst.mockResolvedValue({ id: 'tmpl_01', kind: 'move_in', checklist: [{ code: 'dry' }, { code: 'door_seal' }] });
