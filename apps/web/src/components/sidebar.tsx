@@ -18,17 +18,18 @@ import {
   ClipboardCheck,
   FolderOpen,
   Receipt,
-  FileCheck,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
   { href: '/sites', label: 'Sites', icon: Building2 },
   { href: '/listings', label: 'Listings', icon: Globe },
   { href: '/reservations', label: 'Reservations', icon: CalendarCheck },
-  { href: '/bookings', label: 'Bookings', icon: FileCheck },
-  { href: '/customers', label: 'Customers', icon: Users },
+  { href: '/customers', label: 'Customers', icon: Users, wip: true },
   { href: '/agreements', label: 'Agreements', icon: BookOpen },
   { href: '/invoices', label: 'Invoices', icon: FileText },
   { href: '/payments', label: 'Payments', icon: CreditCard },
@@ -39,26 +40,35 @@ const NAV_ITEMS = [
   { href: '/reports', label: 'Reports', icon: BarChart2 },
   { href: '/team', label: 'Team', icon: Users },
   { href: '/billing', label: 'SiteLager Billing', icon: Receipt },
-] as const;
+];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [open, setOpen] = useState(true);
 
   return (
-    <aside className="group/sidebar flex flex-col bg-white border-r border-slate-200 w-[52px] hover:w-[200px] transition-all duration-200 ease-in-out overflow-hidden shrink-0">
-      {/* Logo */}
-      <div className="flex items-center gap-2.5 px-3 h-[56px] shrink-0">
-        <div className="w-[28px] h-[28px] shrink-0 rounded-lg bg-blue-600 flex items-center justify-center">
-          <span className="text-white text-[11px] font-bold leading-none">S</span>
-        </div>
-        <span className="text-slate-900 font-bold text-sm whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-150">
-          SiteLager
-        </span>
+    <aside
+      className={cn(
+        'flex flex-col bg-white border-r border-slate-200 shrink-0 transition-all duration-200',
+        open ? 'w-[220px]' : 'w-[52px]',
+      )}
+    >
+      {/* Toggle */}
+      <div className="flex items-center h-[52px] px-3 border-b border-slate-100 shrink-0">
+        {open && (
+          <span className="flex-1 text-sm font-bold text-slate-800 truncate">SiteLager</span>
+        )}
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="w-7 h-7 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0"
+        >
+          {open ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
+        </button>
       </div>
 
       {/* Nav */}
-      <nav className="flex flex-col gap-0.5 p-1.5 flex-1 overflow-hidden">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+      <nav className="flex flex-col gap-0.5 p-1.5 flex-1 overflow-y-auto overflow-x-hidden">
+        {NAV_ITEMS.map(({ href, label, icon: Icon, wip }) => {
           const active =
             pathname === href ||
             (href !== '/dashboard' && pathname.startsWith(href + '/'));
@@ -74,14 +84,17 @@ export function Sidebar() {
               )}
             >
               <Icon className="w-4 h-4 shrink-0" />
-              <span
-                className={cn(
-                  'text-sm whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-150',
-                  active ? 'font-semibold' : 'font-medium',
-                )}
-              >
-                {label}
-              </span>
+              {open && (
+                <span
+                  className={cn(
+                    'text-sm whitespace-nowrap',
+                    active ? 'font-semibold' : 'font-medium',
+                    wip && 'line-through opacity-50',
+                  )}
+                >
+                  {label}
+                </span>
+              )}
             </Link>
           );
         })}
@@ -99,9 +112,7 @@ export function Sidebar() {
           )}
         >
           <Settings className="w-4 h-4 shrink-0" />
-          <span className="text-sm font-medium whitespace-nowrap opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-150">
-            Settings
-          </span>
+          {open && <span className="text-sm font-medium">Settings</span>}
         </Link>
       </div>
     </aside>
