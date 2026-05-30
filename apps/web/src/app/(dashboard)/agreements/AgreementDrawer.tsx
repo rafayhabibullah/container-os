@@ -116,7 +116,7 @@ export default function AgreementDrawer({ agreement, onClose }: { agreement: Agr
     await fetch(`/api/agreements/${agreement.id}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-action': 'send' },
-      body: JSON.stringify({}),
+      body: JSON.stringify({ personIds: [agreement.tenantId] }),
     });
     setLoading(false);
     onClose();
