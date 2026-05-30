@@ -22,6 +22,10 @@ interface Booking {
   expiresAt: string;
   createdAt: string;
   customerId: string;
+  customerName: string | null;
+  customerEmail: string | null;
+  unitId: string;
+  siteId: string;
 }
 
 interface Task {
@@ -113,7 +117,7 @@ export default async function DashboardPage() {
     serverFetch<InvoiceRow[]>(`/v1/organisations/${user.organisationId}/invoices`).catch(() => [] as InvoiceRow[]),
   ]);
 
-  const pendingBookings = bookings.filter((b) => b.status === 'pending').length;
+  const pendingReservations = bookings.filter((b) => b.status === 'pending').length;
   const openTasks = tasks.filter((t) => t.status === 'open' || t.status === 'in_progress');
   const openIncidents = incidents.filter((i) => i.status === 'open');
   const overdueInvoices = invoices.filter((i) => i.status === 'overdue');
@@ -121,7 +125,7 @@ export default async function DashboardPage() {
   const stats = [
     { label: 'TOTAL SITES', value: sites.length, href: '/sites' },
     { label: 'TEAM MEMBERS', value: members.length, href: '/team' },
-    { label: 'PENDING BOOKINGS', value: pendingBookings, href: '/bookings', accent: pendingBookings > 0 },
+    { label: 'PENDING RESERVATIONS', value: pendingReservations, href: '/reservations', accent: pendingReservations > 0 },
     { label: 'OPEN TASKS', value: openTasks.length, href: '/tasks', accent: openTasks.length > 0 },
     { label: 'OPEN INCIDENTS', value: openIncidents.length, href: '/incidents', accent: openIncidents.length > 0 },
     { label: 'OVERDUE INVOICES', value: overdueInvoices.length, href: '/invoices', accent: overdueInvoices.length > 0 },
@@ -306,26 +310,26 @@ export default async function DashboardPage() {
         {/* 2-column grid for panels */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
 
-          {/* Recent Bookings */}
+          {/* Recent Reservations */}
           <div style={panelStyle}>
             <div style={panelHeaderStyle}>
-              <span style={panelTitleStyle}>Recent Bookings</span>
-              <Link href="/bookings" className="dash-link" style={viewAllStyle}>View all →</Link>
+              <span style={panelTitleStyle}>Recent Reservations</span>
+              <Link href="/reservations" className="dash-link" style={viewAllStyle}>View all →</Link>
             </div>
             {bookings.length === 0 ? (
-              <p style={emptyStyle}>No bookings yet.</p>
+              <p style={emptyStyle}>No reservations yet.</p>
             ) : (
               <div>
                 {bookings.slice(0, 5).map((b) => {
                   const s = BOOKING_STATUS[b.status] ?? BOOKING_STATUS.expired;
                   return (
-                    <Link key={b.id} href="/bookings" className="dash-row" style={{ ...rowStyle, textDecoration: 'none', cursor: 'pointer' }}>
+                    <Link key={b.id} href="/reservations" className="dash-row" style={{ ...rowStyle, textDecoration: 'none', cursor: 'pointer' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                         <span style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>
-                          #{b.id.slice(0, 8)}
+                          {b.customerName ?? b.customerEmail ?? `#${b.id.slice(0, 8)}`}
                         </span>
                         <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                          {new Date(b.createdAt).toLocaleDateString('en-GB')}
+                          Starts {new Date(b.startDate).toLocaleDateString('de-DE')} · {b.source}
                         </span>
                       </div>
                       <span style={{
