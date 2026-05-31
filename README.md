@@ -51,10 +51,14 @@ pnpm install
 # 2. Start infra
 docker compose up -d          # postgres, redis, minio, keycloak, mailhog
 
-# 3. API (migrate + seed + watch)
+# 3. Environment
+cp apps/api/.env.example apps/api/.env
+# Edit apps/api/.env — set STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, KEYCLOAK_CLIENT_SECRET
+
+# 4. API (migrate + seed + watch)
 cd apps/api && pnpm dev       # → http://localhost:3000
 
-# 4. Web portal
+# 5. Web portal
 cd apps/web
 NEXT_PUBLIC_API_URL="http://localhost:3000/api" pnpm dev   # → http://localhost:3001
 ```
