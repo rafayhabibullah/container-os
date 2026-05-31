@@ -73,7 +73,7 @@ function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }
 function Section({ children, filled }: { children: React.ReactNode; filled?: boolean }) {
   const style: React.CSSProperties = filled
     ? { background: '#f8fafc', borderRadius: '10px', padding: '14px 16px' }
-    : { border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 16px' };
+    : { background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 16px' };
   return <div style={style}>{children}</div>;
 }
 
@@ -127,7 +127,7 @@ export default async function TenantAgreementPage({ params }: { params: { id: st
           </div>
 
           {/* Quick facts */}
-          <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '14px 16px' }}>
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 16px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
               <Field label="Start date" value={agreement.effectiveFrom ? fmt(agreement.effectiveFrom) : '—'} />
               <Field label="Billing cycle" value={agreement.billingCycle.replace(/_/g, ' ')} />
