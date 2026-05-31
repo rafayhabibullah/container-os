@@ -3,6 +3,7 @@ import { serverFetch } from '@/lib/server-api';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import PrintButton from './PrintButton';
+import SignButton from './SignButton';
 
 interface Signatory { id: string; personId: string; status: string; signedAt: string | null; }
 interface Agreement {
@@ -60,6 +61,8 @@ export default async function TenantAgreementPage({ params }: { params: { id: st
   await requireTenantAuth();
   const agreement = await serverFetch<Agreement>(`/v1/tenant/agreements/${params.id}`).catch(() => null);
   if (!agreement) return notFound();
+
+  const needsMySignature = agreement.status === 'pending_signature';
 
   const cardStyle: React.CSSProperties = { background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '24px', marginBottom: '16px' };
   const dtStyle: React.CSSProperties = { fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '4px' };
@@ -119,6 +122,15 @@ export default async function TenantAgreementPage({ params }: { params: { id: st
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {needsMySignature && (
+            <div style={{ ...cardStyle, background: '#eff6ff', border: '1px solid #bfdbfe', textAlign: 'center' }}>
+              <p style={{ fontSize: '13px', color: '#1e40af', fontWeight: 600, margin: '0 0 16px' }}>
+                Your signature is required to activate this agreement.
+              </p>
+              <SignButton agreementId={agreement.id} />
             </div>
           )}
 

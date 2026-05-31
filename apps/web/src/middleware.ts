@@ -36,8 +36,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Tenants can only access the tenant portal (/my-storage/*) and public paths
-  if (isValid && decoded.type === 'tenant' && !isPublic && !pathname.startsWith('/my-storage')) {
+  // Tenants can only access the tenant portal (/my-storage/*), API routes, and public paths
+  if (isValid && decoded.type === 'tenant' && !isPublic && !pathname.startsWith('/my-storage') && !pathname.startsWith('/api/')) {
     return NextResponse.redirect(new URL('/my-storage', request.url));
   }
 

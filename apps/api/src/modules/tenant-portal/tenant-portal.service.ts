@@ -60,6 +60,27 @@ export class TenantPortalService {
     });
   }
 
+  async signMyAgreement(userId: string, agreementId: string) {
+    const customerIds = await this.resolveCustomerIds(userId);
+    const agreement = await this.prisma.agreement.findFirstOrThrow({
+      where: { id: agreementId, tenantId: { in: customerIds }, status: 'pending_signature' },
+      select: { id: true, siteId: true },
+    });
+    // personId on signatories is the customerId, not the userId
+    const updated = await this.prisma.signatory.updateMany({
+      where: { agreementId: agreement.id, personId: { in: customerIds }, status: { not: 'signed' } },
+      data: { status: 'signed', signedAt: new Date() },
+    });
+    if (updated.count === 0) {
+      await this.prisma.signatory.create({ data: { agreementId: agreement.id, personId: customerIds[0], status: 'signed', signedAt: new Date() } });
+    }
+    const signatories = await this.prisma.signatory.findMany({ where: { agreementId: agreement.id } });
+    if (signatories.every((s) => s.status === 'signed')) {
+      await this.prisma.agreement.update({ where: { id: agreement.id }, data: { status: 'signed' } });
+    }
+    return { agreementId: agreement.id, signed: true };
+  }
+
   async createMoveOutRequest(userId: string, agreementId: string, requestedDate: string) {
     const customerIds = await this.resolveCustomerIds(userId);
     await this.prisma.agreement.findFirstOrThrow({

@@ -31,6 +31,11 @@ export class TenantPortalController {
     return this.service.listMyMandates(user.id);
   }
 
+  @Post('agreements/:agreementId/sign')
+  signAgreement(@CurrentUser() user: AuthenticatedUser, @Param('agreementId') agreementId: string) {
+    return this.service.signMyAgreement(user.id, agreementId);
+  }
+
   @Post('move-out-requests')
   createMoveOutRequest(
     @CurrentUser() user: AuthenticatedUser,
