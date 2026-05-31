@@ -1,5 +1,5 @@
 import { requireTenantAuth } from '@/lib/auth';
-import { serverFetch } from '@/lib/server-api';
+import { serverTenantFetch } from '@/lib/server-api';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import PrintButton from './PrintButton';
@@ -59,7 +59,7 @@ function SignatoryPill({ status, signedAt }: { status: string; signedAt: string 
 
 export default async function TenantAgreementPage({ params }: { params: { id: string } }) {
   await requireTenantAuth();
-  const agreement = await serverFetch<Agreement>(`/v1/tenant/agreements/${params.id}`).catch(() => null);
+  const agreement = await serverTenantFetch<Agreement>(`/v1/tenant/agreements/${params.id}`).catch(() => null);
   if (!agreement) return notFound();
 
   const needsMySignature = agreement.status === 'pending_signature';

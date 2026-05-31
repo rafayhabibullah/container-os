@@ -1,5 +1,5 @@
 import { requireTenantAuth } from '@/lib/auth';
-import { serverFetch } from '@/lib/server-api';
+import { serverTenantFetch } from '@/lib/server-api';
 
 interface Mandate {
   id: string;
@@ -18,7 +18,7 @@ const MANDATE_STATUS_PILL: Record<string, React.CSSProperties> = {
 
 export default async function PaymentMethodsPage() {
   await requireTenantAuth();
-  const mandates = await serverFetch<Mandate[]>(`/v1/tenant/mandates`).catch(() => [] as Mandate[]);
+  const mandates = await serverTenantFetch<Mandate[]>(`/v1/tenant/mandates`).catch(() => [] as Mandate[]);
 
   return (
     <>

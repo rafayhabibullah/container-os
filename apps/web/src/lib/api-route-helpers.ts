@@ -12,6 +12,14 @@ export function getAuthContext() {
   return { token, payload };
 }
 
+export function getTenantAuthContext() {
+  const token = cookies().get('sl_tenant_access')?.value;
+  if (!token) return null;
+  const payload = decodeJwt(token);
+  if (!payload) return null;
+  return { token, payload };
+}
+
 export async function proxyToBackend(
   path: string,
   method: string,

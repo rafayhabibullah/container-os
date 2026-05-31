@@ -27,6 +27,10 @@ export function getAccessToken(): string | undefined {
   return cookies().get(ACCESS_COOKIE)?.value;
 }
 
+export function getTenantAccessToken(): string | undefined {
+  return cookies().get(TENANT_ACCESS_COOKIE)?.value;
+}
+
 export async function setTokens(accessToken: string, refreshToken: string): Promise<void> {
   const cookieStore = cookies();
   cookieStore.set(ACCESS_COOKIE, accessToken, { httpOnly: true, path: '/', sameSite: 'lax' });
