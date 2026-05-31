@@ -55,7 +55,7 @@ export default function NewSitePage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? 'Failed to create site');
-      router.push('/sites');
+      router.push(`/sites/${data.id}#unit-types`);
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to create site');
