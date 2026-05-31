@@ -26,10 +26,19 @@ export class TenantPortalService {
 
   async getMyAgreement(userId: string, agreementId: string) {
     const customerIds = await this.resolveCustomerIds(userId);
-    return this.prisma.agreement.findFirstOrThrow({
+    const agreement = await this.prisma.agreement.findFirstOrThrow({
       where: { id: agreementId, tenantId: { in: customerIds } },
-      include: { signatories: true, amendments: true },
+      include: {
+        signatories: true,
+        amendments: true,
+        customer: { include: { contacts: { where: { role: 'primary' }, take: 1 } } },
+      },
     });
+    const [unit, site] = await Promise.all([
+      this.prisma.unit.findUnique({ where: { id: agreement.unitId }, include: { unitType: true } }),
+      this.prisma.site.findUnique({ where: { id: agreement.siteId } }),
+    ]);
+    return { ...agreement, unit, site };
   }
 
   async listMyInvoices(userId: string) {
