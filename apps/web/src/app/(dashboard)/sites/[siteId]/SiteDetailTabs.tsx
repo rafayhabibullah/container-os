@@ -68,24 +68,6 @@ export default function SiteDetailTabs({ site, unitTypes, units, priceBooks, oth
   return (
     <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
 
-      {/* Getting started hint */}
-      {showHint && (
-        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px 16px', marginBottom: '20px', display: 'flex', gap: '24px', alignItems: 'center', boxShadow: '0 1px 3px rgba(15,23,42,0.06)' }}>
-          <span style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.04em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Get started</span>
-          {STEPS.map((step, i) => (
-            <button key={step.tab} onClick={() => handleTabClick(step.tab)}
-              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ width: '18px', height: '18px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, background: step.done ? '#f0fdf4' : '#f1f5f9', color: step.done ? '#15803d' : '#94a3b8', border: `1px solid ${step.done ? '#bbf7d0' : '#e2e8f0'}`, flexShrink: 0 }}>
-                {step.done ? '✓' : i + 1}
-              </span>
-              <span style={{ fontSize: '13px', fontWeight: 600, color: step.done ? '#15803d' : '#475569', textDecoration: step.done ? 'line-through' : 'none', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                {step.label}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-
       {/* Collapsible site settings */}
       <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', marginBottom: '20px', overflow: 'hidden' }}>
         <button onClick={() => setSettingsOpen(o => !o)}
@@ -115,9 +97,27 @@ export default function SiteDetailTabs({ site, unitTypes, units, priceBooks, oth
         ))}
       </div>
 
+      {/* Getting started hint */}
+      {showHint && (
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '12px 16px', marginBottom: '20px', display: 'flex', gap: '24px', alignItems: 'center', boxShadow: '0 1px 3px rgba(15,23,42,0.06)' }}>
+          <span style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.04em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Get started</span>
+          {STEPS.map((step, i) => (
+            <button key={step.tab} onClick={() => handleTabClick(step.tab)}
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '18px', height: '18px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, background: step.done ? '#f0fdf4' : '#f1f5f9', color: step.done ? '#15803d' : '#94a3b8', border: `1px solid ${step.done ? '#bbf7d0' : '#e2e8f0'}`, flexShrink: 0 }}>
+                {step.done ? '✓' : i + 1}
+              </span>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: step.done ? '#15803d' : '#475569', textDecoration: step.done ? 'line-through' : 'none', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                {step.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Tab content */}
       {activeTab === 'unit-types' && (
-        <UnitTypesTab siteId={site.id} unitTypes={unitTypes} otherSites={otherSites} canEdit={canEdit} />
+        <UnitTypesTab siteId={site.id} unitTypes={unitTypes} units={units} otherSites={otherSites} canEdit={canEdit} />
       )}
       {activeTab === 'units' && (
         <UnitsTab siteId={site.id} unitTypes={unitTypes} units={units} otherSites={otherSites} canEdit={canEdit} />

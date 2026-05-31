@@ -136,8 +136,11 @@ export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, 
     if (!scheduledBook) return;
     setCancelLoading(true);
     try {
-      await fetch(`/api/sites/${siteId}/price-books/${scheduledBook.id}/archive`, { method: 'POST' });
+      const res = await fetch(`/api/sites/${siteId}/price-books/${scheduledBook.id}/archive`, { method: 'POST' });
+      if (!res.ok) { const j = await res.json(); setSaveError(j.message ?? 'Failed to cancel scheduled change'); return; }
       router.refresh();
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : 'Failed');
     } finally { setCancelLoading(false); }
   }
 

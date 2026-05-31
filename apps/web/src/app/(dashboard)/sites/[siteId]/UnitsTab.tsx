@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import React, { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { UnitType } from './UnitTypesTab';
@@ -299,8 +299,8 @@ export default function UnitsTab({ siteId, unitTypes, units, otherSites, canEdit
             </thead>
             <tbody>
               {grouped.map(({ type, units: typeUnits }) => (
-                <>
-                  <tr key={`header-${type.id}`} style={{ background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
+                <React.Fragment key={type.id}>
+                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
                     <td colSpan={5} style={{ padding: '7px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                       {type.name} ({type.sizeSqm}m²) — {typeUnits.length} unit{typeUnits.length !== 1 ? 's' : ''}
                     </td>
@@ -324,7 +324,7 @@ export default function UnitsTab({ siteId, unitTypes, units, otherSites, canEdit
                       </tr>
                     );
                   })}
-                </>
+                </React.Fragment>
               ))}
               {untyped.map((unit, i) => {
                 const stat = UNIT_STATUS[unit.status] ?? { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0', label: unit.status };

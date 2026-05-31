@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import React, { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 
 export interface UnitType {
@@ -12,11 +12,14 @@ export interface UnitType {
   features: string[];
 }
 
+interface Unit { unitType: { id: string } | null; }
+
 interface SiteSummary { id: string; name: string; }
 
 interface Props {
   siteId: string;
   unitTypes: UnitType[];
+  units: Unit[];
   otherSites: SiteSummary[];
   canEdit: boolean;
 }
@@ -140,7 +143,7 @@ function UnitTypeForm({
   );
 }
 
-export default function UnitTypesTab({ siteId, unitTypes, otherSites, canEdit }: Props) {
+export default function UnitTypesTab({ siteId, unitTypes, units, otherSites, canEdit }: Props) {
   const router = useRouter();
   const [showAdd, setShowAdd]         = useState(false);
   const [editingId, setEditingId]     = useState<string | null>(null);
@@ -204,13 +207,14 @@ export default function UnitTypesTab({ siteId, unitTypes, otherSites, canEdit }:
       if (!res.ok) throw new Error('Failed to fetch source unit types');
       const existingNames = new Set(unitTypes.map(ut => ut.name.toLowerCase()));
       const toImport = sourceTypes.filter(ut => !existingNames.has(ut.name.toLowerCase()));
-      await Promise.all(toImport.map(ut =>
-        fetch(`/api/sites/${siteId}/unit-types`, {
+      await Promise.all(toImport.map(async ut => {
+        const res = await fetch(`/api/sites/${siteId}/unit-types`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: ut.name, sizeSqm: ut.sizeSqm, sizeCbm: ut.sizeCbm, doorType: ut.doorType, features: ut.features }),
-        }),
-      ));
+        });
+        if (!res.ok) { const j = await res.json(); throw new Error(j.message ?? `Failed to copy "${ut.name}"`); }
+      }));
       setCopyOpen(false);
       router.refresh();
     } catch (err: unknown) {
@@ -280,9 +284,9 @@ export default function UnitTypesTab({ siteId, unitTypes, otherSites, canEdit }:
             </thead>
             <tbody>
               {unitTypes.map((ut, i) => (
-                <>
+                <React.Fragment key={ut.id}>
                   {editingId === ut.id ? (
-                    <tr key={`edit-${ut.id}`}>
+                    <tr>
                       <td colSpan={6} style={{ padding: '12px 16px', borderBottom: i < unitTypes.length - 1 ? '1px solid #f8fafc' : 'none' }}>
                         <UnitTypeForm
                           initial={ut}
@@ -294,7 +298,7 @@ export default function UnitTypesTab({ siteId, unitTypes, otherSites, canEdit }:
                       </td>
                     </tr>
                   ) : (
-                    <tr key={ut.id} style={{ borderBottom: i < unitTypes.length - 1 ? '1px solid #f8fafc' : 'none', background: '#ffffff' }}>
+                    <tr style={{ borderBottom: i < unitTypes.length - 1 ? '1px solid #f8fafc' : 'none', background: '#ffffff' }}>
                       <td style={{ padding: '12px 16px', fontSize: '14px', fontWeight: 600, color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{ut.name}</td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#64748b', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{ut.sizeSqm}</td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#94a3b8', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{ut.sizeCbm ?? '—'}</td>
@@ -303,12 +307,19 @@ export default function UnitTypesTab({ siteId, unitTypes, otherSites, canEdit }:
                       {canEdit && (
                         <td style={{ padding: '12px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                           <button onClick={() => { setEditingId(ut.id); setError(''); }} style={{ ...btnGhost, padding: '4px 8px', fontSize: '12px' }}>Edit</button>
-                          <button onClick={() => handleDelete(ut.id, ut.name)} style={{ ...btnGhost, padding: '4px 8px', fontSize: '12px', color: '#dc2626' }}>Delete</button>
+                          {(() => { const inUse = units.some(u => u.unitType?.id === ut.id); return (
+                            <button
+                              onClick={() => handleDelete(ut.id, ut.name)}
+                              disabled={inUse || loading}
+                              title={inUse ? 'Units reference this type' : undefined}
+                              style={{ ...btnGhost, padding: '4px 8px', fontSize: '12px', color: inUse ? '#94a3b8' : '#dc2626', cursor: (inUse || loading) ? 'not-allowed' : 'pointer', opacity: (inUse || loading) ? 0.5 : 1 }}
+                            >Delete</button>
+                          ); })()}
                         </td>
                       )}
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               ))}
             </tbody>
           </table>
