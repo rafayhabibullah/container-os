@@ -1,6 +1,7 @@
 import { requireTenantAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
 import Link from 'next/link';
+import LogoutButton from './LogoutButton';
 
 interface Agreement {
   id: string;
@@ -52,7 +53,10 @@ export default async function MyStoragePage() {
       <style>{`.ms-nav-card:hover { box-shadow: 0 4px 16px rgba(15,23,42,0.10); }`}</style>
       <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>My Storage</h1>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>My Storage</h1>
+            <LogoutButton />
+          </div>
           <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 28px' }}>Manage your storage agreements and payments</p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '32px' }}>
