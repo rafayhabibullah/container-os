@@ -3,7 +3,6 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { use } from 'react';
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -28,8 +27,8 @@ const labelStyle: React.CSSProperties = {
   fontFamily: "'Plus Jakarta Sans', sans-serif",
 };
 
-export default function NewUnitTypePage({ params }: { params: Promise<{ siteId: string }> }) {
-  const { siteId } = use(params);
+export default function NewUnitTypePage({ params }: { params: { siteId: string } }) {
+  const { siteId } = params;
   const router = useRouter();
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
