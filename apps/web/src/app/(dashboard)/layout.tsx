@@ -8,7 +8,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const user = await requireAuth();
-  if (user.type === 'tenant') redirect('/login');
+  if (user.type === 'tenant') redirect('/my-storage');
 
   return (
     <div className="flex h-screen overflow-hidden">

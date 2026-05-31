@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 
 const PUBLIC_PREFIX_PATHS = [
   '/login', '/register', '/accept-invite',
+  '/my-storage/login',
   '/api/auth', '/api/checkout',
   '/storage',
   '/for-operators',
@@ -35,9 +36,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Tenants have no access to the management dashboard — let them stay on public paths
-  if (isValid && decoded.type === 'tenant' && !isPublic) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  // Tenants can only access the tenant portal (/my-storage/*) and public paths
+  if (isValid && decoded.type === 'tenant' && !isPublic && !pathname.startsWith('/my-storage')) {
+    return NextResponse.redirect(new URL('/my-storage', request.url));
   }
 
   if (isValid && decoded.type !== 'tenant' && (pathname === '/login' || pathname === '/register')) {

@@ -1,4 +1,4 @@
-import { requireAuth } from '@/lib/auth';
+import { requireTenantAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
 import Link from 'next/link';
 
@@ -25,7 +25,7 @@ function formatCents(minor: number, currency: string): string {
 }
 
 export default async function MyInvoicesPage() {
-  await requireAuth();
+  await requireTenantAuth();
   const invoices = await serverFetch<Invoice[]>('/v1/tenant/invoices').catch(() => [] as Invoice[]);
 
   const thStyle: React.CSSProperties = { textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' };

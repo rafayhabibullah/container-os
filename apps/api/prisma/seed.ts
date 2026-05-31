@@ -636,6 +636,24 @@ async function main() {
 
   console.log(`✓ Operator user: ${operator1.email}`);
 
+  // ─── Tenant User: rafay_habibullah@hotmail.com ────────────────────────────
+
+  const tenantPasswordHash = await bcrypt.hash('Test1234!', 12);
+
+  const tenantRafay = await prisma.user.upsert({
+    where: { email: 'rafay_habibullah@hotmail.com' },
+    create: { id: 'user_rafay_habibullah', type: 'tenant', email: 'rafay_habibullah@hotmail.com', name: 'Rafay Habibullah', passwordHash: tenantPasswordHash, status: 'active', mfaState: 'disabled' },
+    update: { passwordHash: tenantPasswordHash },
+  });
+
+  await prisma.organisationMember.upsert({
+    where: { organisationId_userId: { organisationId: org.id, userId: tenantRafay.id } },
+    create: { organisationId: org.id, userId: tenantRafay.id, role: 'tenant' },
+    update: {},
+  });
+
+  console.log(`✓ Tenant user: ${tenantRafay.email}`);
+
   // ─── Org 2: NordLager GmbH ────────────────────────────────────────────────
 
   const org2 = await prisma.organisation.upsert({
@@ -1058,7 +1076,18 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
     update: {},
   });
 
-  console.log('✓ Customers: 5 (Thomas Weber, Sarah Mitchell, Klaus Hoffmann, Emma Schneider, TechStore GmbH)');
+  const custRafay = await prisma.customer.upsert({
+    where: { id: 'cust_rafay_habibullah' },
+    create: { id: 'cust_rafay_habibullah', type: 'private', personOrOrgData: { firstName: 'Rafay', lastName: 'Habibullah' }, marketingConsent: false },
+    update: {},
+  });
+  await prisma.contact.upsert({
+    where: { id: 'contact_rafay_habibullah' },
+    create: { id: 'contact_rafay_habibullah', customerId: custRafay.id, role: 'primary', email: 'rafay_habibullah@hotmail.com', phone: '' },
+    update: {},
+  });
+
+  console.log('✓ Customers: 6 (Thomas Weber, Sarah Mitchell, Klaus Hoffmann, Emma Schneider, TechStore GmbH, Rafay Habibullah)');
 
   // ─── Story 1: Thomas Weber (active, 6 months) ────────────────────────────
 
@@ -1554,6 +1583,86 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
   });
 
   console.log('✓ Story 5: TechStore GmbH — active 40ft tenant, 4 paid + 1 with credit note');
+
+  // ─── Story 6: Rafay Habibullah (active, 2 months) ────────────────────────
+
+  const rafayUnit = await prisma.unit.findFirstOrThrow({ where: { siteId: site1.id, unitCode: 'A02' } });
+  await prisma.unit.update({ where: { id: rafayUnit.id }, data: { status: 'occupied' } });
+
+  const rafayReservation = await prisma.reservation.upsert({
+    where: { id: 'res_rafay_habibullah' },
+    create: {
+      id: 'res_rafay_habibullah',
+      siteId: site1.id, unitId: rafayUnit.id, unitTypeId: rafayUnit.unitTypeId,
+      customerId: custRafay.id, status: 'converted', source: 'online',
+      startDate: monthsAgo(2), expiresAt: monthsAgo(1),
+    },
+    update: {},
+  });
+
+  const rafayAgreement = await prisma.agreement.upsert({
+    where: { reservationId: 'res_rafay_habibullah' },
+    create: {
+      id: 'agr_rafay_habibullah',
+      reservationId: rafayReservation.id,
+      tenantId: custRafay.id,
+      unitId: rafayUnit.id,
+      siteId: site1.id,
+      status: 'active',
+      billingCycle: 'monthly',
+      effectiveFrom: monthsAgo(2),
+      terminationRules: { noticePeriodDays: 30, noticeCutoff: 'end_of_month' },
+      pricingSnapshot: { unitTypeId: rafayUnit.unitTypeId, amountMinor: 6900, billingCycle: 'monthly', currency: 'EUR' },
+      language: 'en',
+    },
+    update: {},
+  });
+
+  await prisma.signatory.upsert({
+    where: { id: 'sig_rafay_habibullah' },
+    create: { id: 'sig_rafay_habibullah', agreementId: rafayAgreement.id, personId: custRafay.id, status: 'signed', signedAt: monthsAgo(2) },
+    update: {},
+  });
+
+  for (let i = 0; i < 2; i++) {
+    const periodStart = monthsAgo(2 - i);
+    const periodEnd   = monthsAgo(1 - i);
+    const invId = `inv_rafay_habibullah_${i + 1}`;
+    const inv = await prisma.invoice.upsert({
+      where: { agreementId_periodStart: { agreementId: rafayAgreement.id, periodStart } },
+      create: {
+        id: invId,
+        agreementId: rafayAgreement.id,
+        siteId: site1.id,
+        status: 'paid',
+        invoiceDate: periodStart,
+        dueDate: new Date(periodStart.getTime() + 15 * 86400000),
+        currency: 'EUR',
+        totalMinor: 8211, // €69 + 19% VAT
+        periodStart,
+        periodEnd,
+      },
+      update: {},
+    });
+    await prisma.invoiceLine.upsert({
+      where: { id: `il_rafay_habibullah_${i + 1}` },
+      create: { id: `il_rafay_habibullah_${i + 1}`, invoiceId: inv.id, kind: 'rent', description: '10ft container A02 — monthly rental', amountMinor: 6900, taxCode: 'DE_STD', vatRate: 0.19 },
+      update: {},
+    });
+    await prisma.payment.upsert({
+      where: { reference: `pay_rafay_habibullah_${i + 1}` },
+      create: { invoiceId: inv.id, method: 'sepa_core', status: 'succeeded', amountMinor: 8211, reference: `pay_rafay_habibullah_${i + 1}` },
+      update: {},
+    });
+  }
+
+  await prisma.accessCredential.upsert({
+    where: { agreementId: rafayAgreement.id },
+    create: { agreementId: rafayAgreement.id, credentialType: 'pin', maskedValue: '****2847', status: 'active' },
+    update: {},
+  });
+
+  console.log('✓ Story 6: Rafay Habibullah — active 2-month tenant, 2 paid invoices');
 
   // ─── Additional Tasks ─────────────────────────────────────────────────────
 

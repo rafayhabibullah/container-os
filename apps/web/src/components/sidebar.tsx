@@ -23,8 +23,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import React from 'react';
 
-const NAV_ITEMS = [
+const NAV_ITEMS: { href: string; label: string; icon: React.ComponentType<{ className?: string }>; wip?: boolean }[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
   { href: '/sites', label: 'Sites', icon: Building2 },
   { href: '/listings', label: 'Listings', icon: Globe },

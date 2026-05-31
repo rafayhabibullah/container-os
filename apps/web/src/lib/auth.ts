@@ -50,3 +50,10 @@ export async function requireAuth(): Promise<TokenPayload> {
   if (!user) redirect('/login');
   return user;
 }
+
+export async function requireTenantAuth(): Promise<TokenPayload> {
+  const user = getCurrentUser();
+  if (!user) redirect('/my-storage/login');
+  if (user.type !== 'tenant') redirect('/dashboard');
+  return user;
+}

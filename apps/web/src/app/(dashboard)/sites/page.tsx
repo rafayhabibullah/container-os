@@ -27,8 +27,10 @@ export default async function SitesPage() {
         rel="stylesheet"
       />
       <style>{`
-        .site-row { background: #ffffff; }
+        .site-row { background: #ffffff; cursor: pointer; }
         .site-row:hover { background: #f8fafc; }
+        .site-row td { padding: 0; }
+        .site-row td a.row-link { display: block; padding: 12px 16px; color: inherit; text-decoration: none; }
       `}</style>
 
       <div
@@ -242,100 +244,89 @@ export default async function SitesPage() {
                       className="site-row"
                       style={{ borderBottom: '1px solid #f8fafc' }}
                     >
-                      <td
-                        style={{
-                          padding: '12px 16px',
-                          fontSize: '14px',
-                          fontWeight: 600,
-                          color: '#0f172a',
-                        }}
-                      >
-                        {site.name}
+                      <td>
+                        <Link href={`/sites/${site.id}`} className="row-link" style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>
+                          {site.name}
+                        </Link>
                       </td>
-                      <td
-                        style={{
-                          padding: '12px 16px',
-                          fontSize: '14px',
-                          color: '#475569',
-                        }}
-                      >
-                        {site.address?.city}
+                      <td>
+                        <Link href={`/sites/${site.id}`} className="row-link" style={{ fontSize: '14px', color: '#475569' }}>
+                          {site.address?.city}
+                        </Link>
                       </td>
-                      <td
-                        style={{
-                          padding: '12px 16px',
-                          fontSize: '12px',
-                          color: '#94a3b8',
-                          fontFamily: 'monospace',
-                        }}
-                      >
-                        {site.slug}
+                      <td>
+                        <Link href={`/sites/${site.id}`} className="row-link" style={{ fontSize: '12px', color: '#94a3b8', fontFamily: 'monospace' }}>
+                          {site.slug}
+                        </Link>
                       </td>
-                      <td style={{ padding: '12px 16px' }}>
-                        {site.status === 'active' ? (
-                          <span
-                            style={{
-                              background: '#f0fdf4',
-                              color: '#15803d',
-                              border: '1px solid #bbf7d0',
-                              borderRadius: '20px',
-                              padding: '3px 10px',
-                              fontSize: '12px',
-                              fontWeight: 600,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                            }}
-                          >
+                      <td>
+                        <Link href={`/sites/${site.id}`} className="row-link">
+                          {site.status === 'active' ? (
                             <span
                               style={{
-                                width: '5px',
-                                height: '5px',
-                                borderRadius: '50%',
-                                background: '#16a34a',
-                                display: 'inline-block',
-                                flexShrink: 0,
+                                background: '#f0fdf4',
+                                color: '#15803d',
+                                border: '1px solid #bbf7d0',
+                                borderRadius: '20px',
+                                padding: '3px 10px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
                               }}
-                            />
-                            active
-                          </span>
-                        ) : (
-                          <span
-                            style={{
-                              background: '#f8fafc',
-                              color: '#94a3b8',
-                              border: '1px solid #e2e8f0',
-                              borderRadius: '20px',
-                              padding: '3px 10px',
-                              fontSize: '12px',
-                              fontWeight: 600,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                            }}
-                          >
+                            >
+                              <span
+                                style={{
+                                  width: '5px',
+                                  height: '5px',
+                                  borderRadius: '50%',
+                                  background: '#16a34a',
+                                  display: 'inline-block',
+                                  flexShrink: 0,
+                                }}
+                              />
+                              active
+                            </span>
+                          ) : (
                             <span
                               style={{
-                                width: '5px',
-                                height: '5px',
-                                borderRadius: '50%',
-                                background: '#cbd5e1',
-                                display: 'inline-block',
-                                flexShrink: 0,
+                                background: '#f8fafc',
+                                color: '#94a3b8',
+                                border: '1px solid #e2e8f0',
+                                borderRadius: '20px',
+                                padding: '3px 10px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
                               }}
-                            />
-                            inactive
-                          </span>
-                        )}
+                            >
+                              <span
+                                style={{
+                                  width: '5px',
+                                  height: '5px',
+                                  borderRadius: '50%',
+                                  background: '#cbd5e1',
+                                  display: 'inline-block',
+                                  flexShrink: 0,
+                                }}
+                              />
+                              inactive
+                            </span>
+                          )}
+                        </Link>
                       </td>
-                      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                      <td style={{ textAlign: 'right' }}>
                         <Link
                           href={`/sites/${site.id}`}
+                          className="row-link"
                           style={{
                             color: '#64748b',
                             fontSize: '13px',
                             fontWeight: 600,
-                            textDecoration: 'none',
+                            justifyContent: 'flex-end',
                           }}
                         >
                           Manage →

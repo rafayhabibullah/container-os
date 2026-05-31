@@ -22,10 +22,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  async validate(payload: JwtPayload): Promise<JwtPayload> {
+  async validate(payload: JwtPayload) {
     if (!payload.sub || !payload.organisationId) {
       throw new UnauthorizedException('Invalid token payload');
     }
-    return payload;
+    return { ...payload, id: payload.sub };
   }
 }

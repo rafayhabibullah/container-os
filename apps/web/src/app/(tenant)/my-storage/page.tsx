@@ -1,4 +1,4 @@
-import { requireAuth } from '@/lib/auth';
+import { requireTenantAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
 import Link from 'next/link';
 
@@ -43,7 +43,7 @@ function formatCents(minor?: number): string {
 }
 
 export default async function MyStoragePage() {
-  await requireAuth();
+  await requireTenantAuth();
   const agreements = await serverFetch<Agreement[]>('/v1/tenant/agreements').catch(() => [] as Agreement[]);
 
   return (
