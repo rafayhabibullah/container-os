@@ -19,15 +19,28 @@ export async function POST(request: NextRequest) {
   const { type: userType } = JSON.parse(Buffer.from(payloadB64, 'base64url').toString()) as { type: string };
 
   const response = NextResponse.json({ ok: true, userType });
-  response.cookies.set('sl_access', data.accessToken, {
-    httpOnly: true,
-    path: '/',
-    sameSite: 'lax',
-  });
-  response.cookies.set('sl_refresh', data.refreshToken, {
-    httpOnly: true,
-    path: '/',
-    sameSite: 'lax',
-  });
+  if (userType === 'tenant') {
+    response.cookies.set('sl_tenant_access', data.accessToken, {
+      httpOnly: true,
+      path: '/my-storage',
+      sameSite: 'lax',
+    });
+    response.cookies.set('sl_tenant_refresh', data.refreshToken, {
+      httpOnly: true,
+      path: '/my-storage',
+      sameSite: 'lax',
+    });
+  } else {
+    response.cookies.set('sl_access', data.accessToken, {
+      httpOnly: true,
+      path: '/',
+      sameSite: 'lax',
+    });
+    response.cookies.set('sl_refresh', data.refreshToken, {
+      httpOnly: true,
+      path: '/',
+      sameSite: 'lax',
+    });
+  }
   return response;
 }

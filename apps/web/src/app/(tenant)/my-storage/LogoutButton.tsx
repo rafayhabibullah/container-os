@@ -2,7 +2,7 @@
 
 export default function LogoutButton() {
   return (
-    <form action="/api/auth/logout" method="POST">
+    <form action="/api/auth/tenant-logout" method="POST">
       <button
         type="submit"
         style={{

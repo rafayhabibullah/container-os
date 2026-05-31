@@ -28,17 +28,25 @@ export function middleware(request: NextRequest) {
     PUBLIC_EXACT_PATHS.includes(pathname) ||
     PUBLIC_PREFIX_PATHS.some((p) => pathname.startsWith(p));
 
+  const isTenantPath = pathname.startsWith('/my-storage');
+
+  if (isTenantPath) {
+    const tenantToken = request.cookies.get('sl_tenant_access')?.value;
+    const decoded = tenantToken ? decodeJwt(tenantToken) : {};
+    const isValid = tenantToken && (decoded.exp ?? 0) * 1000 > Date.now();
+
+    if (!isValid && !isPublic) {
+      return NextResponse.redirect(new URL('/my-storage/login', request.url));
+    }
+    return NextResponse.next();
+  }
+
   const accessToken = request.cookies.get('sl_access')?.value;
   const decoded = accessToken ? decodeJwt(accessToken) : {};
   const isValid = accessToken && (decoded.exp ?? 0) * 1000 > Date.now();
 
   if (!isValid && !isPublic) {
     return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  // Tenants can only access the tenant portal (/my-storage/*), API routes, and public paths
-  if (isValid && decoded.type === 'tenant' && !isPublic && !pathname.startsWith('/my-storage') && !pathname.startsWith('/api/')) {
-    return NextResponse.redirect(new URL('/my-storage', request.url));
   }
 
   if (isValid && decoded.type !== 'tenant' && (pathname === '/login' || pathname === '/register')) {
