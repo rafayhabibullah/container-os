@@ -53,6 +53,10 @@ export class OperationsService {
 
   async resolveIncident(incidentId: string, resolutionNote: string) {
     if (!resolutionNote?.trim()) throw new Error('Resolution note is required');
+    await this.prisma.task.updateMany({
+      where: { subjectRef: `Incident:${incidentId}`, status: { notIn: ['completed', 'cancelled'] } },
+      data: { status: 'completed' },
+    });
     return this.prisma.incident.update({ where: { id: incidentId }, data: { status: 'resolved', resolutionNote } });
   }
 
@@ -106,6 +110,12 @@ export class OperationsService {
     const siteIds = await this.orgSiteIds(orgId);
     const incident = await this.prisma.incident.findFirst({ where: { id: incidentId, siteId: { in: siteIds } } });
     if (!incident) throw new NotFoundException('INCIDENT_NOT_FOUND');
+    if (data.status === 'resolved') {
+      await this.prisma.task.updateMany({
+        where: { subjectRef: `Incident:${incidentId}`, status: { notIn: ['completed', 'cancelled'] } },
+        data: { status: 'completed' },
+      });
+    }
     return this.prisma.incident.update({
       where: { id: incidentId },
       data: { ...(data.status ? { status: data.status as any } : {}) },

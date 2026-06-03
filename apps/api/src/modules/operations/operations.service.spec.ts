@@ -7,6 +7,7 @@ const mockPrisma = {
     findMany: vi.fn(),
     findFirst: vi.fn(),
     update: vi.fn(),
+    updateMany: vi.fn(),
   },
   incident: { create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
   maintenanceOrder: { create: vi.fn(), findMany: vi.fn() },
@@ -71,6 +72,70 @@ describe('OperationsService.createTask', () => {
       subjectId: 't1',
       siteId: 's1',
     });
+  });
+});
+
+describe('OperationsService.resolveIncident', () => {
+  it('completes the linked task when resolving an incident', async () => {
+    mockPrisma.task.updateMany.mockResolvedValue({ count: 1 });
+    mockPrisma.incident.update.mockResolvedValue({ id: 'inc1', status: 'resolved' });
+
+    await service.resolveIncident('inc1', 'Fixed the gate lock.');
+
+    expect(mockPrisma.task.updateMany).toHaveBeenCalledWith({
+      where: { subjectRef: 'Incident:inc1', status: { notIn: ['completed', 'cancelled'] } },
+      data: { status: 'completed' },
+    });
+    expect(mockPrisma.incident.update).toHaveBeenCalledWith({
+      where: { id: 'inc1' },
+      data: { status: 'resolved', resolutionNote: 'Fixed the gate lock.' },
+    });
+  });
+
+  it('completes the task before updating the incident', async () => {
+    const order: string[] = [];
+    mockPrisma.task.updateMany.mockImplementation(async () => { order.push('task'); return { count: 1 }; });
+    mockPrisma.incident.update.mockImplementation(async () => { order.push('incident'); return {}; });
+
+    await service.resolveIncident('inc1', 'note');
+
+    expect(order).toEqual(['task', 'incident']);
+  });
+
+  it('throws when resolution note is blank', async () => {
+    await expect(service.resolveIncident('inc1', '  ')).rejects.toThrow('Resolution note is required');
+    expect(mockPrisma.task.updateMany).not.toHaveBeenCalled();
+  });
+});
+
+describe('OperationsService.updateIncident', () => {
+  beforeEach(() => {
+    mockPrisma.site.findMany.mockResolvedValue([{ id: 's1' }]);
+    mockPrisma.incident.findFirst.mockResolvedValue({ id: 'inc1', siteId: 's1' });
+    mockPrisma.incident.update.mockResolvedValue({ id: 'inc1', status: 'resolved' });
+    mockPrisma.task.updateMany.mockResolvedValue({ count: 1 });
+  });
+
+  it('completes the linked task when status is set to resolved', async () => {
+    await service.updateIncident('org1', 'inc1', { status: 'resolved' });
+
+    expect(mockPrisma.task.updateMany).toHaveBeenCalledWith({
+      where: { subjectRef: 'Incident:inc1', status: { notIn: ['completed', 'cancelled'] } },
+      data: { status: 'completed' },
+    });
+  });
+
+  it('does not touch tasks when status is not resolved', async () => {
+    await service.updateIncident('org1', 'inc1', { status: 'investigating' });
+
+    expect(mockPrisma.task.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('throws INCIDENT_NOT_FOUND when incident does not belong to org', async () => {
+    mockPrisma.incident.findFirst.mockResolvedValue(null);
+
+    await expect(service.updateIncident('org1', 'inc1', { status: 'resolved' })).rejects.toThrow('INCIDENT_NOT_FOUND');
+    expect(mockPrisma.task.updateMany).not.toHaveBeenCalled();
   });
 });
 
