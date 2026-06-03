@@ -1,9 +1,21 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { clientFetch } from '@/lib/client-api';
+
+interface Site {
+  id: string;
+  name: string;
+}
+
+interface Unit {
+  id: string;
+  unitCode: string;
+  status: string;
+  kind: string;
+}
 
 interface Props {
   listingId: string;
@@ -14,6 +26,9 @@ interface Props {
   bookingMode: string;
   publicPriceMinor: number | null;
   showPrice: boolean;
+  siteId: string;
+  unitId: string;
+  sites: Site[];
 }
 
 const BOOKING_MODES = [
@@ -45,13 +60,31 @@ const labelStyle: React.CSSProperties = {
   letterSpacing: '0.03em',
 };
 
-export function ListingActions({ listingId, orgId, status, title, description, bookingMode, publicPriceMinor, showPrice }: Props) {
+export function ListingActions({ listingId, orgId, status, title, description, bookingMode, publicPriceMinor, showPrice, siteId, unitId, sites }: Props) {
   const router = useRouter();
-  const [loading,   setLoading]   = useState(false);
-  const [error,     setError]     = useState('');
-  const [showEdit,  setShowEdit]  = useState(false);
-  const [editError, setEditError] = useState('');
-  const [editLoading, setEditLoading] = useState(false);
+  const [loading,      setLoading]      = useState(false);
+  const [error,        setError]        = useState('');
+  const [showEdit,     setShowEdit]     = useState(false);
+  const [editError,    setEditError]    = useState('');
+  const [editLoading,  setEditLoading]  = useState(false);
+  const [editSiteId,   setEditSiteId]   = useState(siteId);
+  const [units,        setUnits]        = useState<Unit[]>([]);
+  const [unitsLoading, setUnitsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!showEdit) return;
+    setEditSiteId(siteId);
+  }, [showEdit, siteId]);
+
+  useEffect(() => {
+    if (!editSiteId) { setUnits([]); return; }
+    setUnitsLoading(true);
+    fetch(`/api/sites/${editSiteId}/units`)
+      .then((r) => r.json())
+      .then((data: Unit[]) => setUnits(data.filter((u) => u.status === 'available' || u.id === unitId)))
+      .catch(() => setUnits([]))
+      .finally(() => setUnitsLoading(false));
+  }, [editSiteId, unitId]);
 
   async function transition(action: 'publish' | 'pause' | 'archive') {
     setLoading(true);
@@ -76,6 +109,7 @@ export function ListingActions({ listingId, orgId, status, title, description, b
       await clientFetch(`/v1/organisations/${orgId}/listings/${listingId}`, {
         method: 'PATCH',
         body: JSON.stringify({
+          unitId:           form.get('unitId'),
           title:            form.get('title'),
           description:      (form.get('description') as string) || undefined,
           bookingMode:      form.get('bookingMode'),
@@ -154,6 +188,29 @@ export function ListingActions({ listingId, orgId, status, title, description, b
           </div>
 
           <form onSubmit={handleEdit} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {/* Site */}
+            <div>
+              <label style={labelStyle}>SITE</label>
+              <select
+                value={editSiteId}
+                onChange={(e) => setEditSiteId(e.target.value)}
+                className="edit-modal-input"
+                style={inputStyle}
+              >
+                <option value="">Select a site…</option>
+                {sites.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+
+            {/* Unit */}
+            <div>
+              <label style={labelStyle}>UNIT</label>
+              <select name="unitId" required disabled={!editSiteId || unitsLoading} className="edit-modal-input" style={{ ...inputStyle, opacity: (!editSiteId || unitsLoading) ? 0.6 : 1 }} defaultValue={unitId}>
+                <option value="">{unitsLoading ? 'Loading units…' : !editSiteId ? 'Select a site first…' : units.length === 0 ? 'No available units' : 'Select a unit…'}</option>
+                {units.map((u) => <option key={u.id} value={u.id}>{u.unitCode} ({u.kind.replace('_', ' ')})</option>)}
+              </select>
+            </div>
+
             <div>
               <label style={labelStyle}>LISTING TITLE</label>
               <input name="title" required defaultValue={title} className="edit-modal-input" style={inputStyle} />

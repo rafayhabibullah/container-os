@@ -5,6 +5,8 @@ import { ListingActions } from './ListingActions';
 
 interface ListingRow {
   id: string;
+  siteId: string;
+  unitId: string;
   title: string;
   description: string | null;
   status: 'draft' | 'published' | 'paused' | 'fully_booked' | 'archived';
@@ -16,9 +18,15 @@ interface ListingRow {
   createdAt: string;
 }
 
+interface Site {
+  id: string;
+  name: string;
+}
+
 interface Props {
   listings: ListingRow[];
   orgId: string;
+  sites: Site[];
 }
 
 const STAT: Record<string, { dot: string; text: string; bg: string; border: string; label: string }> = {
@@ -44,7 +52,7 @@ const FILTERS = [
   { key: 'archived',     label: 'Archived'     },
 ] as const;
 
-export default function ListingsTable({ listings, orgId }: Props) {
+export default function ListingsTable({ listings, orgId, sites }: Props) {
   const [query,        setQuery]        = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
@@ -263,6 +271,9 @@ export default function ListingsTable({ listings, orgId }: Props) {
                         bookingMode={listing.bookingMode}
                         publicPriceMinor={listing.publicPriceMinor}
                         showPrice={listing.showPrice}
+                        siteId={listing.siteId}
+                        unitId={listing.unitId}
+                        sites={sites}
                       />
                     </td>
                   </tr>

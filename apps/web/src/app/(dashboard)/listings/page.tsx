@@ -5,6 +5,7 @@ import NewListingButton from './NewListingButton';
 
 interface ListingRow {
   id: string;
+  siteId: string;
   unitId: string;
   title: string;
   description: string | null;
@@ -92,7 +93,7 @@ export default async function ListingsPage() {
             />
           </div>
 
-          <ListingsTable listings={listings} orgId={user.organisationId} />
+          <ListingsTable listings={listings} orgId={user.organisationId} sites={sites} />
         </div>
       </div>
     </>

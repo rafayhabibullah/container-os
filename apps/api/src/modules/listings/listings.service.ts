@@ -47,11 +47,12 @@ export class ListingsService {
 
   async updateListing(organisationId: string, listingId: string, dto: UpdateListingDto) {
     await this.assertOwnership(organisationId, listingId);
-    const { title, description, publicPriceMinor, showPrice, depositMinor, availableFrom,
+    const { unitId, title, description, publicPriceMinor, showPrice, depositMinor, availableFrom,
             bookingMode, requiredDocs, seoTitle, seoDescription } = dto;
     return this.prisma.listing.update({
       where: { id: listingId },
       data: {
+        ...(unitId !== undefined && { unitId }),
         ...(title !== undefined && { title }),
         ...(description !== undefined && { description }),
         ...(publicPriceMinor !== undefined && { publicPriceMinor }),

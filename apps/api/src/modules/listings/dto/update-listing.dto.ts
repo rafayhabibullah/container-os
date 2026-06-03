@@ -1,6 +1,7 @@
-import { IsString, IsOptional, IsInt, IsBoolean, IsIn, IsArray, Min } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsBoolean, IsIn, IsArray, Min, IsUUID } from 'class-validator';
 
 export class UpdateListingDto {
+  @IsOptional() @IsUUID() unitId?: string;
   @IsOptional() @IsString() title?: string;
   @IsOptional() @IsString() description?: string;
   @IsOptional() @IsInt() @Min(0) publicPriceMinor?: number;
