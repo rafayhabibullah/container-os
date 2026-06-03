@@ -1135,7 +1135,7 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
     const periodEnd   = monthsAgo(5 - i);
     const invId = `inv_thomas_weber_${i + 1}`;
     const inv = await prisma.invoice.upsert({
-      where: { agreementId_periodStart: { agreementId: weberAgreement.id, periodStart } },
+      where: { id: invId },
       create: {
         id: invId,
         agreementId: weberAgreement.id,
@@ -1302,7 +1302,7 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
     const invId = `inv_klaus_hoffmann_${i + 1}`;
     const status = klausInvoiceStatuses[i];
     const inv = await prisma.invoice.upsert({
-      where: { agreementId_periodStart: { agreementId: klausAgreement.id, periodStart } },
+      where: { id: invId },
       create: {
         id: invId,
         agreementId: klausAgreement.id,
@@ -1412,7 +1412,7 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
     const periodEnd   = monthsAgo(5 - i);
     const invId = `inv_emma_schneider_${i + 1}`;
     const inv = await prisma.invoice.upsert({
-      where: { agreementId_periodStart: { agreementId: emmaAgreement.id, periodStart } },
+      where: { id: invId },
       create: {
         id: invId,
         agreementId: emmaAgreement.id,
@@ -1534,7 +1534,7 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
     const invId = `inv_techstore_${i + 1}`;
     const isLast = i === 4;
     const inv = await prisma.invoice.upsert({
-      where: { agreementId_periodStart: { agreementId: techAgreement.id, periodStart } },
+      where: { id: invId },
       create: {
         id: invId,
         agreementId: techAgreement.id,
@@ -1629,7 +1629,7 @@ This agreement is entered into between SiteLager ("Operator") and the Tenant nam
     const periodEnd   = monthsAgo(1 - i);
     const invId = `inv_rafay_habibullah_${i + 1}`;
     const inv = await prisma.invoice.upsert({
-      where: { agreementId_periodStart: { agreementId: rafayAgreement.id, periodStart } },
+      where: { id: invId },
       create: {
         id: invId,
         agreementId: rafayAgreement.id,
