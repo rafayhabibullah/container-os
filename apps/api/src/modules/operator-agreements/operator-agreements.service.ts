@@ -35,9 +35,10 @@ export class OperatorAgreementsService {
     return agreements.map((a) => {
       const customer = customerMap.get(a.tenantId);
       const data = customer?.personOrOrgData as Record<string, string> | null;
+      const customerName = data?.name ?? (data?.firstName || data?.lastName ? [data.firstName, data.lastName].filter(Boolean).join(' ') : null) ?? data?.companyName ?? null;
       return {
         ...a,
-        customerName:  data?.name ?? null,
+        customerName,
         customerEmail: customer?.contacts[0]?.email ?? null,
       };
     });

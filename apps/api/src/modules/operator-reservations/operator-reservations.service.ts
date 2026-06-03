@@ -35,9 +35,10 @@ export class OperatorReservationsService {
     return reservations.map((r) => {
       const customer = customerMap.get(r.customerId);
       const data     = customer?.personOrOrgData as Record<string, string> | null;
+      const customerName = data?.name ?? (data?.firstName || data?.lastName ? [data.firstName, data.lastName].filter(Boolean).join(' ') : null) ?? data?.companyName ?? null;
       return {
         ...r,
-        customerName:  data?.name ?? null,
+        customerName,
         customerEmail: customer?.contacts[0]?.email ?? null,
       };
     });
@@ -67,9 +68,10 @@ export class OperatorReservationsService {
     ]);
 
     const data = customer?.personOrOrgData as Record<string, string> | null;
+    const customerName = data?.name ?? (data?.firstName || data?.lastName ? [data.firstName, data.lastName].filter(Boolean).join(' ') : null) ?? data?.companyName ?? null;
     return {
       ...r,
-      customerName:  data?.name ?? null,
+      customerName,
       customerEmail: customer?.contacts[0]?.email ?? null,
       customerPhone: customer?.contacts[0]?.phone ?? null,
       customerType:  customer?.type ?? null,
