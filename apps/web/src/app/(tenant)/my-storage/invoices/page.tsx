@@ -33,8 +33,14 @@ export default async function MyInvoicesPage() {
   return (
     <>
       <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      <style>{`.tbl-row:hover { background: #f8fafc; }`}</style>
-      <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <style>{`
+        .tbl-row:hover { background: #f8fafc; }
+        @media (max-width: 640px) {
+          .ms-wrap { padding: 20px 16px !important; }
+          .ms-tbl-wrap { overflow-x: auto; }
+        }
+      `}</style>
+      <div className="ms-wrap" style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
           <Link href="/my-storage" style={{ display: 'inline-block', fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', marginBottom: '20px' }}>
             &larr; My Storage
@@ -47,7 +53,7 @@ export default async function MyInvoicesPage() {
               <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>No invoices yet.</p>
             </div>
           ) : (
-            <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
+            <div className="ms-tbl-wrap" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                 <thead style={{ background: '#f8fafc' }}>
                   <tr>

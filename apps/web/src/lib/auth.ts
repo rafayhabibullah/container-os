@@ -45,8 +45,8 @@ export async function clearTokens(): Promise<void> {
 
 export async function setTenantTokens(accessToken: string, refreshToken: string): Promise<void> {
   const cookieStore = cookies();
-  cookieStore.set(TENANT_ACCESS_COOKIE, accessToken, { httpOnly: true, path: '/my-storage', sameSite: 'lax' });
-  cookieStore.set(TENANT_REFRESH_COOKIE, refreshToken, { httpOnly: true, path: '/my-storage', sameSite: 'lax' });
+  cookieStore.set(TENANT_ACCESS_COOKIE, accessToken, { httpOnly: true, path: '/', sameSite: 'lax' });
+  cookieStore.set(TENANT_REFRESH_COOKIE, refreshToken, { httpOnly: true, path: '/', sameSite: 'lax' });
 }
 
 export async function clearTenantTokens(): Promise<void> {

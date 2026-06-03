@@ -31,6 +31,26 @@ interface Agreement {
   site: Site | null;
 }
 
+interface OverdueInvoice {
+  id: string;
+  dueDate: string;
+  totalMinor: number;
+  currency: string;
+  agreementId: string;
+}
+
+interface NextInvoice {
+  id: string;
+  dueDate: string;
+  totalMinor: number;
+  currency: string;
+}
+
+interface DashboardSummary {
+  overdueInvoices: OverdueInvoice[];
+  nextInvoice: NextInvoice | null;
+}
+
 const STATUS_PILL: Record<string, React.CSSProperties> = {
   pending_signature: { background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '5px' },
   signed: { background: '#f0f9ff', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '5px' },
@@ -56,26 +76,70 @@ function StatusPill({ status }: { status: string }) {
   );
 }
 
-function formatCents(minor?: number): string {
+function formatCents(minor?: number, currency = 'EUR'): string {
   if (!minor) return '—';
-  return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(minor / 100);
+  return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(minor / 100);
 }
 
 export default async function MyStoragePage() {
   await requireTenantAuth();
-  const agreements = await serverTenantFetch<Agreement[]>('/v1/tenant/agreements').catch(() => [] as Agreement[]);
+  const [agreements, summary] = await Promise.all([
+    serverTenantFetch<Agreement[]>('/v1/tenant/agreements').catch(() => [] as Agreement[]),
+    serverTenantFetch<DashboardSummary>('/v1/tenant/dashboard').catch(() => ({ overdueInvoices: [], nextInvoice: null } as DashboardSummary)),
+  ]);
+
+  const hasOverdue = summary.overdueInvoices.length > 0;
 
   return (
     <>
       <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      <style>{`.ms-nav-card:hover { box-shadow: 0 4px 16px rgba(15,23,42,0.10); }`}</style>
-      <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <style>{`
+        .ms-nav-card:hover { box-shadow: 0 4px 16px rgba(15,23,42,0.10); }
+        @media (max-width: 640px) {
+          .ms-wrap { padding: 20px 16px !important; }
+          .ms-unit-actions { flex-direction: column !important; align-items: stretch !important; }
+          .ms-unit-actions a { text-align: center !important; }
+        }
+      `}</style>
+      <div className="ms-wrap" style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '6px' }}>
             <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>My Storage</h1>
             <LogoutButton />
           </div>
-          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 28px' }}>Manage your storage units and payments</p>
+          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 20px' }}>Manage your storage units and payments</p>
+
+          {hasOverdue && (
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '16px' }}>⚠️</span>
+              <div>
+                <p style={{ fontSize: '13px', fontWeight: 700, color: '#dc2626', margin: '0 0 2px' }}>
+                  {summary.overdueInvoices.length === 1 ? 'You have 1 overdue invoice' : `You have ${summary.overdueInvoices.length} overdue invoices`}
+                </p>
+                <p style={{ fontSize: '12px', color: '#b91c1c', margin: 0 }}>
+                  Please settle your outstanding balance to avoid service interruption.{' '}
+                  <Link href="/my-storage/invoices" style={{ color: '#dc2626', fontWeight: 600, textDecoration: 'underline' }}>View invoices</Link>
+                </p>
+              </div>
+            </div>
+          )}
+
+          {summary.nextInvoice && (
+            <div style={{ background: '#ffffff', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '14px 16px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+              <div>
+                <p style={{ fontSize: '11px', color: '#94a3b8', margin: '0 0 2px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Next payment</p>
+                <p style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', margin: '0 0 2px', letterSpacing: '-0.01em' }}>
+                  {formatCents(summary.nextInvoice.totalMinor, summary.nextInvoice.currency)}
+                </p>
+                <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>
+                  Due {new Date(summary.nextInvoice.dueDate).toLocaleDateString('de-DE')}
+                </p>
+              </div>
+              <Link href="/my-storage/invoices" style={{ background: '#0f172a', color: '#ffffff', borderRadius: '8px', padding: '8px 16px', fontSize: '12px', fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                View invoices
+              </Link>
+            </div>
+          )}
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '32px' }}>
             <Link href="/my-storage/invoices" className="ms-nav-card" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '20px', textDecoration: 'none', display: 'block', transition: 'box-shadow 0.15s' }}>
@@ -85,6 +149,14 @@ export default async function MyStoragePage() {
             <Link href="/my-storage/payment-methods" className="ms-nav-card" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '20px', textDecoration: 'none', display: 'block', transition: 'box-shadow 0.15s' }}>
               <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>Payment Methods</h3>
               <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Manage your SEPA mandates</p>
+            </Link>
+            <Link href="/my-storage/profile" className="ms-nav-card" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '20px', textDecoration: 'none', display: 'block', transition: 'box-shadow 0.15s' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>Profile</h3>
+              <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Update your name and contact info</p>
+            </Link>
+            <Link href="/my-storage/report-problem" className="ms-nav-card" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '20px', textDecoration: 'none', display: 'block', transition: 'box-shadow 0.15s' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>Support</h3>
+              <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Report a problem</p>
             </Link>
           </div>
 
@@ -99,55 +171,66 @@ export default async function MyStoragePage() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {agreements.map((a) => (
-                <div key={a.id} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
-                    <div>
-                      <p style={{ fontWeight: 800, color: '#0f172a', fontSize: '16px', margin: '0 0 2px', letterSpacing: '-0.01em' }}>
-                        Unit {a.unit?.unitCode ?? a.unitId.slice(0, 8)}
-                      </p>
-                      <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-                        {a.site?.name ?? 'Unknown site'}
-                        {a.unit?.unitType ? ` · ${a.unit.unitType.name} · ${a.unit.unitType.sizeSqm} m²` : ''}
-                      </p>
+              {agreements.map((a) => {
+                const overdueForUnit = summary.overdueInvoices.filter((inv) => inv.agreementId === a.id);
+                return (
+                  <div key={a.id} style={{ background: '#ffffff', borderRadius: '12px', border: overdueForUnit.length > 0 ? '1px solid #fca5a5' : '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
+                      <div>
+                        <p style={{ fontWeight: 800, color: '#0f172a', fontSize: '16px', margin: '0 0 2px', letterSpacing: '-0.01em' }}>
+                          Unit {a.unit?.unitCode ?? a.unitId.slice(0, 8)}
+                        </p>
+                        <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+                          {a.site?.name ?? 'Unknown site'}
+                          {a.unit?.unitType ? ` · ${a.unit.unitType.name} · ${a.unit.unitType.sizeSqm} m²` : ''}
+                        </p>
+                      </div>
+                      <StatusPill status={a.status} />
                     </div>
-                    <StatusPill status={a.status} />
-                  </div>
 
-                  <dl style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', margin: 0 }}>
-                    <div>
-                      <dt style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '2px' }}>Monthly rate</dt>
-                      <dd style={{ color: '#475569', margin: 0, fontWeight: 600 }}>{formatCents(a.pricingSnapshot?.amountMinor)}</dd>
-                    </div>
-                    <div>
-                      <dt style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '2px' }}>Start date</dt>
-                      <dd style={{ color: '#475569', margin: 0 }}>{a.effectiveFrom ? new Date(a.effectiveFrom).toLocaleDateString('de-DE') : '—'}</dd>
-                    </div>
-                  </dl>
+                    <dl style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '13px', margin: 0 }}>
+                      <div>
+                        <dt style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '2px' }}>Monthly rate</dt>
+                        <dd style={{ color: '#475569', margin: 0, fontWeight: 600 }}>{formatCents(a.pricingSnapshot?.amountMinor)}</dd>
+                      </div>
+                      <div>
+                        <dt style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '2px' }}>Start date</dt>
+                        <dd style={{ color: '#475569', margin: 0 }}>{a.effectiveFrom ? new Date(a.effectiveFrom).toLocaleDateString('de-DE') : '—'}</dd>
+                      </div>
+                    </dl>
 
-                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Link href={`/my-storage/agreements/${a.id}`} style={{ color: '#64748b', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>
-                      View agreement &rarr;
-                    </Link>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <Link
-                        href={`/my-storage/report-problem?agreementId=${a.id}`}
-                        style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '8px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, textDecoration: 'none', display: 'inline-block' }}
-                      >
-                        Report problem
+                    {overdueForUnit.length > 0 && (
+                      <div style={{ marginTop: '12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', padding: '8px 12px', fontSize: '12px', color: '#dc2626', fontWeight: 600 }}>
+                        {overdueForUnit.length === 1
+                          ? `Overdue: ${formatCents(overdueForUnit[0].totalMinor, overdueForUnit[0].currency)} — due ${new Date(overdueForUnit[0].dueDate).toLocaleDateString('de-DE')}`
+                          : `${overdueForUnit.length} overdue invoices`}
+                      </div>
+                    )}
+
+                    <div className="ms-unit-actions" style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Link href={`/my-storage/agreements/${a.id}`} style={{ color: '#64748b', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>
+                        View agreement &rarr;
                       </Link>
-                      {['active', 'signed'].includes(a.status) && (
+                      <div style={{ display: 'flex', gap: '8px' }}>
                         <Link
-                          href={`/my-storage/move-out?agreementId=${a.id}`}
-                          style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#475569', borderRadius: '8px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, textDecoration: 'none', display: 'inline-block' }}
+                          href={`/my-storage/report-problem?agreementId=${a.id}`}
+                          style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '8px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, textDecoration: 'none', display: 'inline-block' }}
                         >
-                          Request move-out
+                          Report problem
                         </Link>
-                      )}
+                        {['active', 'signed'].includes(a.status) && (
+                          <Link
+                            href={`/my-storage/move-out?agreementId=${a.id}`}
+                            style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#475569', borderRadius: '8px', padding: '6px 14px', fontSize: '12px', fontWeight: 600, textDecoration: 'none', display: 'inline-block' }}
+                          >
+                            Request move-out
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

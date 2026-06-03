@@ -118,6 +118,60 @@ export class TenantPortalService {
     });
   }
 
+  async getDashboardSummary(userId: string) {
+    const customerIds = await this.resolveCustomerIds(userId);
+    const agreements = await this.prisma.agreement.findMany({
+      where: { tenantId: { in: customerIds } },
+      select: { id: true },
+    });
+    const agreementIds = agreements.map((a) => a.id);
+
+    const [overdueInvoices, nextInvoice] = await Promise.all([
+      this.prisma.invoice.findMany({
+        where: { agreementId: { in: agreementIds }, status: 'overdue' },
+        select: { id: true, dueDate: true, totalMinor: true, currency: true, agreementId: true },
+      }),
+      this.prisma.invoice.findFirst({
+        where: { agreementId: { in: agreementIds }, status: { in: ['pending', 'sent'] } },
+        orderBy: { dueDate: 'asc' },
+        select: { id: true, dueDate: true, totalMinor: true, currency: true },
+      }),
+    ]);
+
+    return { overdueInvoices, nextInvoice };
+  }
+
+  async getMyProfile(userId: string) {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { id: true, email: true, name: true },
+    });
+    const contact = await this.prisma.contact.findFirst({
+      where: { email: user.email, role: 'primary' },
+      select: { phone: true },
+    });
+    return { ...user, phone: contact?.phone ?? null };
+  }
+
+  async updateMyProfile(userId: string, data: { name?: string; phone?: string }) {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { email: true },
+    });
+    await Promise.all([
+      data.name !== undefined
+        ? this.prisma.user.update({ where: { id: userId }, data: { name: data.name } })
+        : Promise.resolve(),
+      data.phone !== undefined
+        ? this.prisma.contact.updateMany({
+            where: { email: user.email, role: 'primary' },
+            data: { phone: data.phone },
+          })
+        : Promise.resolve(),
+    ]);
+    return this.getMyProfile(userId);
+  }
+
   async reportIncident(userId: string, params: { agreementId: string; type: string; description: string }) {
     const customerIds = await this.resolveCustomerIds(userId);
     const agreement = await this.prisma.agreement.findFirstOrThrow({
