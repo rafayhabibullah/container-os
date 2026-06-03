@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server';
 const PUBLIC_PREFIX_PATHS = [
   '/login', '/register', '/accept-invite',
   '/my-storage/login',
+  '/my-storage/register',
   '/api/auth', '/api/checkout', '/api/tenant', '/api/rpc',
   '/storage',
   '/for-operators',

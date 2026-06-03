@@ -30,10 +30,25 @@ export class RegisterDto {
   defaultLanguage?: string;
 }
 
+export class TenantRegisterDto {
+  @ApiProperty({ example: 'Max Mustermann' })
+  @IsString()
+  name: string;
+
+  @ApiProperty({ example: 'max@example.com' })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({ example: 'StrongPass123!' })
+  @IsString()
+  @MinLength(8)
+  password: string;
+}
+
 export class AuthResponseDto {
   @ApiProperty() accessToken: string;
   @ApiProperty() refreshToken: string;
-  @ApiProperty() organisationId: string;
+  @ApiProperty({ nullable: true }) organisationId: string | null;
   @ApiProperty() userId: string;
   @ApiProperty() role: string;
 }

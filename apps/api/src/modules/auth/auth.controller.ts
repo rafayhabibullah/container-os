@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { RegisterDto, AuthResponseDto } from './dto/register.dto';
+import { RegisterDto, TenantRegisterDto, AuthResponseDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { InviteDto } from './dto/invite.dto';
@@ -19,6 +19,12 @@ export class AuthController {
   @ApiOperation({ summary: 'Business owner self-registration' })
   register(@Body() dto: RegisterDto): Promise<AuthResponseDto> {
     return this.auth.register(dto);
+  }
+
+  @Post('register-tenant')
+  @ApiOperation({ summary: 'Tenant self-registration' })
+  registerTenant(@Body() dto: TenantRegisterDto): Promise<AuthResponseDto> {
+    return this.auth.registerTenant(dto);
   }
 
   @Post('login')

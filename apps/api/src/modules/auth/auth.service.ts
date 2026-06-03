@@ -9,7 +9,7 @@ import * as bcrypt from 'bcryptjs';
 import { randomBytes, createHash } from 'crypto';
 import slugify from 'slugify';
 import { PrismaClient } from '@prisma/client';
-import { RegisterDto, AuthResponseDto } from './dto/register.dto';
+import { RegisterDto, TenantRegisterDto, AuthResponseDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { InviteDto } from './dto/invite.dto';
@@ -68,6 +68,18 @@ export class AuthService {
     return this.issueTokens(result.user, result.member);
   }
 
+  async registerTenant(dto: TenantRegisterDto): Promise<AuthResponseDto> {
+    const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    if (existing) throw new ConflictException('EMAIL_ALREADY_EXISTS');
+
+    const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
+    const user = await this.prisma.user.create({
+      data: { email: dto.email, name: dto.name, passwordHash, type: 'tenant' },
+    });
+
+    return this.issueTokens(user, null);
+  }
+
   async login(dto: LoginDto): Promise<AuthResponseDto> {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (!user?.passwordHash) {
@@ -85,9 +97,9 @@ export class AuthService {
       where: { userId: user.id },
       orderBy: { createdAt: 'desc' },
     });
-    if (!member) throw new UnauthorizedException('NO_ORGANISATION');
+    if (!member && user.type !== 'tenant') throw new UnauthorizedException('NO_ORGANISATION');
 
-    return this.issueTokens(user, member);
+    return this.issueTokens(user, member ?? null);
   }
 
   async refresh(dto: RefreshDto): Promise<Pick<AuthResponseDto, 'accessToken' | 'refreshToken'>> {
@@ -200,12 +212,12 @@ export class AuthService {
 
   private async issueTokens(
     user: { id: string; type: string },
-    member: { organisationId: string; role: string; userId: string },
+    member: { organisationId: string; role: string; userId: string } | null,
   ): Promise<AuthResponseDto> {
     const payload = {
       sub: user.id,
-      organisationId: member.organisationId,
-      role: member.role,
+      organisationId: member?.organisationId ?? null,
+      role: member?.role ?? user.type,
       type: user.type,
     };
 
@@ -225,9 +237,9 @@ export class AuthService {
     return {
       accessToken,
       refreshToken: rawRefresh,
-      organisationId: member.organisationId,
+      organisationId: member?.organisationId ?? null,
       userId: user.id,
-      role: member.role,
+      role: member?.role ?? user.type,
     };
   }
 }
