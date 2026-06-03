@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { TenantProfile } from './page';
+import { updateProfile } from './actions';
 
 const inputStyle: React.CSSProperties = {
   background: '#f8fafc',
@@ -38,13 +39,7 @@ export default function ProfileForm({ profile }: { profile: TenantProfile }) {
     setSaved(false);
     setError('');
     try {
-      const res = await fetch('/api/tenant/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim() || null, phone: phone.trim() || null }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.message ?? 'Failed to save');
+      await updateProfile({ name: name.trim() || null, phone: phone.trim() || null });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { clientFetch } from '@/lib/client-api';
+import { submitMoveOutRequest } from './actions';
 
 export default function MoveOutPage() {
   const params = useSearchParams();
@@ -17,10 +17,7 @@ export default function MoveOutPage() {
     setError('');
     setLoading(true);
     try {
-      await clientFetch('/v1/tenant/move-out-requests', {
-        method: 'POST',
-        body: JSON.stringify({ agreementId, requestedDate }),
-      });
+      await submitMoveOutRequest({ agreementId, requestedDate });
       setSubmitted(true);
     } catch {
       setError('Failed to submit move-out request. Please try again.');

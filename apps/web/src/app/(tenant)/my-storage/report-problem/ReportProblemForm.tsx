@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { submitIncidentReport } from './actions';
 
 interface Agreement {
   id: string;
@@ -39,15 +40,7 @@ export default function ReportProblemForm({
     setSubmitting(true);
     setError('');
     try {
-      const res = await fetch('/api/tenant/incidents', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agreementId, type, description }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message ?? 'Something went wrong');
-      }
+      await submitIncidentReport({ agreementId, type, description });
       setDone(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
