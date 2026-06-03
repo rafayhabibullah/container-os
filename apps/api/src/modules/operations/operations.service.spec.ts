@@ -75,6 +75,23 @@ describe('OperationsService.createTask', () => {
   });
 });
 
+describe('OperationsService.createIncident', () => {
+  it.each([
+    ['low', 'low'],
+    ['medium', 'normal'],
+    ['high', 'high'],
+    ['critical', 'urgent'],
+    ['unknown', 'normal'],
+  ])('maps severity %s to task priority %s', async (severity, expectedPriority) => {
+    mockPrisma.incident.create.mockResolvedValue({ id: 'inc1' });
+    mockPrisma.task.create.mockResolvedValue({ id: 't1' });
+    await service.createIncident({ siteId: 's1', severity, type: 'test' });
+    expect(mockPrisma.task.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ priority: expectedPriority }),
+    });
+  });
+});
+
 describe('OperationsService.resolveIncident', () => {
   it('completes the linked task when resolving an incident', async () => {
     mockPrisma.task.updateMany.mockResolvedValue({ count: 1 });
