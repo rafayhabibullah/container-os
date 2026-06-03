@@ -219,7 +219,7 @@ export function ListingActions({ listingId, orgId, status, title, description, b
         <button onClick={() => { setEditError(''); setShowEdit(true); }} disabled={loading} style={btnStyle} {...hover}>
           Edit
         </button>
-        {status === 'draft' && (
+        {(status === 'draft' || status === 'paused') && (
           <button onClick={() => transition('publish')} disabled={loading} style={btnStyle} {...hover}>
             Publish
           </button>
