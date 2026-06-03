@@ -8,7 +8,7 @@ export class StorageService {
   private client: any;
 
   constructor() {
-    this.bucket = process.env.MINIO_BUCKET ?? 'container-os-dev';
+    this.bucket = process.env.MINIO_BUCKET ?? 'sitelager-dev';
     // Lazy-load minio to avoid import errors when env not configured
     this.client = null;
   }

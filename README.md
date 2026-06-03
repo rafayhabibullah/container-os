@@ -49,11 +49,11 @@ corepack enable
 pnpm install
 
 # 2. Start infra
-docker compose up -d          # postgres, redis, minio, keycloak, mailhog
+docker compose up -d          # postgres, redis, minio, mailhog
 
 # 3. Environment
 cp apps/api/.env.example apps/api/.env
-# Edit apps/api/.env — set STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, KEYCLOAK_CLIENT_SECRET
+# Edit apps/api/.env — set STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, JWT_SECRET
 
 # 4. API (migrate + seed + watch)
 cd apps/api && pnpm dev       # → http://localhost:3000
@@ -77,7 +77,7 @@ Copy `apps/api/.env.example` to `apps/api/.env`. The variables you must set for 
 | `REDIS_URL` | Redis connection string |
 | `STRIPE_SECRET_KEY` | Stripe secret key (`sk_test_...`) |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
-| `KEYCLOAK_CLIENT_SECRET` | Keycloak client secret |
+| `JWT_SECRET` | Secret for signing JWT tokens (min 32 chars) |
 
 Minio, SMTP (MailHog), and other infra vars are pre-filled in `.env.example` for the default Docker setup.
 
@@ -100,7 +100,6 @@ cd apps/api && pnpm test:watch    # watch mode
 | http://localhost:3000/docs | Swagger UI |
 | http://localhost:8025 | MailHog — email preview |
 | http://localhost:9001 | MinIO console |
-| http://localhost:8080 | Keycloak admin |
 | http://localhost:3000/api/healthz | API liveness |
 
 ---

@@ -15,7 +15,7 @@ pnpm install                  # from repo root — installs all workspaces
 
 ### Dev (manual)
 ```bash
-docker compose up -d          # start infra: postgres, redis, minio, keycloak, mailhog
+docker compose up -d          # start infra: postgres, redis, minio, mailhog
 
 # In apps/api:
 pnpm dev                      # migrate + seed + nest start --watch (port 3000)
@@ -120,7 +120,6 @@ Each module follows NestJS conventions: `*.module.ts`, `*.service.ts`, `*.contro
 | http://localhost:3001 | Web portal |
 | http://localhost:8025 | MailHog (email preview) |
 | http://localhost:9001 | MinIO console |
-| http://localhost:8080 | Keycloak admin |
 
 ## German legal context
 
