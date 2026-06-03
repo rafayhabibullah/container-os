@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import slugify from 'slugify';
 import { CreateSiteDto } from './dto/create-site.dto';
@@ -76,9 +76,15 @@ export class SiteService {
 
   async createUnit(orgId: string, siteId: string, data: { unitCode: string; unitTypeId: string; kind: string; driveUp: boolean }) {
     await this.getSite(orgId, siteId);
-    return this.prisma.unit.create({
-      data: { siteId, ...data } as any,
-    });
+    try {
+      return await this.prisma.unit.create({
+        data: { siteId, ...data } as any,
+      });
+    } catch (e: any) {
+      if (e.code === 'P2002') throw new ConflictException('UNIT_CODE_ALREADY_EXISTS');
+      if (e.code === 'P2003') throw new BadRequestException('INVALID_UNIT_TYPE');
+      throw e;
+    }
   }
 
   async patchUnit(orgId: string, siteId: string, unitId: string, data: { unitCode?: string; driveUp?: boolean; status?: string }) {
