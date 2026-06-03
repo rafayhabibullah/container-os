@@ -66,9 +66,9 @@ export default function ReportProblemForm({
 
   return (
     <form onSubmit={handleSubmit} style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '28px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {agreements.length > 1 && (
-        <div>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Unit</label>
+      <div>
+        <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Unit</label>
+        {agreements.length > 1 ? (
           <select
             value={agreementId}
             onChange={(e) => setAgreementId(e.target.value)}
@@ -82,8 +82,16 @@ export default function ReportProblemForm({
               </option>
             ))}
           </select>
-        </div>
-      )}
+        ) : agreements.length === 1 ? (
+          <div style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '14px', color: '#0f172a', background: '#f8fafc', fontWeight: 600 }}>
+            Unit {agreements[0].unit?.unitCode ?? agreements[0].unitId.slice(0, 8)}
+          </div>
+        ) : (
+          <div style={{ padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '14px', color: '#94a3b8', background: '#f8fafc' }}>
+            No active rental found
+          </div>
+        )}
+      </div>
 
       <div>
         <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Problem type</label>

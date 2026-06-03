@@ -11,6 +11,7 @@ interface Incident {
   siteId: string;
   unitId: string | null;
   unit: { unitCode: string } | null;
+  tenant: { personOrOrgData: Record<string, string>; contacts: { email: string }[] } | null;
   createdAt: string;
 }
 

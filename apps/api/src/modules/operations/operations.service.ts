@@ -107,7 +107,10 @@ export class OperationsService {
         siteId: filters.siteId ?? { in: siteIds },
         ...(filters.status ? { status: filters.status as any } : {}),
       },
-      include: { unit: { select: { unitCode: true } } },
+      include: {
+        unit: { select: { unitCode: true } },
+        tenant: { select: { personOrOrgData: true, contacts: { select: { email: true }, take: 1 } } },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }

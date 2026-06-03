@@ -178,8 +178,11 @@ export class TenantPortalService {
       where: { id: params.agreementId, tenantId: { in: customerIds } },
       select: { id: true, siteId: true, unitId: true },
     });
+    const unitExists = agreement.unitId
+      ? await this.prisma.unit.findUnique({ where: { id: agreement.unitId }, select: { id: true } })
+      : null;
     const incident = await this.prisma.incident.create({
-      data: { siteId: agreement.siteId, unitId: agreement.unitId ?? undefined, severity: 'low', type: params.type },
+      data: { siteId: agreement.siteId, unitId: unitExists ? agreement.unitId : undefined, tenantId: customerIds[0], severity: 'low', type: params.type },
     });
     const task = await this.prisma.task.create({
       data: {

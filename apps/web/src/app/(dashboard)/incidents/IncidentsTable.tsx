@@ -12,6 +12,7 @@ interface Incident {
   siteId: string;
   unitId: string | null;
   unit: { unitCode: string } | null;
+  tenant: { personOrOrgData: Record<string, string>; contacts: { email: string }[] } | null;
   createdAt: string;
 }
 
@@ -154,8 +155,35 @@ function IncidentDetailPanel({ incident, siteName, onClose }: { incident: Incide
             </div>
           ))}
 
+          {incident.tenant && (() => {
+            const d = incident.tenant.personOrOrgData;
+            const name = d.companyName ?? [d.firstName, d.lastName].filter(Boolean).join(' ');
+            const email = incident.tenant.contacts[0]?.email;
+            return (
+              <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+                <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 10px' }}>
+                  Reported by
+                </p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{
+                    width: '36px', height: '36px', borderRadius: '50%',
+                    background: '#f1f5f9', border: '1px solid #e2e8f0',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '14px', fontWeight: 700, color: '#475569', flexShrink: 0,
+                  }}>
+                    {(d.firstName?.[0] ?? d.companyName?.[0] ?? '?').toUpperCase()}
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: 0 }}>{name}</p>
+                    {email && <p style={{ fontSize: '12px', color: '#64748b', margin: '2px 0 0' }}>{email}</p>}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           {incident.status !== 'resolved' && (
-            <div>
+            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 10px' }}>
                 Actions
               </p>

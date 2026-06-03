@@ -190,6 +190,7 @@ model Customer {
   agreements       Agreement[]
   contacts         Contact[]
   mandates         Mandate[]
+  incidents        Incident[]
 }
 
 model Contact {
@@ -549,6 +550,7 @@ model Incident {
   id                  String         @id @default(cuid())
   siteId              String
   unitId              String?
+  tenantId            String?
   severity            String
   type                String
   status              IncidentStatus @default(open)
@@ -557,6 +559,7 @@ model Incident {
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
   unit                Unit?          @relation(fields: [unitId], references: [id])
+  tenant              Customer?      @relation(fields: [tenantId], references: [id])
 }
 
 model MaintenanceOrder {
