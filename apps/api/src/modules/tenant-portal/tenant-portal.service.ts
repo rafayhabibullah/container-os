@@ -104,4 +104,27 @@ export class TenantPortalService {
       },
     });
   }
+
+  async reportIncident(userId: string, params: { agreementId: string; type: string; description: string }) {
+    const customerIds = await this.resolveCustomerIds(userId);
+    const agreement = await this.prisma.agreement.findFirstOrThrow({
+      where: { id: params.agreementId, tenantId: { in: customerIds } },
+      select: { id: true, siteId: true, unitId: true },
+    });
+    const incident = await this.prisma.incident.create({
+      data: { siteId: agreement.siteId, severity: 'low', type: params.type },
+    });
+    const task = await this.prisma.task.create({
+      data: {
+        siteId: agreement.siteId,
+        unitId: agreement.unitId,
+        tenantId: customerIds[0],
+        title: `Tenant report: ${params.type}`,
+        notes: params.description,
+        priority: 'normal',
+        subjectRef: `Incident:${incident.id}`,
+      },
+    });
+    return { incidentId: incident.id, taskId: task.id };
+  }
 }

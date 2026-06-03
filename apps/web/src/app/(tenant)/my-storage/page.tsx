@@ -59,7 +59,7 @@ export default async function MyStoragePage() {
           </div>
           <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 28px' }}>Manage your storage agreements and payments</p>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '32px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '32px' }}>
             <Link href="/my-storage/invoices" className="ms-nav-card" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '20px', textDecoration: 'none', display: 'block', transition: 'box-shadow 0.15s' }}>
               <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>Invoices</h3>
               <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>View your billing history</p>
@@ -71,6 +71,10 @@ export default async function MyStoragePage() {
             <Link href="/my-storage/move-out" className="ms-nav-card" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '20px', textDecoration: 'none', display: 'block', transition: 'box-shadow 0.15s' }}>
               <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>Request Move-out</h3>
               <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>End your rental agreement</p>
+            </Link>
+            <Link href="/my-storage/report-problem" className="ms-nav-card" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #fecaca', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '20px', textDecoration: 'none', display: 'block', transition: 'box-shadow 0.15s' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#dc2626', margin: '0 0 4px' }}>Report a Problem</h3>
+              <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Report an issue with your unit</p>
             </Link>
           </div>
 

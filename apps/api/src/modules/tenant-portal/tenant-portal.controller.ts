@@ -43,4 +43,12 @@ export class TenantPortalController {
   ) {
     return this.service.createMoveOutRequest(user.id, body.agreementId, body.requestedDate);
   }
+
+  @Post('incidents')
+  reportIncident(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() body: { agreementId: string; type: string; description: string },
+  ) {
+    return this.service.reportIncident(user.id, body);
+  }
 }
