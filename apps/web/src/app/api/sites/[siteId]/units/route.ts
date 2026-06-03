@@ -5,7 +5,7 @@ export async function GET(_request: NextRequest, { params }: { params: { siteId:
   const auth = getAuthContext();
   if (!auth) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   return proxyToBackend(
-    `/v1/organisations/${auth.payload.organisationId}/sites/${params.siteId}/units`,
+    `/operator/v1/units?siteId=${params.siteId}`,
     'GET',
     auth.token,
   );

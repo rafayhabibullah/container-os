@@ -179,7 +179,7 @@ export class TenantPortalService {
       select: { id: true, siteId: true, unitId: true },
     });
     const incident = await this.prisma.incident.create({
-      data: { siteId: agreement.siteId, severity: 'low', type: params.type },
+      data: { siteId: agreement.siteId, unitId: agreement.unitId ?? undefined, severity: 'low', type: params.type },
     });
     const task = await this.prisma.task.create({
       data: {

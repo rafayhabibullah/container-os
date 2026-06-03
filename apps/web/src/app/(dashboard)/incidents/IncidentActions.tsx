@@ -41,10 +41,12 @@ const labelStyle: React.CSSProperties = {
 
 export default function IncidentActions({ type, incidentId, currentStatus, sites = [] }: Props) {
   const router = useRouter();
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState('');
-  const [showForm, setShowForm] = useState(false);
-  const [mounted,  setMounted]  = useState(false);
+  const [loading,   setLoading]   = useState(false);
+  const [error,     setError]     = useState('');
+  const [showForm,  setShowForm]  = useState(false);
+  const [mounted,   setMounted]   = useState(false);
+  const [units,     setUnits]     = useState<{ id: string; unitCode: string }[]>([]);
+  const [loadingUnits, setLoadingUnits] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -165,8 +167,10 @@ export default function IncidentActions({ type, incidentId, currentStatus, sites
               onSubmit={async (e) => {
                 e.preventDefault();
                 const form = new FormData(e.currentTarget);
+                const unitId = form.get('unitId') as string;
                 await doAction('/api/incidents', 'POST', {
                   siteId:   form.get('siteId'),
+                  unitId:   unitId || undefined,
                   title:    form.get('type'),
                   severity: form.get('severity'),
                 });
@@ -175,10 +179,38 @@ export default function IncidentActions({ type, incidentId, currentStatus, sites
             >
               <div>
                 <label style={labelStyle}>SITE</label>
-                <select name="siteId" required className="inc-modal-input" style={inputStyle}>
+                <select
+                  name="siteId"
+                  required
+                  className="inc-modal-input"
+                  style={inputStyle}
+                  onChange={async (e) => {
+                    const siteId = e.target.value;
+                    setUnits([]);
+                    if (!siteId) return;
+                    setLoadingUnits(true);
+                    try {
+                      const res = await fetch(`/api/sites/${siteId}/units`);
+                      const data = await res.json().catch(() => []);
+                      setUnits(Array.isArray(data) ? data : []);
+                    } finally {
+                      setLoadingUnits(false);
+                    }
+                  }}
+                >
                   <option value="">Select a site…</option>
                   {sites.map((s) => (
                     <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={labelStyle}>UNIT <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional)</span></label>
+                <select name="unitId" className="inc-modal-input" style={{ ...inputStyle, color: loadingUnits ? '#94a3b8' : undefined }} disabled={loadingUnits || units.length === 0}>
+                  <option value="">{loadingUnits ? 'Loading…' : units.length === 0 ? 'Select a site first' : 'All units / not unit-specific'}</option>
+                  {units.map((u) => (
+                    <option key={u.id} value={u.id}>{u.unitCode}</option>
                   ))}
                 </select>
               </div>

@@ -81,7 +81,7 @@ export class OrgOperationsController {
     @Body() body: { siteId: string; unitId?: string; title: string; description: string; severity: string },
     @CurrentMember() member: MemberContext,
   ) {
-    return this.ops.createIncident({ siteId: body.siteId, severity: body.severity, type: body.title });
+    return this.ops.createIncident({ siteId: body.siteId, unitId: body.unitId, severity: body.severity, type: body.title });
   }
 
   @Patch('incidents/:incidentId')

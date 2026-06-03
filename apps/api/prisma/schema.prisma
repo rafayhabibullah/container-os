@@ -72,6 +72,7 @@ model Unit {
   site             Site       @relation(fields: [siteId], references: [id])
   unitType         UnitType   @relation(fields: [unitTypeId], references: [id])
   zone             Zone?      @relation(fields: [zoneId], references: [id])
+  incidents        Incident[]
   listing          Listing?
 
   @@unique([siteId, unitCode])
@@ -547,6 +548,7 @@ model InspectionRun {
 model Incident {
   id                  String         @id @default(cuid())
   siteId              String
+  unitId              String?
   severity            String
   type                String
   status              IncidentStatus @default(open)
@@ -554,6 +556,7 @@ model Incident {
   resolutionNote      String?
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
+  unit                Unit?          @relation(fields: [unitId], references: [id])
 }
 
 model MaintenanceOrder {

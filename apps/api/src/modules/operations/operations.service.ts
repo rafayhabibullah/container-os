@@ -50,7 +50,7 @@ export class OperationsService {
     return map[severity] ?? 'normal';
   }
 
-  async createIncident(params: { siteId: string; severity: string; type: string; linkedAccessEventId?: string }) {
+  async createIncident(params: { siteId: string; unitId?: string; severity: string; type: string; linkedAccessEventId?: string }) {
     const incident = await this.prisma.incident.create({ data: params });
     const task = await this.createTask({ siteId: params.siteId, title: `Incident: ${params.type}`, priority: this.severityToTaskPriority(params.severity), subjectRef: `Incident:${incident.id}` });
     return { incidentId: incident.id, taskId: task.id };
@@ -107,6 +107,7 @@ export class OperationsService {
         siteId: filters.siteId ?? { in: siteIds },
         ...(filters.status ? { status: filters.status as any } : {}),
       },
+      include: { unit: { select: { unitCode: true } } },
       orderBy: { createdAt: 'desc' },
     });
   }

@@ -9,6 +9,8 @@ interface Incident {
   status: string;
   severity: string;
   siteId: string;
+  unitId: string | null;
+  unit: { unitCode: string } | null;
   createdAt: string;
 }
 
@@ -116,7 +118,7 @@ export default async function IncidentsPage() {
             <IncidentActions type="report" sites={sites} />
           </div>
 
-          <IncidentsTable incidents={incidents} />
+          <IncidentsTable incidents={incidents} sites={sites} />
         </div>
       </div>
     </>

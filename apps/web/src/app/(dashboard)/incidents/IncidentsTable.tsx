@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import IncidentActions from './IncidentActions';
 
 interface Incident {
@@ -9,7 +10,14 @@ interface Incident {
   status: string;
   severity: string;
   siteId: string;
+  unitId: string | null;
+  unit: { unitCode: string } | null;
   createdAt: string;
+}
+
+interface Site {
+  id: string;
+  name: string;
 }
 
 const SEV: Record<string, { dot: string; text: string; bg: string; border: string; label: string }> = {
@@ -42,9 +50,131 @@ function timeAgo(iso: string): string {
   return d === 1 ? 'Yesterday' : `${d}d ago`;
 }
 
-export default function IncidentsTable({ incidents }: { incidents: Incident[] }) {
+function IncidentDetailPanel({ incident, siteName, onClose }: { incident: Incident; siteName: string; onClose: () => void }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const sev  = SEV[incident.severity]  ?? SEV.low;
+  const stat = STAT[incident.status]   ?? STAT.resolved;
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <>
+      <style>{`
+        @keyframes inc-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes inc-panel-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .inc-detail-backdrop { animation: inc-backdrop-in 0.18s ease both; }
+        .inc-detail-panel    { animation: inc-panel-in 0.25s cubic-bezier(0.16,1,0.3,1) both; }
+      `}</style>
+
+      <div
+        className="inc-detail-backdrop"
+        onClick={onClose}
+        style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.3)', backdropFilter: 'blur(2px)', zIndex: 50 }}
+      />
+
+      <div
+        className="inc-detail-panel"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: 'fixed', top: 0, right: 0, bottom: 0,
+          width: '400px',
+          background: '#ffffff',
+          borderLeft: '1px solid #e2e8f0',
+          boxShadow: '-8px 0 40px rgba(15,23,42,0.12)',
+          zIndex: 51,
+          display: 'flex', flexDirection: 'column',
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+        }}
+      >
+        {/* Header */}
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+          padding: '20px 24px',
+          borderBottom: '1px solid #f1f5f9',
+          flexShrink: 0,
+        }}>
+          <div>
+            <p style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: '0 0 6px' }}>
+              {incident.type}
+            </p>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '5px',
+                background: sev.bg, color: sev.text, border: `1px solid ${sev.border}`,
+                borderRadius: '20px', padding: '2px 9px', fontSize: '12px', fontWeight: 600,
+              }}>
+                <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: sev.dot, display: 'inline-block' }} />
+                {sev.label}
+              </span>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '5px',
+                background: stat.bg, color: stat.text, border: `1px solid ${stat.border}`,
+                borderRadius: '20px', padding: '2px 9px', fontSize: '12px', fontWeight: 600,
+              }}>
+                <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: stat.dot, display: 'inline-block' }} />
+                {stat.label}
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              background: '#f8fafc', border: '1px solid #e2e8f0',
+              borderRadius: '6px', width: '28px', height: '28px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', color: '#64748b', fontSize: '14px', flexShrink: 0,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Body */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {[
+            { label: 'Incident ID', value: incident.id },
+            { label: 'Site',        value: siteName },
+            ...(incident.unit ? [{ label: 'Unit', value: incident.unit.unitCode }] : []),
+            { label: 'Reported',    value: new Date(incident.createdAt).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' }) },
+          ].map(({ label, value }) => (
+            <div key={label}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 4px' }}>
+                {label}
+              </p>
+              <p style={{ fontSize: '14px', color: '#0f172a', margin: 0, wordBreak: 'break-all' }}>
+                {value}
+              </p>
+            </div>
+          ))}
+
+          {incident.status !== 'resolved' && (
+            <div>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 10px' }}>
+                Actions
+              </p>
+              <IncidentActions type="update" incidentId={incident.id} currentStatus={incident.status} />
+            </div>
+          )}
+        </div>
+      </div>
+    </>,
+    document.body,
+  );
+}
+
+export default function IncidentsTable({ incidents, sites = [] }: { incidents: Incident[]; sites?: Site[] }) {
   const [query,        setQuery]        = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selected,     setSelected]     = useState<Incident | null>(null);
+
+  const siteMap = new Map(sites.map((s) => [s.id, s.name]));
 
   const filtered = useMemo(() =>
     incidents.filter((inc) => {
@@ -194,7 +324,7 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                {['Severity', 'Incident', 'Site', 'Status', 'Reported', ''].map((h, i) => (
+                {['Severity', 'Incident', 'Site', 'Unit', 'Status', 'Reported', ''].map((h, i) => (
                   <th
                     key={i}
                     style={{
@@ -222,10 +352,11 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
                   <tr
                     key={inc.id}
                     className="inc-row"
+                    onClick={() => setSelected(inc)}
                     style={{
                       animationDelay: `${i * 30}ms`,
                       borderBottom: i < filtered.length - 1 ? '1px solid #f8fafc' : 'none',
-                      cursor: 'default',
+                      cursor: 'pointer',
                     }}
                   >
                     {/* Severity */}
@@ -263,10 +394,26 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
                         fontSize: '13px', color: '#64748b',
                         background: '#f8fafc', border: '1px solid #e2e8f0',
                         borderRadius: '5px', padding: '2px 8px',
-                        fontVariantNumeric: 'tabular-nums',
                       }}>
-                        {inc.siteId.slice(0, 8)}…
+                        {siteMap.get(inc.siteId) ?? inc.siteId.slice(0, 8) + '…'}
                       </span>
+                    </td>
+
+                    {/* Unit */}
+                    <td style={{ padding: '12px 16px' }}>
+                      {inc.unit ? (
+                        <span style={{
+                          fontFamily: "'Plus Jakarta Sans', sans-serif",
+                          fontSize: '13px', color: '#64748b',
+                          background: '#f8fafc', border: '1px solid #e2e8f0',
+                          borderRadius: '5px', padding: '2px 8px',
+                          fontVariantNumeric: 'tabular-nums',
+                        }}>
+                          {inc.unit.unitCode}
+                        </span>
+                      ) : (
+                        <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#cbd5e1' }}>—</span>
+                      )}
                     </td>
 
                     {/* Status */}
@@ -298,7 +445,10 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
                     </td>
 
                     {/* Actions */}
-                    <td style={{ padding: '12px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    <td
+                      style={{ padding: '12px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       {inc.status !== 'resolved' && (
                         <IncidentActions type="update" incidentId={inc.id} currentStatus={inc.status} />
                       )}
@@ -310,6 +460,8 @@ export default function IncidentsTable({ incidents }: { incidents: Incident[] })
           </table>
         )}
       </div>
+
+      {selected && <IncidentDetailPanel incident={selected} siteName={siteMap.get(selected.siteId) ?? selected.siteId} onClose={() => setSelected(null)} />}
     </>
   );
 }

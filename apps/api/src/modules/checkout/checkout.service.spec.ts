@@ -9,7 +9,7 @@ const mockPrisma = {
   },
   reservationHold: { findFirst: vi.fn(), delete: vi.fn() },
   customer: { create: vi.fn() },
-  contact: { create: vi.fn() },
+  contact: { findFirst: vi.fn(), create: vi.fn() },
   reservation: { create: vi.fn() },
 };
 const mockNotifications = { sendNotification: vi.fn().mockResolvedValue(undefined) };
@@ -40,6 +40,7 @@ describe('CheckoutService', () => {
       lockToken: 'tok_01',
       expiresAt: new Date(Date.now() + 60_000),
     });
+    mockPrisma.contact.findFirst.mockResolvedValue(null);
     mockPrisma.customer.create.mockResolvedValue({ id: 'cust_01' });
     mockPrisma.contact.create.mockResolvedValue({ id: 'con_01' });
     mockPrisma.reservation.create.mockResolvedValue({
@@ -66,6 +67,19 @@ describe('CheckoutService', () => {
     expect(mockNotifications.sendNotification).toHaveBeenCalledWith(
       expect.objectContaining({ eventType: 'reservation.confirmed' }),
     );
+  });
+
+  it('reuses existing customer when email already has a primary contact', async () => {
+    mockPrisma.contact.findFirst.mockResolvedValue({ customerId: 'cust_existing' });
+    const result = await service.confirmCheckout('chk_01', {
+      name: 'Anna Müller',
+      email: 'anna@example.com',
+      phone: '+49170123456',
+      marketingConsent: false,
+    });
+    expect(result).toHaveProperty('reservationId', 'res_01');
+    expect(mockPrisma.customer.create).not.toHaveBeenCalled();
+    expect(mockPrisma.contact.create).not.toHaveBeenCalled();
   });
 
   it('throws when checkout session is expired', async () => {

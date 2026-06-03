@@ -33,15 +33,25 @@ export class CheckoutService {
       throw new DomainException(ErrorCodes.RESERVATION_EXPIRED, 'Unit hold has expired — please restart checkout');
     }
 
-    const customer = await this.prisma.customer.create({
-      data: {
-        personOrOrgData: { name: input.name, email: input.email, phone: input.phone },
-        marketingConsent: input.marketingConsent,
-      },
+    const existingContact = await this.prisma.contact.findFirst({
+      where: { email: input.email, role: 'primary' },
+      select: { customerId: true },
     });
-    await this.prisma.contact.create({
-      data: { customerId: customer.id, email: input.email, phone: input.phone || undefined },
-    });
+
+    let customer: { id: string };
+    if (existingContact) {
+      customer = { id: existingContact.customerId };
+    } else {
+      customer = await this.prisma.customer.create({
+        data: {
+          personOrOrgData: { name: input.name, email: input.email, phone: input.phone },
+          marketingConsent: input.marketingConsent,
+        },
+      });
+      await this.prisma.contact.create({
+        data: { customerId: customer.id, role: 'primary', email: input.email, phone: input.phone || undefined },
+      });
+    }
 
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const reservation = await this.prisma.reservation.create({
