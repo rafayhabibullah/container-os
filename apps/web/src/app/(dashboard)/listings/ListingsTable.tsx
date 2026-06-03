@@ -6,6 +6,7 @@ import { ListingActions } from './ListingActions';
 interface ListingRow {
   id: string;
   title: string;
+  description: string | null;
   status: 'draft' | 'published' | 'paused' | 'fully_booked' | 'archived';
   bookingMode: 'approval_required' | 'instant_booking' | 'request_price';
   publicPriceMinor: number | null;
@@ -253,7 +254,16 @@ export default function ListingsTable({ listings, orgId }: Props) {
 
                     {/* Actions */}
                     <td style={{ padding: '12px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                      <ListingActions listingId={listing.id} orgId={orgId} status={listing.status} />
+                      <ListingActions
+                        listingId={listing.id}
+                        orgId={orgId}
+                        status={listing.status}
+                        title={listing.title}
+                        description={listing.description}
+                        bookingMode={listing.bookingMode}
+                        publicPriceMinor={listing.publicPriceMinor}
+                        showPrice={listing.showPrice}
+                      />
                     </td>
                   </tr>
                 );

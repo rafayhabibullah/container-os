@@ -7,6 +7,7 @@ interface ListingRow {
   id: string;
   unitId: string;
   title: string;
+  description: string | null;
   status: 'draft' | 'published' | 'paused' | 'fully_booked' | 'archived';
   bookingMode: 'approval_required' | 'instant_booking' | 'request_price';
   publicPriceMinor: number | null;
