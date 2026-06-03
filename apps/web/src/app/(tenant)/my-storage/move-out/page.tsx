@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { clientFetch } from '@/lib/client-api';
 
 export default function MoveOutPage() {
-  const [agreementId, setAgreementId] = useState('');
+  const params = useSearchParams();
+  const [agreementId, setAgreementId] = useState(params.get('agreementId') ?? '');
   const [requestedDate, setRequestedDate] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');

@@ -18,10 +18,23 @@ export class TenantPortalService {
 
   async listMyAgreements(userId: string) {
     const customerIds = await this.resolveCustomerIds(userId);
-    return this.prisma.agreement.findMany({
+    const agreements = await this.prisma.agreement.findMany({
       where: { tenantId: { in: customerIds }, status: { in: ['active', 'signed', 'pending_signature'] } },
       orderBy: { createdAt: 'desc' },
     });
+
+    const unitIds = [...new Set(agreements.map((a) => a.unitId))];
+    const siteIds = [...new Set(agreements.map((a) => a.siteId))];
+
+    const [units, sites] = await Promise.all([
+      this.prisma.unit.findMany({ where: { id: { in: unitIds } }, include: { unitType: true } }),
+      this.prisma.site.findMany({ where: { id: { in: siteIds } }, select: { id: true, name: true, address: true } }),
+    ]);
+
+    const unitMap = Object.fromEntries(units.map((u) => [u.id, u]));
+    const siteMap = Object.fromEntries(sites.map((s) => [s.id, s]));
+
+    return agreements.map((a) => ({ ...a, unit: unitMap[a.unitId] ?? null, site: siteMap[a.siteId] ?? null }));
   }
 
   async getMyAgreement(userId: string, agreementId: string) {

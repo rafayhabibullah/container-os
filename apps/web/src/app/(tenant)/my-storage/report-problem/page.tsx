@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 interface Agreement {
@@ -18,8 +19,9 @@ const INCIDENT_TYPES = [
 ];
 
 export default function ReportProblemPage() {
+  const params = useSearchParams();
   const [agreements, setAgreements] = useState<Agreement[] | null>(null);
-  const [agreementId, setAgreementId] = useState('');
+  const [agreementId, setAgreementId] = useState(params.get('agreementId') ?? '');
   const [type, setType] = useState('');
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -32,7 +34,7 @@ export default function ReportProblemPage() {
       .then((data: Agreement[]) => {
         const active = data.filter((a) => ['active', 'signed'].includes(a.status));
         setAgreements(active);
-        if (active.length === 1) setAgreementId(active[0].id);
+        if (!params.get('agreementId') && active.length === 1) setAgreementId(active[0].id);
       })
       .catch(() => setAgreements([]));
   }, []);
