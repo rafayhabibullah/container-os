@@ -16,12 +16,12 @@ export async function POST(request: NextRequest) {
   const response = NextResponse.json({ ok: true });
   response.cookies.set('sl_tenant_access', data.accessToken, {
     httpOnly: true,
-    path: '/my-storage',
+    path: '/',
     sameSite: 'lax',
   });
   response.cookies.set('sl_tenant_refresh', data.refreshToken, {
     httpOnly: true,
-    path: '/my-storage',
+    path: '/',
     sameSite: 'lax',
   });
   return response;
