@@ -118,9 +118,9 @@ export class AuthService {
       memberships: Array<{ organisationId: string; role: string; userId: string }>;
     };
     const memberships = userWithMemberships.memberships;
-    if (!memberships?.length) throw new UnauthorizedException('NO_ORGANISATION');
+    if (!memberships?.length && session.user.type !== 'tenant') throw new UnauthorizedException('NO_ORGANISATION');
 
-    return this.issueTokens(session.user, memberships[0]);
+    return this.issueTokens(session.user, memberships?.[0] ?? null);
   }
 
   async invite(
