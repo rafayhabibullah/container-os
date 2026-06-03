@@ -20,6 +20,7 @@ interface Unit {
 interface Props {
   orgId: string;
   sites: Site[];
+  listedUnitIds: string[];
 }
 
 const BOOKING_MODES = [
@@ -51,7 +52,7 @@ const labelStyle: React.CSSProperties = {
   letterSpacing: '0.03em',
 };
 
-export default function NewListingButton({ orgId, sites }: Props) {
+export default function NewListingButton({ orgId, sites, listedUnitIds }: Props) {
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
   const [mounted,  setMounted]  = useState(false);
@@ -75,7 +76,7 @@ export default function NewListingButton({ orgId, sites }: Props) {
     setUnitsLoading(true);
     fetch(`/api/sites/${siteId}/units`)
       .then((r) => r.json())
-      .then((data: Unit[]) => setUnits(data.filter((u) => u.status === 'available')))
+      .then((data: Unit[]) => setUnits(data.filter((u) => u.status === 'available' && !listedUnitIds.includes(u.id))))
       .catch(() => setUnits([]))
       .finally(() => setUnitsLoading(false));
   }, [siteId]);

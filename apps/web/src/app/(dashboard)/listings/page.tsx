@@ -5,6 +5,7 @@ import NewListingButton from './NewListingButton';
 
 interface ListingRow {
   id: string;
+  unitId: string;
   title: string;
   status: 'draft' | 'published' | 'paused' | 'fully_booked' | 'archived';
   bookingMode: 'approval_required' | 'instant_booking' | 'request_price';
@@ -83,7 +84,11 @@ export default async function ListingsPage() {
               </div>
             </div>
 
-            <NewListingButton orgId={user.organisationId} sites={sites} />
+            <NewListingButton
+              orgId={user.organisationId}
+              sites={sites}
+              listedUnitIds={listings.filter((l) => l.status !== 'archived').map((l) => l.unitId)}
+            />
           </div>
 
           <ListingsTable listings={listings} orgId={user.organisationId} />
