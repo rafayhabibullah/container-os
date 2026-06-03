@@ -93,17 +93,19 @@ export class OperatorReservationsService {
     const siteIds = await this.getSiteIds(organisationId);
     const reservation = await this.prisma.reservation.findFirstOrThrow({ where: { id: reservationId, siteId: { in: siteIds } } });
     const terminationRules = input.terminationRules ?? (input.billingCycle === 'monthly' ? { noticeDays: 30 } : { noticeDays: 30, minimumMonths: 3 });
-    const agreement = await this.prisma.agreement.create({
-      data: {
-        reservationId,
-        tenantId: reservation.customerId,
-        unitId: reservation.unitId,
-        siteId: reservation.siteId,
-        billingCycle: input.billingCycle,
-        language: input.language,
-        pricingSnapshot: input.pricingSnapshot,
-        terminationRules,
-      },
+    const agreementData = {
+      tenantId: reservation.customerId,
+      unitId: reservation.unitId,
+      siteId: reservation.siteId,
+      billingCycle: input.billingCycle,
+      language: input.language,
+      pricingSnapshot: input.pricingSnapshot,
+      terminationRules,
+    };
+    const agreement = await this.prisma.agreement.upsert({
+      where: { reservationId },
+      create: { reservationId, ...agreementData },
+      update: agreementData,
     });
     await this.prisma.reservation.update({ where: { id: reservationId }, data: { status: 'converted' } });
     await this.audit.record({ action: 'agreement.drafted', subjectType: 'Agreement', subjectId: agreement.id, actorId, siteId: reservation.siteId });
