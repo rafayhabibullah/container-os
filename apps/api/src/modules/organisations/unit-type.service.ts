@@ -37,7 +37,14 @@ export class UnitTypeService {
   async updateUnitType(_orgId: string, siteId: string, unitTypeId: string, dto: UpdateUnitTypeDto, memberRole: string) {
     if (memberRole !== 'owner') throw new ForbiddenException('OWNER_REQUIRED');
     await this.findUnitType(siteId, unitTypeId);
-    return this.prisma.unitType.update({ where: { id: unitTypeId }, data: dto });
+    const { features, ...rest } = dto;
+    return this.prisma.unitType.update({
+      where: { id: unitTypeId },
+      data: {
+        ...rest,
+        ...(features !== undefined && { features: { set: features } }),
+      },
+    });
   }
 
   async deleteUnitType(_orgId: string, siteId: string, unitTypeId: string, memberRole: string) {
