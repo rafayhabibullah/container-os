@@ -14,6 +14,9 @@ interface Agreement {
   createdAt: string;
   customerName: string | null;
   customerEmail: string | null;
+  siteName: string | null;
+  unitCode: string | null;
+  unitTypeName: string | null;
 }
 
 interface DocumentRow {

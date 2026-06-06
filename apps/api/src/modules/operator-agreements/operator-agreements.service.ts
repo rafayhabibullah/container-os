@@ -26,20 +26,41 @@ export class OperatorAgreementsService {
     });
 
     const customerIds = [...new Set(agreements.map((a) => a.tenantId))];
-    const customers = await this.prisma.customer.findMany({
-      where: { id: { in: customerIds } },
-      select: { id: true, personOrOrgData: true, contacts: { select: { email: true }, where: { role: 'primary' }, take: 1 } },
-    });
+    const unitIds     = [...new Set(agreements.map((a) => a.unitId))];
+    const siteIds2    = [...new Set(agreements.map((a) => a.siteId))];
+
+    const [customers, units, sites] = await Promise.all([
+      this.prisma.customer.findMany({
+        where: { id: { in: customerIds } },
+        select: { id: true, personOrOrgData: true, contacts: { select: { email: true }, where: { role: 'primary' }, take: 1 } },
+      }),
+      this.prisma.unit.findMany({
+        where: { id: { in: unitIds } },
+        select: { id: true, unitCode: true, unitTypeId: true },
+      }),
+      this.prisma.site.findMany({ where: { id: { in: siteIds2 } }, select: { id: true, name: true } }),
+    ]);
+
+    const unitTypeIds = [...new Set(units.map((u) => u.unitTypeId))];
+    const unitTypes = await this.prisma.unitType.findMany({ where: { id: { in: unitTypeIds } }, select: { id: true, name: true } });
+
     const customerMap = new Map(customers.map((c) => [c.id, c]));
+    const unitMap     = new Map(units.map((u) => [u.id, u]));
+    const unitTypeMap = new Map(unitTypes.map((ut) => [ut.id, ut]));
+    const siteMap     = new Map(sites.map((s) => [s.id, s]));
 
     return agreements.map((a) => {
       const customer = customerMap.get(a.tenantId);
       const data = customer?.personOrOrgData as Record<string, string> | null;
       const customerName = data?.name ?? (data?.firstName || data?.lastName ? [data.firstName, data.lastName].filter(Boolean).join(' ') : null) ?? data?.companyName ?? null;
+      const unit = unitMap.get(a.unitId);
       return {
         ...a,
         customerName,
-        customerEmail: customer?.contacts[0]?.email ?? null,
+        customerEmail:  customer?.contacts[0]?.email ?? null,
+        siteName:       siteMap.get(a.siteId)?.name ?? null,
+        unitCode:       unit?.unitCode ?? null,
+        unitTypeName:   unit ? (unitTypeMap.get(unit.unitTypeId)?.name ?? null) : null,
       };
     });
   }

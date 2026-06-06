@@ -16,6 +16,9 @@ interface Agreement {
   createdAt: string;
   customerName: string | null;
   customerEmail: string | null;
+  siteName: string | null;
+  unitCode: string | null;
+  unitTypeName: string | null;
 }
 
 interface DocumentRow {
@@ -225,7 +228,7 @@ export default function AgreementsTable({ agreements, documents }: Props) {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  {['ID', 'Customer', 'Billing', 'Effective from', 'Status', ''].map((h, i) => (
+                  {['ID', 'Customer', 'Site', 'Unit', 'Billing', 'Effective from', 'Status', ''].map((h, i) => (
                     <th key={i} style={thStyle}>{h}</th>
                   ))}
                 </tr>
@@ -249,6 +252,15 @@ export default function AgreementsTable({ agreements, documents }: Props) {
                         {a.customerName ?? a.tenantId.slice(0, 10) + '…'}
                         {a.customerEmail && (
                           <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '1px' }}>{a.customerEmail}</div>
+                        )}
+                      </td>
+                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', fontFamily: "'Plus Jakarta Sans', sans-serif", whiteSpace: 'nowrap' }}>
+                        {a.siteName ?? '—'}
+                      </td>
+                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', fontFamily: "'Plus Jakarta Sans', sans-serif", whiteSpace: 'nowrap' }}>
+                        {a.unitCode ?? '—'}
+                        {a.unitTypeName && (
+                          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '1px' }}>{a.unitTypeName}</div>
                         )}
                       </td>
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', textTransform: 'capitalize', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{a.billingCycle.replace('_', ' ')}</td>

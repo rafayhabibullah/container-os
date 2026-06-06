@@ -10,6 +10,9 @@ interface Reservation {
   customerId: string;
   customerName: string | null;
   customerEmail: string | null;
+  siteName: string | null;
+  unitTypeName: string | null;
+  unitCode: string | null;
   status: 'pending' | 'pending_signature' | 'confirmed' | 'expired' | 'cancelled' | 'converted';
   source: string;
   startDate: string;

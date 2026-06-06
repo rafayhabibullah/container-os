@@ -12,6 +12,9 @@ interface Reservation {
   customerId: string;
   customerName: string | null;
   customerEmail: string | null;
+  siteName: string | null;
+  unitTypeName: string | null;
+  unitCode: string | null;
   status: 'pending' | 'pending_signature' | 'confirmed' | 'expired' | 'cancelled' | 'converted';
   source: string;
   startDate: string;
@@ -164,7 +167,7 @@ export default function ReservationsTable({ reservations }: Props) {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                {['ID', 'Customer', 'Move-in', 'Expires', 'Status', ''].map((h, i) => (
+                {['ID', 'Customer', 'Site', 'Unit', 'Move-in', 'Expires', 'Status', ''].map((h, i) => (
                   <th key={i} style={{
                     textAlign: 'left', padding: '10px 16px',
                     fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -197,6 +200,15 @@ export default function ReservationsTable({ reservations }: Props) {
                       {r.customerName ?? r.customerId.slice(0, 10) + '…'}
                       {r.customerEmail && (
                         <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '1px' }}>{r.customerEmail}</div>
+                      )}
+                    </td>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', fontFamily: "'Plus Jakarta Sans', sans-serif", whiteSpace: 'nowrap' }}>
+                      {r.siteName ?? '—'}
+                    </td>
+                    <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', fontFamily: "'Plus Jakarta Sans', sans-serif", whiteSpace: 'nowrap' }}>
+                      {r.unitCode ?? '—'}
+                      {r.unitTypeName && (
+                        <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '1px' }}>{r.unitTypeName}</div>
                       )}
                     </td>
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>

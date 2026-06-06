@@ -26,11 +26,24 @@ export class OperatorReservationsService {
     });
 
     const customerIds = [...new Set(reservations.map((r) => r.customerId))];
-    const customers = await this.prisma.customer.findMany({
-      where: { id: { in: customerIds } },
-      select: { id: true, personOrOrgData: true, contacts: { select: { email: true }, where: { role: 'primary' }, take: 1 } },
-    });
+    const unitIds     = [...new Set(reservations.map((r) => r.unitId))];
+    const unitTypeIds = [...new Set(reservations.map((r) => r.unitTypeId))];
+    const siteIds2    = [...new Set(reservations.map((r) => r.siteId))];
+
+    const [customers, units, unitTypes, sites] = await Promise.all([
+      this.prisma.customer.findMany({
+        where: { id: { in: customerIds } },
+        select: { id: true, personOrOrgData: true, contacts: { select: { email: true }, where: { role: 'primary' }, take: 1 } },
+      }),
+      this.prisma.unit.findMany({ where: { id: { in: unitIds } }, select: { id: true, unitCode: true } }),
+      this.prisma.unitType.findMany({ where: { id: { in: unitTypeIds } }, select: { id: true, name: true } }),
+      this.prisma.site.findMany({ where: { id: { in: siteIds2 } }, select: { id: true, name: true } }),
+    ]);
+
     const customerMap = new Map(customers.map((c) => [c.id, c]));
+    const unitMap     = new Map(units.map((u) => [u.id, u]));
+    const unitTypeMap = new Map(unitTypes.map((ut) => [ut.id, ut]));
+    const siteMap     = new Map(sites.map((s) => [s.id, s]));
 
     return reservations.map((r) => {
       const customer = customerMap.get(r.customerId);
@@ -39,7 +52,10 @@ export class OperatorReservationsService {
       return {
         ...r,
         customerName,
-        customerEmail: customer?.contacts[0]?.email ?? null,
+        customerEmail:  customer?.contacts[0]?.email ?? null,
+        siteName:       siteMap.get(r.siteId)?.name ?? null,
+        unitTypeName:   unitTypeMap.get(r.unitTypeId)?.name ?? null,
+        unitCode:       unitMap.get(r.unitId)?.unitCode ?? null,
       };
     });
   }
