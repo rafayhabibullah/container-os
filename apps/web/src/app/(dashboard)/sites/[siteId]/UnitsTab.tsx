@@ -2,7 +2,6 @@
 
 import React, { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import type { UnitType } from './UnitTypesTab';
 
 interface Unit {
@@ -69,6 +68,56 @@ export default function UnitsTab({ siteId, unitTypes, units, otherSites, canEdit
   const [copyOpen, setCopyOpen]       = useState(false);
   const [copyLoading, setCopyLoading] = useState(false);
   const [copyError, setCopyError]     = useState('');
+
+  // Edit modal state
+  const [editUnit, setEditUnit]       = useState<Unit | null>(null);
+  const [editCode, setEditCode]       = useState('');
+  const [editStatus, setEditStatus]   = useState('');
+  const [editDriveUp, setEditDriveUp] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError]     = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  function openEdit(unit: Unit) {
+    setEditUnit(unit);
+    setEditCode(unit.unitCode);
+    setEditStatus(unit.status);
+    setEditDriveUp(unit.driveUp);
+    setEditError('');
+  }
+
+  async function handleEditSave(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!editUnit) return;
+    setEditLoading(true); setEditError('');
+    try {
+      const res = await fetch(`/api/sites/${siteId}/units/${editUnit.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ unitCode: editCode, driveUp: editDriveUp, status: editStatus }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message ?? 'Failed to update unit');
+      setEditUnit(null);
+      router.refresh();
+    } catch (err: unknown) {
+      setEditError(err instanceof Error ? err.message : 'Failed');
+    } finally { setEditLoading(false); }
+  }
+
+  async function handleDeleteUnit() {
+    if (!editUnit || !confirm(`Delete unit ${editUnit.unitCode}?`)) return;
+    setDeleteLoading(true);
+    try {
+      const res = await fetch(`/api/sites/${siteId}/units/${editUnit.id}`, { method: 'DELETE' });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.message ?? 'Failed'); }
+      setEditUnit(null);
+      router.refresh();
+    } catch (err: unknown) {
+      setEditError(err instanceof Error ? err.message : 'Failed');
+      setDeleteLoading(false);
+    }
+  }
 
   // Bulk generator state
   const [bulkTypeId, setBulkTypeId]   = useState(unitTypes[0]?.id ?? '');
@@ -311,7 +360,7 @@ export default function UnitsTab({ siteId, unitTypes, units, otherSites, canEdit
                   {typeUnits.map((unit, i) => {
                     const stat = UNIT_STATUS[unit.status] ?? { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0', label: unit.status };
                     return (
-                      <tr key={unit.id} style={{ borderBottom: i < typeUnits.length - 1 ? '1px solid #f8fafc' : '1px solid #f1f5f9' }}>
+                      <tr key={unit.id} onClick={() => openEdit(unit)} style={{ borderBottom: i < typeUnits.length - 1 ? '1px solid #f8fafc' : '1px solid #f1f5f9', cursor: 'pointer' }}>
                         <td style={{ padding: '11px 16px', fontFamily: 'monospace', fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{unit.unitCode}</td>
                         <td style={{ padding: '11px 16px', fontSize: '13px', color: '#64748b', fontFamily: "'Plus Jakarta Sans', sans-serif", textTransform: 'capitalize' }}>{unit.kind.replace('_', ' ')}</td>
                         <td style={{ padding: '11px 16px', fontSize: '13px', color: unit.driveUp ? '#15803d' : '#94a3b8', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{unit.driveUp ? 'Yes' : 'No'}</td>
@@ -322,7 +371,7 @@ export default function UnitsTab({ siteId, unitTypes, units, otherSites, canEdit
                           </span>
                         </td>
                         <td style={{ padding: '11px 16px', textAlign: 'right' }}>
-                          <Link href={`/sites/${siteId}/units/${unit.id}`} style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Edit →</Link>
+                          <button onClick={e => { e.stopPropagation(); openEdit(unit); }} style={{ ...btnGhost, padding: '4px 8px' }}>Edit →</button>
                         </td>
                       </tr>
                     );
@@ -332,7 +381,7 @@ export default function UnitsTab({ siteId, unitTypes, units, otherSites, canEdit
               {untyped.map((unit, i) => {
                 const stat = UNIT_STATUS[unit.status] ?? { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0', label: unit.status };
                 return (
-                  <tr key={unit.id} style={{ borderBottom: i < untyped.length - 1 ? '1px solid #f8fafc' : 'none' }}>
+                  <tr key={unit.id} onClick={() => openEdit(unit)} style={{ borderBottom: i < untyped.length - 1 ? '1px solid #f8fafc' : 'none', cursor: 'pointer' }}>
                     <td style={{ padding: '11px 16px', fontFamily: 'monospace', fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{unit.unitCode}</td>
                     <td style={{ padding: '11px 16px', fontSize: '13px', color: '#64748b', fontFamily: "'Plus Jakarta Sans', sans-serif", textTransform: 'capitalize' }}>{unit.kind.replace('_', ' ')}</td>
                     <td style={{ padding: '11px 16px', fontSize: '13px', color: unit.driveUp ? '#15803d' : '#94a3b8', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{unit.driveUp ? 'Yes' : 'No'}</td>
@@ -343,13 +392,57 @@ export default function UnitsTab({ siteId, unitTypes, units, otherSites, canEdit
                       </span>
                     </td>
                     <td style={{ padding: '11px 16px', textAlign: 'right' }}>
-                      <Link href={`/sites/${siteId}/units/${unit.id}`} style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Edit →</Link>
+                      <button onClick={e => { e.stopPropagation(); openEdit(unit); }} style={{ ...btnGhost, padding: '4px 8px' }}>Edit →</button>
                     </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+        </div>
+      )}
+      {/* Edit modal */}
+      {editUnit && (
+        <div
+          onClick={e => { if (e.target === e.currentTarget) setEditUnit(null); }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 8px 32px rgba(15,23,42,0.15)', padding: '24px', width: '360px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Edit unit</h3>
+            <form onSubmit={handleEditSave} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={lbl}>UNIT CODE</label>
+                <input value={editCode} onChange={e => setEditCode(e.target.value)} required style={{ ...inp, width: '100%' }} />
+              </div>
+              <div>
+                <label style={lbl}>STATUS</label>
+                <select value={editStatus} onChange={e => setEditStatus(e.target.value)} style={{ ...inp, width: '100%' }}>
+                  {['available', 'maintenance', 'out_of_service'].map(s => (
+                    <option key={s} value={s}>{s.replace('_', ' ')}</option>
+                  ))}
+                </select>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input type="checkbox" id="editDriveUp" checked={editDriveUp} onChange={e => setEditDriveUp(e.target.checked)} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
+                <label htmlFor="editDriveUp" style={{ fontSize: '14px', color: '#475569', fontFamily: "'Plus Jakarta Sans', sans-serif", cursor: 'pointer' }}>Drive-up access</label>
+              </div>
+              {editError && (
+                <p style={{ fontSize: '12px', color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', padding: '8px 12px', margin: 0, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{editError}</p>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px', borderTop: '1px solid #f1f5f9' }}>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button type="submit" disabled={editLoading} style={{ ...btnPrimary, opacity: editLoading ? 0.6 : 1 }}>
+                    {editLoading ? 'Saving…' : 'Save changes'}
+                  </button>
+                  <button type="button" onClick={() => setEditUnit(null)} style={btnGhost}>Cancel</button>
+                </div>
+                <button type="button" onClick={handleDeleteUnit} disabled={deleteLoading}
+                  style={{ background: 'none', border: 'none', fontSize: '13px', fontWeight: 600, color: '#dc2626', cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.5 : 1, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  {deleteLoading ? 'Deleting…' : 'Delete unit'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

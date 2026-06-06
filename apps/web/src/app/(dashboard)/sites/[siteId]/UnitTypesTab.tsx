@@ -64,14 +64,20 @@ function UnitTypeForm({
   initial,
   onSave,
   onCancel,
+  onDelete,
   loading,
+  deleteLoading,
   error,
+  modal,
 }: {
   initial?: UnitType;
   onSave: (data: Omit<UnitType, 'id'>) => void;
   onCancel: () => void;
+  onDelete?: () => void;
   loading: boolean;
+  deleteLoading?: boolean;
   error: string;
+  modal?: boolean;
 }) {
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>(initial?.features ?? []);
 
@@ -93,8 +99,12 @@ function UnitTypeForm({
     });
   }
 
+  const containerStyle: React.CSSProperties = modal
+    ? { display: 'flex', flexDirection: 'column', gap: '14px' }
+    : { display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' };
+
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+    <form onSubmit={handleSubmit} style={containerStyle}>
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '10px', alignItems: 'end' }}>
         <div>
           <label style={lbl}>NAME</label>
@@ -133,11 +143,22 @@ function UnitTypeForm({
         </div>
       </div>
       {error && <p style={{ fontSize: '12px', color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', padding: '8px 12px', margin: 0, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{error}</p>}
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <button type="submit" disabled={loading} style={{ ...btnPrimary, opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>
-          {loading ? 'Saving…' : initial ? 'Save changes' : 'Add type'}
-        </button>
-        <button type="button" onClick={onCancel} style={btnGhost}>Cancel</button>
+      <div style={modal
+        ? { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px', borderTop: '1px solid #f1f5f9' }
+        : { display: 'flex', gap: '8px' }
+      }>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button type="submit" disabled={loading} style={{ ...btnPrimary, opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}>
+            {loading ? 'Saving…' : initial ? 'Save changes' : 'Add type'}
+          </button>
+          <button type="button" onClick={onCancel} style={btnGhost}>Cancel</button>
+        </div>
+        {modal && onDelete && (
+          <button type="button" onClick={onDelete} disabled={deleteLoading}
+            style={{ background: 'none', border: 'none', fontSize: '13px', fontWeight: 600, color: '#dc2626', cursor: deleteLoading ? 'not-allowed' : 'pointer', opacity: deleteLoading ? 0.5 : 1, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            {deleteLoading ? 'Deleting…' : 'Delete type'}
+          </button>
+        )}
       </div>
     </form>
   );
@@ -145,16 +166,19 @@ function UnitTypeForm({
 
 export default function UnitTypesTab({ siteId, unitTypes, units, otherSites, canEdit }: Props) {
   const router = useRouter();
-  const [showAdd, setShowAdd]         = useState(false);
-  const [editingId, setEditingId]     = useState<string | null>(null);
-  const [loading, setLoading]         = useState(false);
-  const [error, setError]             = useState('');
-  const [copyOpen, setCopyOpen]       = useState(false);
-  const [copyLoading, setCopyLoading] = useState(false);
-  const [copyError, setCopyError]     = useState('');
+  const [showAdd, setShowAdd]           = useState(false);
+  const [addLoading, setAddLoading]     = useState(false);
+  const [addError, setAddError]         = useState('');
+  const [editingType, setEditingType]   = useState<UnitType | null>(null);
+  const [editLoading, setEditLoading]   = useState(false);
+  const [editError, setEditError]       = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [copyOpen, setCopyOpen]         = useState(false);
+  const [copyLoading, setCopyLoading]   = useState(false);
+  const [copyError, setCopyError]       = useState('');
 
   async function handleCreate(data: Omit<UnitType, 'id'>) {
-    setLoading(true); setError('');
+    setAddLoading(true); setAddError('');
     try {
       const res = await fetch(`/api/sites/${siteId}/unit-types`, {
         method: 'POST',
@@ -166,37 +190,40 @@ export default function UnitTypesTab({ siteId, unitTypes, units, otherSites, can
       setShowAdd(false);
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed');
-    } finally { setLoading(false); }
+      setAddError(err instanceof Error ? err.message : 'Failed');
+    } finally { setAddLoading(false); }
   }
 
-  async function handleEdit(id: string, data: Omit<UnitType, 'id'>) {
-    setLoading(true); setError('');
+  async function handleEdit(data: Omit<UnitType, 'id'>) {
+    if (!editingType) return;
+    setEditLoading(true); setEditError('');
     try {
-      const res = await fetch(`/api/sites/${siteId}/unit-types/${id}`, {
+      const res = await fetch(`/api/sites/${siteId}/unit-types/${editingType.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.message ?? 'Failed');
-      setEditingId(null);
+      setEditingType(null);
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed');
-    } finally { setLoading(false); }
+      setEditError(err instanceof Error ? err.message : 'Failed');
+    } finally { setEditLoading(false); }
   }
 
-  async function handleDelete(id: string, name: string) {
-    if (!confirm(`Delete unit type "${name}"? This cannot be undone.`)) return;
-    setLoading(true); setError('');
+  async function handleDelete() {
+    if (!editingType || !confirm(`Delete unit type "${editingType.name}"? This cannot be undone.`)) return;
+    setDeleteLoading(true);
     try {
-      const res = await fetch(`/api/sites/${siteId}/unit-types/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/sites/${siteId}/unit-types/${editingType.id}`, { method: 'DELETE' });
       if (!res.ok) { const j = await res.json(); throw new Error(j.message ?? 'Failed'); }
+      setEditingType(null);
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed');
-    } finally { setLoading(false); }
+      setEditError(err instanceof Error ? err.message : 'Failed');
+      setDeleteLoading(false);
+    }
   }
 
   async function handleCopyFrom(sourceSiteId: string) {
@@ -249,7 +276,7 @@ export default function UnitTypesTab({ siteId, unitTypes, units, otherSites, can
                 )}
               </div>
             )}
-            <button onClick={() => { setShowAdd(true); setError(''); }} style={btnPrimary}>
+            <button onClick={() => { setShowAdd(true); setAddError(''); }} style={btnPrimary}>
               + Add type
             </button>
           </div>
@@ -261,8 +288,8 @@ export default function UnitTypesTab({ siteId, unitTypes, units, otherSites, can
         <UnitTypeForm
           onSave={handleCreate}
           onCancel={() => setShowAdd(false)}
-          loading={loading}
-          error={error}
+          loading={addLoading}
+          error={addError}
         />
       )}
 
@@ -284,47 +311,44 @@ export default function UnitTypesTab({ siteId, unitTypes, units, otherSites, can
             </thead>
             <tbody>
               {unitTypes.map((ut, i) => (
-                <React.Fragment key={ut.id}>
-                  {editingId === ut.id ? (
-                    <tr>
-                      <td colSpan={6} style={{ padding: '12px 16px', borderBottom: i < unitTypes.length - 1 ? '1px solid #f8fafc' : 'none' }}>
-                        <UnitTypeForm
-                          initial={ut}
-                          onSave={(data) => handleEdit(ut.id, data)}
-                          onCancel={() => setEditingId(null)}
-                          loading={loading}
-                          error={error}
-                        />
-                      </td>
-                    </tr>
-                  ) : (
-                    <tr style={{ borderBottom: i < unitTypes.length - 1 ? '1px solid #f8fafc' : 'none', background: '#ffffff' }}>
-                      <td style={{ padding: '12px 16px', fontSize: '14px', fontWeight: 600, color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{ut.name}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#64748b', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{ut.sizeSqm}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#94a3b8', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{ut.sizeCbm ?? '—'}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '13px', color: '#64748b', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{ut.doorType ?? '—'}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '12px', color: '#94a3b8', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{ut.features.join(', ') || '—'}</td>
-                      {canEdit && (
-                        <td style={{ padding: '12px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                          <button onClick={() => { setEditingId(ut.id); setError(''); }} style={{ ...btnGhost, padding: '4px 8px', fontSize: '12px' }}>Edit</button>
-                          {(() => { const inUse = units.some(u => u.unitType?.id === ut.id); return (
-                            <button
-                              onClick={() => handleDelete(ut.id, ut.name)}
-                              disabled={inUse || loading}
-                              title={inUse ? 'Units reference this type' : undefined}
-                              style={{ ...btnGhost, padding: '4px 8px', fontSize: '12px', color: inUse ? '#94a3b8' : '#dc2626', cursor: (inUse || loading) ? 'not-allowed' : 'pointer', opacity: (inUse || loading) ? 0.5 : 1 }}
-                            >Delete</button>
-                          ); })()}
-                        </td>
-                      )}
-                    </tr>
-                  )}
-                </React.Fragment>
+                <tr key={ut.id} onClick={() => { setEditingType(ut); setEditError(''); }} style={{ borderBottom: i < unitTypes.length - 1 ? '1px solid #f8fafc' : 'none', background: '#ffffff', cursor: 'pointer' }}>
+                  <td style={{ padding: '12px 16px', fontSize: '14px', fontWeight: 600, color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{ut.name}</td>
+                  <td style={{ padding: '12px 16px', fontSize: '13px', color: '#64748b', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{ut.sizeSqm}</td>
+                  <td style={{ padding: '12px 16px', fontSize: '13px', color: '#94a3b8', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{ut.sizeCbm ?? '—'}</td>
+                  <td style={{ padding: '12px 16px', fontSize: '13px', color: '#64748b', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{ut.doorType ?? '—'}</td>
+                  <td style={{ padding: '12px 16px', fontSize: '12px', color: '#94a3b8', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{ut.features.join(', ') || '—'}</td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                    <button onClick={e => { e.stopPropagation(); setEditingType(ut); setEditError(''); }} style={{ ...btnGhost, padding: '4px 8px', fontSize: '12px' }}>Edit →</button>
+                  </td>
+                </tr>
               ))}
             </tbody>
           </table>
         )}
       </div>
+      {/* Edit modal */}
+      {editingType && (
+        <div
+          onClick={e => { if (e.target === e.currentTarget) setEditingType(null); }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.4)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 8px 32px rgba(15,23,42,0.15)', padding: '24px', width: '560px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Edit unit type</h3>
+            {(() => { const inUse = units.some(u => u.unitType?.id === editingType.id); return (
+              <UnitTypeForm
+                initial={editingType}
+                onSave={handleEdit}
+                onCancel={() => setEditingType(null)}
+                onDelete={inUse ? undefined : handleDelete}
+                loading={editLoading}
+                deleteLoading={deleteLoading}
+                error={editError}
+                modal
+              />
+            ); })()}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
