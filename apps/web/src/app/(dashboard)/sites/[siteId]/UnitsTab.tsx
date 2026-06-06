@@ -112,18 +112,21 @@ export default function UnitsTab({ siteId, unitTypes, units, otherSites, canEdit
     const codes = Array.from({ length: bulkCount }, (_, i) => `${bulkPrefix}${bulkStart + i}`);
     let done = 0;
     try {
-      await Promise.all(
-        codes.map(async (unitCode) => {
-          const res = await fetch(`/api/sites/${siteId}/units`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ unitCode, unitTypeId: bulkTypeId, kind: bulkKind, driveUp: bulkDriveUp }),
-          });
-          if (!res.ok) { const j = await res.json(); throw new Error(j.message ?? `Failed for ${unitCode}`); }
-          done++;
-          setBulkProgress(`Creating ${done} / ${codes.length}…`);
-        }),
-      );
+      for (const unitCode of codes) {
+        const res = await fetch(`/api/sites/${siteId}/units`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ unitCode, unitTypeId: bulkTypeId, kind: bulkKind, driveUp: bulkDriveUp }),
+        });
+        if (!res.ok) {
+          const j = await res.json();
+          const code = j?.error?.message ?? j?.message;
+          const msg = code === 'UNIT_CODE_ALREADY_EXISTS' ? `Unit ${unitCode} already exists` : (code ?? `Failed for ${unitCode}`);
+          throw new Error(msg);
+        }
+        done++;
+        setBulkProgress(`Creating ${done} / ${codes.length}…`);
+      }
       setShowBulk(false); setBulkProgress('');
       router.refresh();
     } catch (err: unknown) {
