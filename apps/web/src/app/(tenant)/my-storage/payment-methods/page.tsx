@@ -1,5 +1,6 @@
 import { requireTenantAuth } from '@/lib/auth';
 import { serverTenantFetch } from '@/lib/server-api';
+import { getT } from '@/lib/get-locale';
 
 interface Mandate {
   id: string;
@@ -18,7 +19,15 @@ const MANDATE_STATUS_PILL: Record<string, React.CSSProperties> = {
 
 export default async function PaymentMethodsPage() {
   await requireTenantAuth();
+  const t = getT();
   const mandates = await serverTenantFetch<Mandate[]>(`/v1/tenant/mandates`).catch(() => [] as Mandate[]);
+
+  const statusLabels: Record<string, string> = {
+    pending: t('myStorage.paymentMethods.statusPending'),
+    active: t('myStorage.paymentMethods.statusActive'),
+    cancelled: t('myStorage.paymentMethods.statusCancelled'),
+    revoked: t('myStorage.paymentMethods.statusRevoked'),
+  };
 
   return (
     <>
@@ -26,13 +35,13 @@ export default async function PaymentMethodsPage() {
       <style>{`@media (max-width: 640px) { .ms-wrap { padding: 20px 16px !important; } }`}</style>
       <div className="ms-wrap" style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>Payment Methods</h1>
-          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 28px' }}>Your registered SEPA direct debit mandates</p>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>{t('myStorage.paymentMethods.title')}</h1>
+          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 28px' }}>{t('myStorage.paymentMethods.subtitle')}</p>
 
           {mandates.length === 0 ? (
             <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '40px', textAlign: 'center' }}>
-              <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 8px' }}>No payment methods registered.</p>
-              <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Your operator will set up a payment mandate when you sign your contract.</p>
+              <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 8px' }}>{t('myStorage.paymentMethods.empty')}</p>
+              <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>{t('myStorage.paymentMethods.emptyHint')}</p>
             </div>
           ) : (
             <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
@@ -46,11 +55,11 @@ export default async function PaymentMethodsPage() {
                       )}
                     </p>
                     {mandate.signedAt && (
-                      <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Signed {new Date(mandate.signedAt).toLocaleDateString('de-DE')}</p>
+                      <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>{t('myStorage.paymentMethods.signed', { date: new Date(mandate.signedAt).toLocaleDateString('de-DE') })}</p>
                     )}
                   </div>
                   <span style={MANDATE_STATUS_PILL[mandate.status] ?? MANDATE_STATUS_PILL.pending}>
-                    {mandate.status}
+                    {statusLabels[mandate.status] ?? mandate.status}
                   </span>
                 </div>
               ))}

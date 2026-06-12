@@ -1,5 +1,6 @@
 import { requireTenantAuth } from '@/lib/auth';
 import { serverTenantFetch } from '@/lib/server-api';
+import { getT } from '@/lib/get-locale';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import PrintButton from './PrintButton';
@@ -27,11 +28,11 @@ interface Agreement {
   site: Site | null;
 }
 
-const STATUS: Record<string, { dot: string; text: string; bg: string; border: string; label: string }> = {
-  pending_signature: { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a', label: 'Pending signature' },
-  signed:            { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd', label: 'Signed'           },
-  active:            { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', label: 'Active'           },
-  terminated:        { dot: '#f87171', text: '#dc2626', bg: '#fef2f2', border: '#fecaca', label: 'Terminated'       },
+const STATUS_STYLE: Record<string, { dot: string; text: string; bg: string; border: string }> = {
+  pending_signature: { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a' },
+  signed:            { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd' },
+  active:            { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+  terminated:        { dot: '#f87171', text: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
 };
 
 const SIGNATORY_STATUS: Record<string, { bg: string; border: string; color: string; dot: string }> = {
@@ -87,11 +88,20 @@ function Chip({ label }: { label: string }) {
 
 export default async function TenantAgreementPage({ params }: { params: { id: string } }) {
   await requireTenantAuth();
+  const t = getT();
   const agreement = await serverTenantFetch<Agreement>(`/v1/tenant/agreements/${params.id}`).catch(() => null);
   if (!agreement) return notFound();
 
+  const STATUS_LABELS: Record<string, string> = {
+    pending_signature: t('myStorage.agreement.statusPendingSignature'),
+    signed: t('myStorage.agreement.statusSigned'),
+    active: t('myStorage.agreement.statusActive'),
+    terminated: t('myStorage.agreement.statusTerminated'),
+  };
+
   const needsMySignature = agreement.status === 'pending_signature';
-  const stat = STATUS[agreement.status] ?? { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0', label: agreement.status.replace(/_/g, ' ') };
+  const statStyle = STATUS_STYLE[agreement.status] ?? { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0' };
+  const statLabel = STATUS_LABELS[agreement.status] ?? agreement.status.replace(/_/g, ' ');
   const pricing = agreement.pricingSnapshot ?? {};
   const termination = agreement.terminationRules ?? {};
   const unit = agreement.unit;
@@ -107,37 +117,37 @@ export default async function TenantAgreementPage({ params }: { params: { id: st
 
           <Link href="/my-storage" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', width: 'fit-content' }}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            My Storage
+            {t('myStorage.nav.title')}
           </Link>
 
           {/* Page header */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px' }}>
             <div>
-              <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', margin: '0 0 4px', letterSpacing: '-0.02em' }}>Storage Agreement</h1>
+              <h1 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', margin: '0 0 4px', letterSpacing: '-0.02em' }}>{t('myStorage.agreement.title')}</h1>
               <span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#94a3b8' }}>{agreement.id}</span>
             </div>
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: '6px', flexShrink: 0,
-              background: stat.bg, color: stat.text, border: `1px solid ${stat.border}`,
+              background: statStyle.bg, color: statStyle.text, border: `1px solid ${statStyle.border}`,
               borderRadius: '20px', padding: '5px 13px', fontSize: '12px', fontWeight: 700,
             }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: stat.dot, flexShrink: 0 }} />
-              {stat.label}
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: statStyle.dot, flexShrink: 0 }} />
+              {statLabel}
             </span>
           </div>
 
           {/* Quick facts */}
           <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 16px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-              <Field label="Start date" value={agreement.effectiveFrom ? fmt(agreement.effectiveFrom) : '—'} />
-              <Field label="Billing cycle" value={agreement.billingCycle.replace(/_/g, ' ')} />
-              <Field label="Language" value={agreement.language.toUpperCase()} />
+              <Field label={t('myStorage.agreement.startDate')} value={agreement.effectiveFrom ? fmt(agreement.effectiveFrom) : '—'} />
+              <Field label={t('myStorage.agreement.billingCycle')} value={agreement.billingCycle.replace(/_/g, ' ')} />
+              <Field label={t('myStorage.agreement.language')} value={agreement.language.toUpperCase()} />
             </div>
           </div>
 
           {/* Unit */}
           <Section>
-            <SectionHeader title="Unit" icon={
+            <SectionHeader title={t('myStorage.agreement.unitSection')} icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <rect x="3" y="6" width="18" height="13" rx="2" stroke="#64748b" strokeWidth="1.8"/>
                 <path d="M3 10h18M8 6V4M16 6V4" stroke="#64748b" strokeWidth="1.8" strokeLinecap="round"/>
@@ -145,15 +155,15 @@ export default async function TenantAgreementPage({ params }: { params: { id: st
             } />
             {unit ? (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <Field label="Unit code" value={<span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '14px' }}>{unit.unitCode}</span>} />
-                <Field label="Kind" value={unit.kind.replace(/_/g, ' ')} />
-                <Field label="Drive-up access" value={unit.driveUp ? 'Yes' : 'No'} />
-                {unit.conditionState && <Field label="Condition" value={unit.conditionState} />}
+                <Field label={t('myStorage.agreement.unitCode')} value={<span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '14px' }}>{unit.unitCode}</span>} />
+                <Field label={t('myStorage.agreement.kind')} value={unit.kind.replace(/_/g, ' ')} />
+                <Field label={t('myStorage.agreement.driveUp')} value={unit.driveUp ? t('myStorage.agreement.yes') : t('myStorage.agreement.no')} />
+                {unit.conditionState && <Field label={t('myStorage.agreement.condition')} value={unit.conditionState} />}
                 {unitType && (
                   <>
-                    <Field label="Type" value={unitType.name} />
-                    <Field label="Size" value={`${unitType.sizeSqm} m²${unitType.sizeCbm ? ` / ${unitType.sizeCbm} m³` : ''}`} />
-                    {unitType.doorType && <Field label="Door type" value={unitType.doorType.replace(/_/g, ' ')} />}
+                    <Field label={t('myStorage.agreement.type')} value={unitType.name} />
+                    <Field label={t('myStorage.agreement.size')} value={`${unitType.sizeSqm} m²${unitType.sizeCbm ? ` / ${unitType.sizeCbm} m³` : ''}`} />
+                    {unitType.doorType && <Field label={t('myStorage.agreement.doorType')} value={unitType.doorType.replace(/_/g, ' ')} />}
                   </>
                 )}
               </div>
@@ -162,7 +172,7 @@ export default async function TenantAgreementPage({ params }: { params: { id: st
             )}
             {unitType && unitType.features.length > 0 && (
               <div style={{ marginTop: '12px' }}>
-                <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8', display: 'block', marginBottom: '6px' }}>Features</span>
+                <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8', display: 'block', marginBottom: '6px' }}>{t('myStorage.agreement.features')}</span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                   {unitType.features.map((f) => <Chip key={f} label={f.replace(/_/g, ' ')} />)}
                 </div>
@@ -172,7 +182,7 @@ export default async function TenantAgreementPage({ params }: { params: { id: st
 
           {/* Site */}
           <Section>
-            <SectionHeader title="Storage location" icon={
+            <SectionHeader title={t('myStorage.agreement.locationSection')} icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M12 21s-7-6.75-7-11a7 7 0 1 1 14 0c0 4.25-7 11-7 11z" stroke="#64748b" strokeWidth="1.8" strokeLinejoin="round"/>
                 <circle cx="12" cy="10" r="2.5" stroke="#64748b" strokeWidth="1.8"/>
@@ -180,11 +190,11 @@ export default async function TenantAgreementPage({ params }: { params: { id: st
             } />
             {site ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <Field label="Facility" value={<span style={{ fontWeight: 700 }}>{site.name}</span>} />
-                <Field label="Address" value={`${site.address.street}, ${site.address.postalCode} ${site.address.city}, ${site.address.country}`} />
+                <Field label={t('myStorage.agreement.facility')} value={<span style={{ fontWeight: 700 }}>{site.name}</span>} />
+                <Field label={t('myStorage.agreement.address')} value={`${site.address.street}, ${site.address.postalCode} ${site.address.city}, ${site.address.country}`} />
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <Field label="Timezone" value={site.timezone} />
-                  <Field label="Currency" value={site.currency} />
+                  <Field label={t('myStorage.agreement.timezone')} value={site.timezone} />
+                  <Field label={t('myStorage.agreement.currency')} value={site.currency} />
                 </div>
               </div>
             ) : (
@@ -194,38 +204,38 @@ export default async function TenantAgreementPage({ params }: { params: { id: st
 
           {/* Pricing */}
           <Section>
-            <SectionHeader title="Pricing" icon={
+            <SectionHeader title={t('myStorage.agreement.pricingSection')} icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="9" stroke="#64748b" strokeWidth="1.8"/>
                 <path d="M12 6v12M9 9.5C9 8.12 10.34 7 12 7s3 1.12 3 2.5c0 1.37-1.34 2.5-3 2.5s-3 1.13-3 2.5C9 15.88 10.34 17 12 17s3-1.12 3-2.5" stroke="#64748b" strokeWidth="1.8" strokeLinecap="round"/>
               </svg>
             } />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <Field label="Monthly rent (net)" value={fmtCents(pricing.amountMinor, currency)} />
-              <Field label="VAT rate" value={pricing.vatRate != null ? `${(pricing.vatRate * 100).toFixed(0)} %` : '—'} />
+              <Field label={t('myStorage.agreement.monthlyRentNet')} value={fmtCents(pricing.amountMinor, currency)} />
+              <Field label={t('myStorage.agreement.vatRate')} value={pricing.vatRate != null ? `${(pricing.vatRate * 100).toFixed(0)} %` : '—'} />
               {pricing.amountMinor != null && pricing.vatRate != null && (
                 <Field
-                  label="Monthly rent (gross)"
+                  label={t('myStorage.agreement.monthlyRentGross')}
                   value={fmtCents(Math.round(pricing.amountMinor * (1 + pricing.vatRate)), currency)}
                 />
               )}
               {pricing.depositMinor != null && (
-                <Field label="Deposit" value={fmtCents(pricing.depositMinor, currency)} />
+                <Field label={t('myStorage.agreement.deposit')} value={fmtCents(pricing.depositMinor, currency)} />
               )}
             </div>
           </Section>
 
           {/* Termination rules */}
           <Section>
-            <SectionHeader title="Termination conditions" icon={
+            <SectionHeader title={t('myStorage.agreement.terminationSection')} icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M9 12l2 2 4-4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" stroke="#64748b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             } />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <Field label="Notice period" value={termination.noticeDays != null ? `${termination.noticeDays} days` : '—'} />
+              <Field label={t('myStorage.agreement.noticePeriod')} value={termination.noticeDays != null ? t('myStorage.agreement.noticeDays', { days: String(termination.noticeDays) }) : '—'} />
               {termination.minimumMonths != null && (
-                <Field label="Minimum term" value={`${termination.minimumMonths} months`} />
+                <Field label={t('myStorage.agreement.minimumTerm')} value={t('myStorage.agreement.minimumMonths', { months: String(termination.minimumMonths) })} />
               )}
             </div>
           </Section>
@@ -233,7 +243,7 @@ export default async function TenantAgreementPage({ params }: { params: { id: st
           {/* Signatories */}
           {agreement.signatories.length > 0 && (
             <Section>
-              <SectionHeader title="Signatories" icon={
+              <SectionHeader title={t('myStorage.agreement.signatoriesSection')} icon={
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                   <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" stroke="#64748b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
@@ -264,7 +274,7 @@ export default async function TenantAgreementPage({ params }: { params: { id: st
           {needsMySignature && (
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '20px 24px', textAlign: 'center' }}>
               <p style={{ fontSize: '13px', color: '#1e40af', fontWeight: 600, margin: '0 0 14px' }}>
-                Your signature is required to activate this agreement.
+                {t('myStorage.agreement.signRequired')}
               </p>
               <SignButton agreementId={agreement.id} />
             </div>

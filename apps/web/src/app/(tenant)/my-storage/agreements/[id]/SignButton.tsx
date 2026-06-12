@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import { clientFetch } from '@/lib/client-api';
 import { useRouter } from 'next/navigation';
+import { useT } from '@/lib/i18n';
 
 export default function SignButton({ agreementId }: { agreementId: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const t = useT();
 
   async function handleSign() {
     setLoading(true);
@@ -18,7 +20,7 @@ export default function SignButton({ agreementId }: { agreementId: string }) {
       });
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to sign agreement');
+      setError(e instanceof Error ? e.message : t('myStorage.signButton.errorSign'));
     } finally {
       setLoading(false);
     }
@@ -42,7 +44,7 @@ export default function SignButton({ agreementId }: { agreementId: string }) {
           letterSpacing: '-0.01em',
         }}
       >
-        {loading ? 'Signing…' : 'Sign Agreement'}
+        {loading ? t('myStorage.signButton.signing') : t('myStorage.signButton.sign')}
       </button>
       {error && (
         <p style={{ fontSize: '12px', color: '#dc2626', margin: 0 }}>{error}</p>

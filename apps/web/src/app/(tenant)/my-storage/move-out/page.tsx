@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { submitMoveOutRequest } from './actions';
+import { useT } from '@/lib/i18n';
 
 export default function MoveOutPage() {
   return (
@@ -14,6 +15,7 @@ export default function MoveOutPage() {
 
 function MoveOutForm() {
   const params = useSearchParams();
+  const t = useT();
   const [agreementId, setAgreementId] = useState(params.get('agreementId') ?? '');
   const [requestedDate, setRequestedDate] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -28,7 +30,7 @@ function MoveOutForm() {
       await submitMoveOutRequest({ agreementId, requestedDate });
       setSubmitted(true);
     } catch {
-      setError('Failed to submit move-out request. Please try again.');
+      setError(t('myStorage.moveOut.errorSubmit'));
     } finally {
       setLoading(false);
     }
@@ -44,8 +46,8 @@ function MoveOutForm() {
               <div style={{ width: '48px', height: '48px', background: '#f0fdf4', border: '2px solid #bbf7d0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                 <span style={{ color: '#16a34a', fontSize: '22px', fontWeight: 700 }}>✓</span>
               </div>
-              <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', margin: '0 0 8px' }}>Move-out request submitted</h2>
-              <p style={{ fontSize: '14px', color: '#475569', margin: 0 }}>Your operator will review your request and confirm the move-out date.</p>
+              <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', margin: '0 0 8px' }}>{t('myStorage.moveOut.successTitle')}</h2>
+              <p style={{ fontSize: '14px', color: '#475569', margin: 0 }}>{t('myStorage.moveOut.successBody')}</p>
             </div>
           </div>
         </div>
@@ -59,8 +61,8 @@ function MoveOutForm() {
       <style>{`@media (max-width: 640px) { .ms-wrap { padding: 20px 16px !important; } }`}</style>
       <div className="ms-wrap" style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>Request move-out</h1>
-          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 28px' }}>Submit a move-out request to end your rental agreement</p>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>{t('myStorage.moveOut.title')}</h1>
+          <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 28px' }}>{t('myStorage.moveOut.subtitle')}</p>
 
           <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '24px' }}>
             <form onSubmit={handleSubmit}>
@@ -72,13 +74,13 @@ function MoveOutForm() {
 
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '5px', letterSpacing: '0.03em' }}>
-                  Agreement ID
+                  {t('myStorage.moveOut.agreementIdLabel')}
                 </label>
                 <input
                   type="text"
                   value={agreementId}
                   onChange={(e) => setAgreementId(e.target.value)}
-                  placeholder="Your agreement ID from your contract"
+                  placeholder={t('myStorage.moveOut.agreementIdPlaceholder')}
                   style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px 12px', color: '#0f172a', fontSize: '14px', fontFamily: "'Plus Jakarta Sans', sans-serif", outline: 'none', width: '100%', boxSizing: 'border-box' }}
                   required
                 />
@@ -86,7 +88,7 @@ function MoveOutForm() {
 
               <div style={{ marginBottom: '24px' }}>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '5px', letterSpacing: '0.03em' }}>
-                  Requested move-out date
+                  {t('myStorage.moveOut.requestedDateLabel')}
                 </label>
                 <input
                   type="date"
@@ -96,7 +98,7 @@ function MoveOutForm() {
                   style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px 12px', color: '#0f172a', fontSize: '14px', fontFamily: "'Plus Jakarta Sans', sans-serif", outline: 'none', width: '100%', boxSizing: 'border-box' }}
                   required
                 />
-                <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px', marginBottom: 0 }}>Check your agreement for minimum notice period requirements.</p>
+                <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px', marginBottom: 0 }}>{t('myStorage.moveOut.noticeHint')}</p>
               </div>
 
               <button
@@ -104,7 +106,7 @@ function MoveOutForm() {
                 disabled={loading}
                 style={{ background: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontWeight: 700, fontSize: '13px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", width: '100%', opacity: loading ? 0.6 : 1 }}
               >
-                {loading ? 'Submitting…' : 'Submit move-out request'}
+                {loading ? t('myStorage.moveOut.submitting') : t('myStorage.moveOut.submit')}
               </button>
             </form>
           </div>

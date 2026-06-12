@@ -1,6 +1,9 @@
 'use client';
 
+import { useT } from '@/lib/i18n';
+
 export default function LogoutButton() {
+  const t = useT();
   return (
     <form action="/api/auth/tenant-logout" method="POST">
       <button
@@ -17,7 +20,7 @@ export default function LogoutButton() {
           fontFamily: 'inherit',
         }}
       >
-        Log out
+        {t('myStorage.logout')}
       </button>
     </form>
   );

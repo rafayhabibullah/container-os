@@ -3,9 +3,11 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useT } from '@/lib/i18n';
 
 export default function TenantRegisterPage() {
   const router = useRouter();
+  const t = useT();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -18,7 +20,7 @@ export default function TenantRegisterPage() {
     const password = form.get('password') as string;
     const confirm = form.get('confirmPassword') as string;
     if (password !== confirm) {
-      setError('Passwords do not match.');
+      setError(t('myStorage.register.errorPasswordsDontMatch'));
       setLoading(false);
       return;
     }
@@ -34,11 +36,11 @@ export default function TenantRegisterPage() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? 'Registration failed');
+      if (!res.ok) throw new Error(data.message ?? t('myStorage.register.errorRegistrationFailed'));
       router.push('/my-storage');
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      setError(err instanceof Error ? err.message : t('myStorage.register.errorRegistrationFailed'));
     } finally {
       setLoading(false);
     }
@@ -51,15 +53,15 @@ export default function TenantRegisterPage() {
           <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center mb-4">
             <span className="text-white font-bold text-base">S</span>
           </div>
-          <h1 className="text-xl font-bold text-slate-900">Create an account</h1>
-          <p className="text-sm text-slate-400 mt-1">Access and manage your storage</p>
+          <h1 className="text-xl font-bold text-slate-900">{t('myStorage.register.title')}</h1>
+          <p className="text-sm text-slate-400 mt-1">{t('myStorage.register.subtitle')}</p>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1.5">
-                Full name
+                {t('myStorage.register.fullNameLabel')}
               </label>
               <input
                 id="name"
@@ -74,7 +76,7 @@ export default function TenantRegisterPage() {
             </div>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
-                Email
+                {t('myStorage.register.emailLabel')}
               </label>
               <input
                 id="email"
@@ -89,8 +91,8 @@ export default function TenantRegisterPage() {
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1.5">
-                Password{' '}
-                <span className="text-slate-400 font-normal">(min 8 characters)</span>
+                {t('myStorage.register.passwordLabel')}{' '}
+                <span className="text-slate-400 font-normal">{t('myStorage.register.passwordHint')}</span>
               </label>
               <input
                 id="password"
@@ -106,7 +108,7 @@ export default function TenantRegisterPage() {
             </div>
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1.5">
-                Confirm password
+                {t('myStorage.register.confirmPasswordLabel')}
               </label>
               <input
                 id="confirmPassword"
@@ -132,15 +134,15 @@ export default function TenantRegisterPage() {
               disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg disabled:opacity-50 transition-colors text-sm"
             >
-              {loading ? 'Creating account…' : 'Create account'}
+              {loading ? t('myStorage.register.creatingAccount') : t('myStorage.register.createAccount')}
             </button>
           </form>
         </div>
 
         <p className="text-center text-sm text-slate-400 mt-6">
-          Already have an account?{' '}
+          {t('myStorage.register.alreadyHaveAccount')}{' '}
           <Link href="/my-storage/login" className="text-blue-600 hover:text-blue-700 font-medium">
-            Sign in
+            {t('myStorage.register.signIn')}
           </Link>
         </p>
       </div>
