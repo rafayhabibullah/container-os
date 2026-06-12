@@ -10,19 +10,28 @@ if [ -z "$DATABASE_URL" ]; then
   exit 1
 fi
 
-# Wait for Postgres TCP to be reachable.
-echo "[entrypoint] Waiting for Postgres at postgres:5432..."
-MAX=30; COUNT=0
-until nc -z postgres 5432 2>/dev/null; do
-  COUNT=$((COUNT+1))
-  if [ "$COUNT" -ge "$MAX" ]; then
-    echo "[entrypoint] ERROR: Postgres unreachable after ${MAX} attempts. Aborting."
-    exit 1
-  fi
-  echo "[entrypoint] Retrying ($COUNT/$MAX)..."
-  sleep 2
-done
-echo "[entrypoint] Postgres is ready."
+# Wait for the local docker-compose Postgres to be reachable. Skipped when
+# DATABASE_URL points at an external/managed database (e.g. Neon), since
+# those hosts are always reachable and don't have a local "postgres" alias.
+case "$DATABASE_URL" in
+  *@postgres:*)
+    echo "[entrypoint] Waiting for Postgres at postgres:5432..."
+    MAX=30; COUNT=0
+    until nc -z postgres 5432 2>/dev/null; do
+      COUNT=$((COUNT+1))
+      if [ "$COUNT" -ge "$MAX" ]; then
+        echo "[entrypoint] ERROR: Postgres unreachable after ${MAX} attempts. Aborting."
+        exit 1
+      fi
+      echo "[entrypoint] Retrying ($COUNT/$MAX)..."
+      sleep 2
+    done
+    echo "[entrypoint] Postgres is ready."
+    ;;
+  *)
+    echo "[entrypoint] Using external database, skipping local Postgres wait."
+    ;;
+esac
 
 # Find the Prisma CLI inside the pnpm content-addressable store.
 # prisma is a devDependency of apps/api — pnpm does not hoist it to the
