@@ -1,10 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { submitMoveOutRequest } from './actions';
 
 export default function MoveOutPage() {
+  return (
+    <Suspense>
+      <MoveOutForm />
+    </Suspense>
+  );
+}
+
+function MoveOutForm() {
   const params = useSearchParams();
   const [agreementId, setAgreementId] = useState(params.get('agreementId') ?? '');
   const [requestedDate, setRequestedDate] = useState('');
