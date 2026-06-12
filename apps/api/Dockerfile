@@ -81,6 +81,11 @@ COPY --from=build --chown=nestjs:nodejs /monorepo/node_modules ./node_modules
 # copy them in too so `require('@sitelager/domain-types')` resolves.
 COPY --from=build --chown=nestjs:nodejs /monorepo/apps/api/node_modules/@sitelager ./node_modules/@sitelager
 
+# The shared packages' own deps (e.g. zod) are symlinked as
+# ../../../node_modules/.pnpm/... relative to /packages/*/node_modules, which
+# resolves to /node_modules/.pnpm/... — alias that to the copied node_modules.
+RUN ln -s /app/node_modules /node_modules
+
 
 COPY --from=build --chown=nestjs:nodejs /monorepo/apps/api/dist ./dist
 COPY --from=build --chown=nestjs:nodejs /monorepo/apps/api/prisma ./prisma
