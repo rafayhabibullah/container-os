@@ -207,5 +207,202 @@
       "errorSign": "Vertrag konnte nicht unterschrieben werden"
     },
     "printButton": "Drucken / PDF herunterladen"
+  },
+  "home": {
+    "nav": {
+      "findStorage": "Lagerfläche finden",
+      "forOperators": "Für Betreiber",
+      "pricing": "Preise",
+      "signIn": "Anmelden",
+      "getStarted": "Jetzt starten"
+    },
+    "hero": {
+      "title": "Finden Sie Lager- und Containerflächen in Ihrer Nähe",
+      "subtitle": "Suchen, vergleichen und buchen Sie Self-Storage in ganz Europa — bei lokalen Betreibern mit echten Bewertungen.",
+      "searchPlaceholder": "Stadt oder Postleitzahl…",
+      "search": "Suchen",
+      "listSite": "Lagerfläche eintragen →"
+    },
+    "popularLocations": {
+      "title": "Beliebte Standorte"
+    },
+    "cities": {
+      "berlin": "Berlin",
+      "hamburg": "Hamburg",
+      "munich": "München",
+      "cologne": "Köln",
+      "frankfurt": "Frankfurt"
+    },
+    "country": {
+      "germany": "Deutschland"
+    },
+    "howItWorks": {
+      "title": "So funktioniert's",
+      "step1": {
+        "title": "Suchen",
+        "desc": "Finden Sie Lagerflächen in Ihrer Nähe nach Stadt, Größe und Preis."
+      },
+      "step2": {
+        "title": "Auswählen",
+        "desc": "Vergleichen Sie Einheiten verschiedener Betreiber im direkten Vergleich."
+      },
+      "step3": {
+        "title": "Buchen",
+        "desc": "Stellen Sie eine Buchungsanfrage oder buchen Sie sofort — online in wenigen Minuten."
+      },
+      "step4": {
+        "title": "Einziehen",
+        "desc": "Erhalten Sie Ihre Zugangsdaten und ziehen Sie zum gewünschten Termin ein."
+      }
+    },
+    "operatorCta": {
+      "title": "Das Betriebssystem für moderne Lagerflächen.",
+      "desc": "Verwalten Sie Standorte, Mieter, Verträge, Rechnungen und Zahlungen von einer Plattform aus. Veröffentlichen Sie im Marktplatz mit 0 % Provision während des Launch.",
+      "cta": "Für Betreiber entdecken →"
+    },
+    "footer": {
+      "forOperators": "Für Betreiber",
+      "pricing": "Preise",
+      "privacy": "Datenschutz",
+      "terms": "AGB"
+    }
+  },
+  "forOperators": {
+    "nav": {
+      "signIn": "Anmelden",
+      "startFree": "Kostenlos starten"
+    },
+    "hero": {
+      "title": "Das Betriebssystem für moderne Lagerflächen.",
+      "subtitle": "Alles, was Sie für Ihr Storage-Geschäft brauchen — Standorte, Mieter, Verträge, Rechnungen, Zahlungen und Marktplatz-Angebote — in einer Plattform für europäische Betreiber.",
+      "getStarted": "Kostenlos starten",
+      "viewPricing": "Preise ansehen"
+    },
+    "features": {
+      "title": "Alles an einem Ort",
+      "marketplace": {
+        "title": "Marktplatz-Eintrag",
+        "desc": "Veröffentlichen Sie Ihre Einheiten im SiteLager-Marktplatz mit 0 % Provision während des Launch."
+      },
+      "tenantManagement": {
+        "title": "Mieterverwaltung",
+        "desc": "Vollständiges CRM für Mieter — Verträge, Rechnungen, Dokumente und Kommunikation."
+      },
+      "billing": {
+        "title": "Automatisierte Abrechnung",
+        "desc": "Monatliche Rechnungen, SEPA-Mandate, Mahnwesen und Sperr-Workflows."
+      },
+      "reporting": {
+        "title": "Berichte",
+        "desc": "Belegungsraten, Umsatzentwicklung und Einheitenverfügbarkeit auf einen Blick."
+      },
+      "instantBooking": {
+        "title": "Sofortbuchung",
+        "desc": "Lassen Sie Mieter sofort online buchen — oder verlangen Sie eine manuelle Freigabe für volle Kontrolle."
+      },
+      "accessControl": {
+        "title": "Zugangskontrolle",
+        "desc": "Vergeben und entziehen Sie Zugangsdaten pro Mieter, integriert mit Hardware-Anbietern."
+      }
+    },
+    "ctaSection": {
+      "title": "Bereit, Ihren Lagerbetrieb zu modernisieren?",
+      "subtitle": "Keine Einrichtungsgebühren. Starten Sie mit unserem Starter-Plan für 49 €/Monat.",
+      "cta": "Konto erstellen →"
+    },
+    "footer": {
+      "back": "← SiteLager",
+      "pricing": "Preise",
+      "privacy": "Datenschutz",
+      "terms": "AGB"
+    }
+  },
+  "storage": {
+    "nav": {
+      "signIn": "Anmelden"
+    },
+    "search": {
+      "label": "Suche",
+      "placeholder": "Angebote durchsuchen…",
+      "minSize": "Min. Größe (m²)",
+      "maxSize": "Max. Größe (m²)",
+      "maxSizeAny": "Beliebig",
+      "bookingType": "Buchungsart",
+      "bookingTypeAny": "Beliebig",
+      "instantBooking": "Sofortbuchung",
+      "approvalRequired": "Freigabe erforderlich",
+      "filter": "Filtern"
+    },
+    "results": {
+      "countSingular": "{{count}} Lagereinheit",
+      "countPlural": "{{count}} Lagereinheiten",
+      "inCity": " in {{city}}",
+      "available": " verfügbar",
+      "noResults": "Keine Lagereinheiten gefunden. Passen Sie Ihre Filter an.",
+      "clearFilters": "Filter zurücksetzen",
+      "instantBadge": "Sofort",
+      "priceOnRequest": "Preis auf Anfrage",
+      "perMonth": "/Monat",
+      "view": "Ansehen →"
+    },
+    "detail": {
+      "allSites": "← Alle Standorte",
+      "availableStorage": "Verfügbare Lagerflächen",
+      "noUnitsAvailable": "Derzeit keine Einheiten verfügbar.",
+      "unitsAvailableSingular": "Einheit verfügbar",
+      "unitsAvailablePlural": "Einheiten verfügbar",
+      "earliest": "Frühestens: {{date}}",
+      "reserveUnit": "Einheit reservieren",
+      "requestQuote": "Angebot anfragen",
+      "requestQuoteDesc": "Haben Sie besondere Anforderungen? Senden Sie uns eine Nachricht.",
+      "createAccount": "Konto erstellen, um zu starten →"
+    },
+    "book": {
+      "nav": {
+        "signIn": "Anmelden"
+      },
+      "backToSite": "← Zurück zum Standort",
+      "steps": {
+        "unit": "1. Einheit wählen",
+        "contact": "2. Ihre Daten",
+        "confirm": "3. Bestätigung"
+      },
+      "unit": {
+        "title": "Wählen Sie Ihre Einheit",
+        "noUnitTypes": "Für diesen Standort sind keine Einheitstypen verfügbar.",
+        "moveInDateLabel": "Gewünschtes Einzugsdatum",
+        "checking": "Verfügbarkeit wird geprüft…",
+        "continue": "Weiter"
+      },
+      "contact": {
+        "title": "Ihre Kontaktdaten",
+        "nameLabel": "Vollständiger Name",
+        "namePlaceholder": "Anna Müller",
+        "emailLabel": "E-Mail-Adresse",
+        "emailPlaceholder": "anna@example.com",
+        "phoneLabel": "Telefonnummer",
+        "phonePlaceholder": "+49 170 123 4567",
+        "marketingConsent": "Ich bin damit einverstanden, Marketingmitteilungen zu erhalten (optional)",
+        "back": "Zurück",
+        "confirming": "Bestätigung läuft…",
+        "confirmBooking": "Buchung bestätigen"
+      },
+      "confirm": {
+        "title": "Buchung bestätigt!",
+        "reservationId": "Reservierungsnummer",
+        "status": "Status",
+        "reservedUntil": "Reserviert bis",
+        "operatorContact": "Der Betreiber wird sich melden, um Ihren Vertrag abzuschließen und den Zugang zu organisieren.",
+        "backToSite": "← Zurück zum Standort",
+        "emailSentPrefix": "Eine Bestätigungs-E-Mail wurde an ",
+        "emailSentSuffix": " gesendet."
+      },
+      "errors": {
+        "soldOut": "Leider sind derzeit keine Einheiten dieses Typs verfügbar.",
+        "checkoutFailed": "Checkout konnte nicht gestartet werden",
+        "confirmFailed": "Buchung konnte nicht bestätigt werden",
+        "generic": "Ein Fehler ist aufgetreten"
+      }
+    }
   }
 }

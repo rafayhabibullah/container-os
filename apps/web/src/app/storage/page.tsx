@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Search, Filter } from 'lucide-react';
+import { getT } from '@/lib/get-locale';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api';
 
@@ -20,6 +21,7 @@ export default async function StoragePage({
 }: {
   searchParams: { q?: string; city?: string; country?: string; minSize?: string; maxSize?: string; mode?: string };
 }) {
+  const t = getT();
   const params = new URLSearchParams();
   if (searchParams.q) params.set('q', searchParams.q);
   if (searchParams.city) params.set('city', searchParams.city);
@@ -50,45 +52,45 @@ export default async function StoragePage({
             </div>
             <span className="font-bold text-slate-900 text-sm">SiteLager</span>
           </Link>
-          <Link href="/login" className="text-sm text-slate-600 hover:text-slate-900">Sign in</Link>
+          <Link href="/login" className="text-sm text-slate-600 hover:text-slate-900">{t('storage.nav.signIn')}</Link>
         </div>
       </header>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         <form method="GET" className="bg-white border border-slate-200 rounded-xl p-4 mb-4 flex flex-wrap gap-3 items-end">
           <div className="flex-1 min-w-[200px]">
-            <label className="block text-xs text-slate-500 font-medium mb-1">Search</label>
+            <label className="block text-xs text-slate-500 font-medium mb-1">{t('storage.search.label')}</label>
             <div className="flex items-center gap-2 border border-slate-200 rounded-lg px-3 py-2">
               <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               <input name="q" type="text" defaultValue={searchParams.q}
-                placeholder="Search listings…"
+                placeholder={t('storage.search.placeholder')}
                 className="text-sm outline-none flex-1 placeholder-slate-400" />
             </div>
           </div>
           <div className="min-w-[120px]">
-            <label className="block text-xs text-slate-500 font-medium mb-1">Min size (m²)</label>
+            <label className="block text-xs text-slate-500 font-medium mb-1">{t('storage.search.minSize')}</label>
             <input name="minSize" type="number" defaultValue={searchParams.minSize}
               placeholder="0"
               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none" />
           </div>
           <div className="min-w-[120px]">
-            <label className="block text-xs text-slate-500 font-medium mb-1">Max size (m²)</label>
+            <label className="block text-xs text-slate-500 font-medium mb-1">{t('storage.search.maxSize')}</label>
             <input name="maxSize" type="number" defaultValue={searchParams.maxSize}
-              placeholder="Any"
+              placeholder={t('storage.search.maxSizeAny')}
               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none" />
           </div>
           <div className="min-w-[160px]">
-            <label className="block text-xs text-slate-500 font-medium mb-1">Booking type</label>
+            <label className="block text-xs text-slate-500 font-medium mb-1">{t('storage.search.bookingType')}</label>
             <select name="mode" defaultValue={searchParams.mode}
               className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none bg-white">
-              <option value="">Any</option>
-              <option value="instant_booking">Instant booking</option>
-              <option value="approval_required">Approval required</option>
+              <option value="">{t('storage.search.bookingTypeAny')}</option>
+              <option value="instant_booking">{t('storage.search.instantBooking')}</option>
+              <option value="approval_required">{t('storage.search.approvalRequired')}</option>
             </select>
           </div>
           <button type="submit"
             className="flex items-center gap-2 bg-blue-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-blue-700 text-sm">
-            <Filter className="w-4 h-4" /> Filter
+            <Filter className="w-4 h-4" /> {t('storage.search.filter')}
           </button>
         </form>
 
@@ -111,15 +113,15 @@ export default async function StoragePage({
 
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-lg font-bold text-slate-900">
-            {listings.length} storage unit{listings.length !== 1 ? 's' : ''}
-            {searchParams.city ? ` in ${searchParams.city}` : ' available'}
+            {t(listings.length === 1 ? 'storage.results.countSingular' : 'storage.results.countPlural', { count: String(listings.length) })}
+            {searchParams.city ? t('storage.results.inCity', { city: searchParams.city }) : t('storage.results.available')}
           </h1>
         </div>
 
         {listings.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-            <p className="text-slate-500">No storage units found. Try adjusting your filters.</p>
-            <Link href="/storage" className="mt-4 inline-block text-sm text-blue-600 hover:underline">Clear filters</Link>
+            <p className="text-slate-500">{t('storage.results.noResults')}</p>
+            <Link href="/storage" className="mt-4 inline-block text-sm text-blue-600 hover:underline">{t('storage.results.clearFilters')}</Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -133,7 +135,7 @@ export default async function StoragePage({
                     <p className="text-xs text-slate-500 mt-0.5">{listing.site.address.city}</p>
                   </div>
                   {listing.bookingMode === 'instant_booking' && (
-                    <span className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full shrink-0">Instant</span>
+                    <span className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full shrink-0">{t('storage.results.instantBadge')}</span>
                   )}
                 </div>
                 <p className="text-xs text-slate-400">{listing.unit.unitType.sizeSqm} m² · {listing.unit.unitType.name}</p>
@@ -142,13 +144,13 @@ export default async function StoragePage({
                     {listing.showPrice && listing.publicPriceMinor != null ? (
                       <span className="font-bold text-slate-900">
                         {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(listing.publicPriceMinor / 100)}
-                        <span className="text-xs font-normal text-slate-400">/mo</span>
+                        <span className="text-xs font-normal text-slate-400">{t('storage.results.perMonth')}</span>
                       </span>
                     ) : (
-                      <span className="text-sm text-slate-400">Price on request</span>
+                      <span className="text-sm text-slate-400">{t('storage.results.priceOnRequest')}</span>
                     )}
                   </div>
-                  <span className="text-xs text-blue-600 font-medium group-hover:underline">View →</span>
+                  <span className="text-xs text-blue-600 font-medium group-hover:underline">{t('storage.results.view')}</span>
                 </div>
               </Link>
             ))}

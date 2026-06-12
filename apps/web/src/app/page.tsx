@@ -1,22 +1,25 @@
 import Link from 'next/link';
 import { Search, MapPin, Zap, Shield } from 'lucide-react';
-
-const POPULAR_CITIES = [
-  { name: 'Berlin', country: 'Germany' },
-  { name: 'Hamburg', country: 'Germany' },
-  { name: 'Munich', country: 'Germany' },
-  { name: 'Cologne', country: 'Germany' },
-  { name: 'Frankfurt', country: 'Germany' },
-];
-
-const HOW_IT_WORKS = [
-  { step: '1', title: 'Search', desc: 'Find storage near you by city, size, and price.' },
-  { step: '2', title: 'Choose', desc: 'Compare units from multiple operators side by side.' },
-  { step: '3', title: 'Book', desc: 'Request a booking or book instantly — online in minutes.' },
-  { step: '4', title: 'Move in', desc: 'Receive your access details and move in on your chosen date.' },
-];
+import { getT } from '@/lib/get-locale';
 
 export default function HomePage() {
+  const t = getT();
+
+  const POPULAR_CITIES = [
+    { name: t('home.cities.berlin'), country: t('home.country.germany') },
+    { name: t('home.cities.hamburg'), country: t('home.country.germany') },
+    { name: t('home.cities.munich'), country: t('home.country.germany') },
+    { name: t('home.cities.cologne'), country: t('home.country.germany') },
+    { name: t('home.cities.frankfurt'), country: t('home.country.germany') },
+  ];
+
+  const HOW_IT_WORKS = [
+    { step: '1', title: t('home.howItWorks.step1.title'), desc: t('home.howItWorks.step1.desc') },
+    { step: '2', title: t('home.howItWorks.step2.title'), desc: t('home.howItWorks.step2.desc') },
+    { step: '3', title: t('home.howItWorks.step3.title'), desc: t('home.howItWorks.step3.desc') },
+    { step: '4', title: t('home.howItWorks.step4.title'), desc: t('home.howItWorks.step4.desc') },
+  ];
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -29,14 +32,14 @@ export default function HomePage() {
             <span className="font-bold text-slate-900">SiteLager</span>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <Link href="/storage" className="text-slate-600 hover:text-slate-900">Find storage</Link>
-            <Link href="/for-operators" className="text-slate-600 hover:text-slate-900">For operators</Link>
-            <Link href="/pricing" className="text-slate-600 hover:text-slate-900">Pricing</Link>
+            <Link href="/storage" className="text-slate-600 hover:text-slate-900">{t('home.nav.findStorage')}</Link>
+            <Link href="/for-operators" className="text-slate-600 hover:text-slate-900">{t('home.nav.forOperators')}</Link>
+            <Link href="/pricing" className="text-slate-600 hover:text-slate-900">{t('home.nav.pricing')}</Link>
           </nav>
           <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-slate-600 hover:text-slate-900">Sign in</Link>
+            <Link href="/login" className="text-sm text-slate-600 hover:text-slate-900">{t('home.nav.signIn')}</Link>
             <Link href="/register" className="text-sm bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700">
-              Get started
+              {t('home.nav.getStarted')}
             </Link>
           </div>
         </div>
@@ -46,27 +49,27 @@ export default function HomePage() {
       <section className="bg-slate-50 py-20 px-6">
         <div className="max-w-3xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 leading-tight mb-4">
-            Find storage and container space near you
+            {t('home.hero.title')}
           </h1>
           <p className="text-lg text-slate-500 mb-8">
-            Search, compare, and book self-storage across Europe — from local operators with real reviews.
+            {t('home.hero.subtitle')}
           </p>
           <div className="flex gap-2 max-w-xl mx-auto">
             <div className="flex-1 flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm">
               <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
               <input
                 type="text"
-                placeholder="City or postal code…"
+                placeholder={t('home.hero.searchPlaceholder')}
                 className="flex-1 text-sm outline-none placeholder-slate-400"
               />
             </div>
             <Link href="/storage"
               className="bg-blue-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-blue-700 flex items-center gap-2 whitespace-nowrap">
-              <Search className="w-4 h-4" /> Search
+              <Search className="w-4 h-4" /> {t('home.hero.search')}
             </Link>
           </div>
           <p className="text-xs text-slate-400 mt-4">
-            <Link href="/for-operators" className="hover:underline">List your storage site →</Link>
+            <Link href="/for-operators" className="hover:underline">{t('home.hero.listSite')}</Link>
           </p>
         </div>
       </section>
@@ -74,7 +77,7 @@ export default function HomePage() {
       {/* Popular cities */}
       <section className="py-16 px-6">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold text-slate-900 mb-8">Popular locations</h2>
+          <h2 className="text-2xl font-bold text-slate-900 mb-8">{t('home.popularLocations.title')}</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
             {POPULAR_CITIES.map((city) => (
               <Link key={city.name}
@@ -91,7 +94,7 @@ export default function HomePage() {
       {/* How it works */}
       <section className="py-16 px-6 bg-slate-50">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold text-slate-900 mb-10 text-center">How it works</h2>
+          <h2 className="text-2xl font-bold text-slate-900 mb-10 text-center">{t('home.howItWorks.title')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-6">
             {HOW_IT_WORKS.map((item) => (
               <div key={item.step} className="text-center">
@@ -113,14 +116,13 @@ export default function HomePage() {
             <Zap className="w-6 h-6 opacity-80" />
             <Shield className="w-6 h-6 opacity-80" />
           </div>
-          <h2 className="text-2xl font-bold mb-3">The operating system for modern storage sites.</h2>
+          <h2 className="text-2xl font-bold mb-3">{t('home.operatorCta.title')}</h2>
           <p className="text-blue-100 mb-6 text-sm max-w-lg mx-auto">
-            Manage sites, tenants, contracts, invoices, and payments from one platform.
-            Publish to the marketplace with 0% commission during launch.
+            {t('home.operatorCta.desc')}
           </p>
           <Link href="/for-operators"
             className="inline-block bg-white text-blue-600 font-semibold px-6 py-3 rounded-xl hover:bg-blue-50">
-            Explore for operators →
+            {t('home.operatorCta.cta')}
           </Link>
         </div>
       </section>
@@ -135,10 +137,10 @@ export default function HomePage() {
             <span className="font-semibold text-slate-900">SiteLager</span>
           </div>
           <div className="flex gap-6">
-            <Link href="/for-operators" className="hover:text-slate-700">For operators</Link>
-            <Link href="/pricing" className="hover:text-slate-700">Pricing</Link>
-            <Link href="/legal/privacy" className="hover:text-slate-700">Privacy</Link>
-            <Link href="/legal/terms" className="hover:text-slate-700">Terms</Link>
+            <Link href="/for-operators" className="hover:text-slate-700">{t('home.footer.forOperators')}</Link>
+            <Link href="/pricing" className="hover:text-slate-700">{t('home.footer.pricing')}</Link>
+            <Link href="/legal/privacy" className="hover:text-slate-700">{t('home.footer.privacy')}</Link>
+            <Link href="/legal/terms" className="hover:text-slate-700">{t('home.footer.terms')}</Link>
           </div>
         </div>
       </footer>

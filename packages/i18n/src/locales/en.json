@@ -207,5 +207,202 @@
       "errorSign": "Failed to sign agreement"
     },
     "printButton": "Print / Download PDF"
+  },
+  "home": {
+    "nav": {
+      "findStorage": "Find storage",
+      "forOperators": "For operators",
+      "pricing": "Pricing",
+      "signIn": "Sign in",
+      "getStarted": "Get started"
+    },
+    "hero": {
+      "title": "Find storage and container space near you",
+      "subtitle": "Search, compare, and book self-storage across Europe — from local operators with real reviews.",
+      "searchPlaceholder": "City or postal code…",
+      "search": "Search",
+      "listSite": "List your storage site →"
+    },
+    "popularLocations": {
+      "title": "Popular locations"
+    },
+    "cities": {
+      "berlin": "Berlin",
+      "hamburg": "Hamburg",
+      "munich": "Munich",
+      "cologne": "Cologne",
+      "frankfurt": "Frankfurt"
+    },
+    "country": {
+      "germany": "Germany"
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "step1": {
+        "title": "Search",
+        "desc": "Find storage near you by city, size, and price."
+      },
+      "step2": {
+        "title": "Choose",
+        "desc": "Compare units from multiple operators side by side."
+      },
+      "step3": {
+        "title": "Book",
+        "desc": "Request a booking or book instantly — online in minutes."
+      },
+      "step4": {
+        "title": "Move in",
+        "desc": "Receive your access details and move in on your chosen date."
+      }
+    },
+    "operatorCta": {
+      "title": "The operating system for modern storage sites.",
+      "desc": "Manage sites, tenants, contracts, invoices, and payments from one platform. Publish to the marketplace with 0% commission during launch.",
+      "cta": "Explore for operators →"
+    },
+    "footer": {
+      "forOperators": "For operators",
+      "pricing": "Pricing",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    }
+  },
+  "forOperators": {
+    "nav": {
+      "signIn": "Sign in",
+      "startFree": "Start free"
+    },
+    "hero": {
+      "title": "The operating system for modern storage sites.",
+      "subtitle": "Everything you need to run your storage business — sites, tenants, contracts, invoices, payments, and marketplace listings — in one platform built for European operators.",
+      "getStarted": "Get started free",
+      "viewPricing": "View pricing"
+    },
+    "features": {
+      "title": "Everything in one place",
+      "marketplace": {
+        "title": "Marketplace listing",
+        "desc": "Publish your units to the SiteLager marketplace at 0% commission during launch."
+      },
+      "tenantManagement": {
+        "title": "Tenant management",
+        "desc": "Full CRM for tenants — contracts, invoices, documents, and communication."
+      },
+      "billing": {
+        "title": "Automated billing",
+        "desc": "Monthly recurring invoices, SEPA mandates, dunning reminders, and lockout workflows."
+      },
+      "reporting": {
+        "title": "Reporting",
+        "desc": "Occupancy rates, revenue tracking, and unit availability at a glance."
+      },
+      "instantBooking": {
+        "title": "Instant booking",
+        "desc": "Let tenants book instantly online — or require manual approval for full control."
+      },
+      "accessControl": {
+        "title": "Access control",
+        "desc": "Issue and revoke access credentials per tenant, integrated with hardware vendors."
+      }
+    },
+    "ctaSection": {
+      "title": "Ready to modernise your storage operation?",
+      "subtitle": "No setup fees. Start with our Starter plan at €49/month.",
+      "cta": "Create your account →"
+    },
+    "footer": {
+      "back": "← SiteLager",
+      "pricing": "Pricing",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    }
+  },
+  "storage": {
+    "nav": {
+      "signIn": "Sign in"
+    },
+    "search": {
+      "label": "Search",
+      "placeholder": "Search listings…",
+      "minSize": "Min size (m²)",
+      "maxSize": "Max size (m²)",
+      "maxSizeAny": "Any",
+      "bookingType": "Booking type",
+      "bookingTypeAny": "Any",
+      "instantBooking": "Instant booking",
+      "approvalRequired": "Approval required",
+      "filter": "Filter"
+    },
+    "results": {
+      "countSingular": "{{count}} storage unit",
+      "countPlural": "{{count}} storage units",
+      "inCity": " in {{city}}",
+      "available": " available",
+      "noResults": "No storage units found. Try adjusting your filters.",
+      "clearFilters": "Clear filters",
+      "instantBadge": "Instant",
+      "priceOnRequest": "Price on request",
+      "perMonth": "/mo",
+      "view": "View →"
+    },
+    "detail": {
+      "allSites": "← All sites",
+      "availableStorage": "Available storage",
+      "noUnitsAvailable": "No units currently available.",
+      "unitsAvailableSingular": "unit available",
+      "unitsAvailablePlural": "units available",
+      "earliest": "Earliest: {{date}}",
+      "reserveUnit": "Reserve a unit",
+      "requestQuote": "Request a quote",
+      "requestQuoteDesc": "Have specific requirements? Send us a message.",
+      "createAccount": "Create an account to get started →"
+    },
+    "book": {
+      "nav": {
+        "signIn": "Sign in"
+      },
+      "backToSite": "← Back to site",
+      "steps": {
+        "unit": "1. Choose unit",
+        "contact": "2. Your details",
+        "confirm": "3. Confirmation"
+      },
+      "unit": {
+        "title": "Choose your unit",
+        "noUnitTypes": "No unit types available for this site.",
+        "moveInDateLabel": "Desired move-in date",
+        "checking": "Checking availability…",
+        "continue": "Continue"
+      },
+      "contact": {
+        "title": "Your contact details",
+        "nameLabel": "Full name",
+        "namePlaceholder": "Anna Müller",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "anna@example.com",
+        "phoneLabel": "Phone number",
+        "phonePlaceholder": "+49 170 123 4567",
+        "marketingConsent": "I agree to receive marketing communications (optional)",
+        "back": "Back",
+        "confirming": "Confirming…",
+        "confirmBooking": "Confirm booking"
+      },
+      "confirm": {
+        "title": "Booking confirmed!",
+        "reservationId": "Reservation ID",
+        "status": "Status",
+        "reservedUntil": "Reserved until",
+        "operatorContact": "The operator will be in touch to finalise your agreement and arrange access.",
+        "backToSite": "← Back to site",
+        "emailSentPrefix": "A confirmation email has been sent to ",
+        "emailSentSuffix": "."
+      },
+      "errors": {
+        "soldOut": "Sorry, no units of this type are available right now.",
+        "checkoutFailed": "Failed to start checkout",
+        "confirmFailed": "Failed to confirm booking",
+        "generic": "An error occurred"
+      }
+    }
   }
 }

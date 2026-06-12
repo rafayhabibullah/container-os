@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useT } from '@/lib/i18n';
 
 interface UnitType {
   id: string;
@@ -31,6 +32,7 @@ interface BookingResult {
 }
 
 export default function BookPage({ params, searchParams }: BookingWizardProps) {
+  const t = useT();
   const siteId = searchParams.siteId ?? '';
   const unitTypes: UnitType[] = searchParams.unitTypes ? JSON.parse(decodeURIComponent(searchParams.unitTypes)) : [];
 
@@ -59,16 +61,16 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
         body: JSON.stringify({ siteId, unitTypeId: selectedUnitType.id, startDate: moveInDate }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.message ?? 'Failed to start checkout');
+      if (!res.ok) throw new Error(data?.message ?? t('storage.book.errors.checkoutFailed'));
       if (data.availabilityState === 'sold_out') {
-        setError('Sorry, no units of this type are available right now.');
+        setError(t('storage.book.errors.soldOut'));
         setLoading(false);
         return;
       }
       setSessionId(data.checkoutSessionId);
       setStep('contact');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : t('storage.book.errors.generic'));
     } finally {
       setLoading(false);
     }
@@ -85,20 +87,20 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
         body: JSON.stringify(contact),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.message ?? 'Failed to confirm booking');
+      if (!res.ok) throw new Error(data?.message ?? t('storage.book.errors.confirmFailed'));
       setResult(data);
       setStep('confirm');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : t('storage.book.errors.generic'));
     } finally {
       setLoading(false);
     }
   }
 
   const stepLabels: { key: Step; label: string }[] = [
-    { key: 'unit', label: '1. Choose unit' },
-    { key: 'contact', label: '2. Your details' },
-    { key: 'confirm', label: '3. Confirmation' },
+    { key: 'unit', label: t('storage.book.steps.unit') },
+    { key: 'contact', label: t('storage.book.steps.contact') },
+    { key: 'confirm', label: t('storage.book.steps.confirm') },
   ];
 
   return (
@@ -111,14 +113,14 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
             </div>
             <span className="font-bold text-slate-900 text-sm">SiteLager</span>
           </Link>
-          <Link href="/login" className="text-sm text-slate-600 hover:text-slate-900">Sign in</Link>
+          <Link href="/login" className="text-sm text-slate-600 hover:text-slate-900">{t('storage.book.nav.signIn')}</Link>
         </div>
       </header>
 
       <div className="max-w-6xl mx-auto px-6 py-8">
       <div className="max-w-xl">
         <Link href={`/storage/${params.slug}`} className="text-sm text-slate-500 hover:text-slate-700 mb-6 block">
-          &larr; Back to site
+          {t('storage.book.backToSite')}
         </Link>
 
         <div className="flex items-center gap-2 mb-8">
@@ -141,7 +143,7 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
 
           {step === 'unit' && (
             <form onSubmit={handleUnitSubmit} className="space-y-6">
-              <h2 className="text-lg font-semibold text-slate-900">Choose your unit</h2>
+              <h2 className="text-lg font-semibold text-slate-900">{t('storage.book.unit.title')}</h2>
 
               {unitTypes.length > 0 ? (
                 <div className="space-y-3">
@@ -166,11 +168,11 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
                   ))}
                 </div>
               ) : (
-                <p className="text-slate-500 text-sm">No unit types available for this site.</p>
+                <p className="text-slate-500 text-sm">{t('storage.book.unit.noUnitTypes')}</p>
               )}
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Desired move-in date</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">{t('storage.book.unit.moveInDateLabel')}</label>
                 <input
                   type="date"
                   value={moveInDate}
@@ -186,46 +188,46 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
                 disabled={loading || !selectedUnitType}
                 className="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm"
               >
-                {loading ? 'Checking availability…' : 'Continue'}
+                {loading ? t('storage.book.unit.checking') : t('storage.book.unit.continue')}
               </button>
             </form>
           )}
 
           {step === 'contact' && (
             <form onSubmit={handleContactSubmit} className="space-y-5">
-              <h2 className="text-lg font-semibold text-slate-900">Your contact details</h2>
+              <h2 className="text-lg font-semibold text-slate-900">{t('storage.book.contact.title')}</h2>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Full name</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">{t('storage.book.contact.nameLabel')}</label>
                 <input
                   type="text"
                   value={contact.name}
                   onChange={(e) => setContact({ ...contact, name: e.target.value })}
-                  placeholder="Anna Müller"
+                  placeholder={t('storage.book.contact.namePlaceholder')}
                   className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Email address</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">{t('storage.book.contact.emailLabel')}</label>
                 <input
                   type="email"
                   value={contact.email}
                   onChange={(e) => setContact({ ...contact, email: e.target.value })}
-                  placeholder="anna@example.com"
+                  placeholder={t('storage.book.contact.emailPlaceholder')}
                   className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Phone number</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">{t('storage.book.contact.phoneLabel')}</label>
                 <input
                   type="tel"
                   value={contact.phone}
                   onChange={(e) => setContact({ ...contact, phone: e.target.value })}
-                  placeholder="+49 170 123 4567"
+                  placeholder={t('storage.book.contact.phonePlaceholder')}
                   className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
@@ -238,7 +240,7 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
                   onChange={(e) => setContact({ ...contact, marketingConsent: e.target.checked })}
                   className="mt-0.5"
                 />
-                <span className="text-sm text-slate-600">I agree to receive marketing communications (optional)</span>
+                <span className="text-sm text-slate-600">{t('storage.book.contact.marketingConsent')}</span>
               </label>
 
               <div className="flex gap-3">
@@ -247,14 +249,14 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
                   onClick={() => setStep('unit')}
                   className="flex-1 border border-slate-200 text-slate-700 font-medium py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-sm"
                 >
-                  Back
+                  {t('storage.book.contact.back')}
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
                   className="flex-1 bg-blue-600 text-white font-semibold py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm"
                 >
-                  {loading ? 'Confirming…' : 'Confirm booking'}
+                  {loading ? t('storage.book.contact.confirming') : t('storage.book.contact.confirmBooking')}
                 </button>
               </div>
             </form>
@@ -267,32 +269,32 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold text-slate-900">Booking confirmed!</h2>
+              <h2 className="text-xl font-semibold text-slate-900">{t('storage.book.confirm.title')}</h2>
               <p className="text-slate-500 text-sm">
-                A confirmation email has been sent to <strong>{contact.email}</strong>.
+                {t('storage.book.confirm.emailSentPrefix')} <strong>{contact.email}</strong>{t('storage.book.confirm.emailSentSuffix')}
               </p>
               <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 text-left text-sm space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Reservation ID</span>
+                  <span className="text-slate-500">{t('storage.book.confirm.reservationId')}</span>
                   <span className="font-mono text-xs text-slate-700">{result.reservationId}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Status</span>
+                  <span className="text-slate-500">{t('storage.book.confirm.status')}</span>
                   <span className="text-slate-700 capitalize">{result.status.replace('_', ' ')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Reserved until</span>
+                  <span className="text-slate-500">{t('storage.book.confirm.reservedUntil')}</span>
                   <span className="text-slate-700">{new Date(result.expiresAt).toLocaleDateString('de-DE')}</span>
                 </div>
               </div>
               <p className="text-xs text-slate-400">
-                The operator will be in touch to finalise your agreement and arrange access.
+                {t('storage.book.confirm.operatorContact')}
               </p>
               <Link
                 href={`/storage/${params.slug}`}
                 className="inline-block mt-2 text-blue-600 text-sm hover:underline"
               >
-                &larr; Back to site
+                {t('storage.book.confirm.backToSite')}
               </Link>
             </div>
           )}
