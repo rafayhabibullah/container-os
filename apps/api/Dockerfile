@@ -77,6 +77,10 @@ COPY --from=build --chown=nestjs:nodejs /monorepo/packages/i18n /packages/i18n
 # Copy the root workspace node_modules (includes .pnpm store + Prisma musl engine).
 COPY --from=build --chown=nestjs:nodejs /monorepo/node_modules ./node_modules
 
+# @sitelager/* symlinks live in apps/api/node_modules (not root node_modules) —
+# copy them in too so `require('@sitelager/domain-types')` resolves.
+COPY --from=build --chown=nestjs:nodejs /monorepo/apps/api/node_modules/@sitelager ./node_modules/@sitelager
+
 
 COPY --from=build --chown=nestjs:nodejs /monorepo/apps/api/dist ./dist
 COPY --from=build --chown=nestjs:nodejs /monorepo/apps/api/prisma ./prisma
