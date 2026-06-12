@@ -68,6 +68,12 @@ RUN addgroup -g 1001 nodejs && adduser -u 1001 -G nodejs -s /bin/sh -D nestjs
 
 WORKDIR /app
 
+# node_modules/@sitelager/* are symlinks to ../../../../packages/* (i.e. /packages/*
+# from /app/node_modules/@sitelager/). Copy the built shared packages to that
+# absolute path so the symlinks resolve at runtime.
+COPY --from=build --chown=nestjs:nodejs /monorepo/packages/domain-types /packages/domain-types
+COPY --from=build --chown=nestjs:nodejs /monorepo/packages/i18n /packages/i18n
+
 # Copy the root workspace node_modules (includes .pnpm store + Prisma musl engine).
 COPY --from=build --chown=nestjs:nodejs /monorepo/node_modules ./node_modules
 
