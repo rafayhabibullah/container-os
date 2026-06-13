@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { StripeAdapter } from './stripe.adapter';
+import { PAYMENT_ADAPTER, PaymentAdapter } from './payment-adapter.interface';
 import { LedgerService } from './ledger.service';
 import { DelinquencyService } from '../billing/delinquency.service';
 import { EventBusService } from '../../events/event-bus.service';
@@ -10,7 +11,14 @@ import Stripe from 'stripe';
 
 @Injectable()
 export class PaymentsService {
-  constructor(private prisma: PrismaClient, private stripe: StripeAdapter, private ledger: LedgerService, private delinquency: DelinquencyService, private eventBus: EventBusService) {}
+  constructor(
+    private prisma: PrismaClient,
+    @Inject(PAYMENT_ADAPTER) private paymentAdapter: PaymentAdapter,
+    private stripe: StripeAdapter,
+    private ledger: LedgerService,
+    private delinquency: DelinquencyService,
+    private eventBus: EventBusService,
+  ) {}
 
   async chargeInvoice(invoiceId: string) {
     const invoice = await this.prisma.invoice.findUniqueOrThrow({ where: { id: invoiceId }, include: { agreement: true } });
@@ -21,9 +29,9 @@ export class PaymentsService {
     const payment = await this.prisma.payment.create({ data: { invoiceId, method: mandate.scheme, amountMinor: invoice.totalMinor, reference } });
 
     try {
-      const result = await this.stripe.chargeInvoice({ invoiceId, amountMinor: invoice.totalMinor, currency: invoice.currency, customerId: mandate.stripeSetupId, paymentMethodId: mandate.stripeSetupId });
+      const result = await this.paymentAdapter.chargeInvoice({ invoiceId, amountMinor: invoice.totalMinor, currency: invoice.currency, customerId: mandate.stripeSetupId, paymentMethodId: mandate.stripeSetupId });
       const existing = await this.prisma.paymentAttempt.findFirst({ where: { providerRef: result.providerRef } });
-      if (!existing) await this.prisma.paymentAttempt.create({ data: { paymentId: payment.id, provider: 'stripe', status: result.status, providerRef: result.providerRef } });
+      if (!existing) await this.prisma.paymentAttempt.create({ data: { paymentId: payment.id, provider: process.env.PAYMENT_PROVIDER ?? 'mollie', status: result.status, providerRef: result.providerRef } });
 
       if (result.status === 'succeeded') {
         await this.ledger.postEntry({ type: 'invoice_payment', refType: 'Invoice', refId: invoiceId, debitAccount: '1200', creditAccount: '8400', amountMinor: invoice.totalMinor, siteId: invoice.siteId });

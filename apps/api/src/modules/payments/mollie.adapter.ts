@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { createMollieClient, MollieClient } from '@mollie/api-client';
+import { ChargeInvoiceParams, ChargeInvoiceResult, PaymentAdapter } from './payment-adapter.interface';
 
 interface CreatePaymentLinkParams {
   invoiceId: string;
@@ -10,7 +11,7 @@ interface CreatePaymentLinkParams {
 }
 
 @Injectable()
-export class MollieAdapter {
+export class MollieAdapter implements PaymentAdapter {
   protected client: MollieClient;
 
   constructor() {
@@ -27,6 +28,24 @@ export class MollieAdapter {
     });
     const checkoutUrl = (payment as any)._links?.checkout?.href ?? '';
     return { checkoutUrl, molliePaymentId: payment.id };
+  }
+
+  /**
+   * Mollie is redirect-based (no server-side charge against a stored
+   * payment method id). To satisfy the common PaymentAdapter interface,
+   * this creates a payment link and returns the Mollie payment id as the
+   * provider reference; the actual status transition arrives via the
+   * Mollie webhook (see MollieWebhookController).
+   */
+  async chargeInvoice(params: ChargeInvoiceParams): Promise<ChargeInvoiceResult> {
+    const { molliePaymentId } = await this.createPaymentLink({
+      invoiceId: params.invoiceId,
+      amountMinor: params.amountMinor,
+      currency: params.currency,
+      description: `Invoice ${params.invoiceId}`,
+      redirectUrl: process.env.MOLLIE_REDIRECT_URL ?? 'https://app.sitelager.de/payments/return',
+    });
+    return { providerRef: molliePaymentId, status: 'pending' };
   }
 
   async getPaymentStatus(molliePaymentId: string): Promise<string> {

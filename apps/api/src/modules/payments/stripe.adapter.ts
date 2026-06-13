@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import Stripe from 'stripe';
+import { ChargeInvoiceParams, ChargeInvoiceResult, PaymentAdapter } from './payment-adapter.interface';
 
 @Injectable()
-export class StripeAdapter {
+export class StripeAdapter implements PaymentAdapter {
   protected stripe: Stripe;
 
   constructor() {
@@ -14,7 +15,7 @@ export class StripeAdapter {
     return { setupIntentId: intent.id, clientSecret: intent.client_secret };
   }
 
-  async chargeInvoice(params: { invoiceId: string; amountMinor: number; currency: string; customerId: string; paymentMethodId: string }) {
+  async chargeInvoice(params: ChargeInvoiceParams): Promise<ChargeInvoiceResult> {
     const pi = await this.stripe.paymentIntents.create({ amount: params.amountMinor, currency: params.currency.toLowerCase(), customer: params.customerId, payment_method: params.paymentMethodId, confirm: true, metadata: { invoiceId: params.invoiceId }, automatic_payment_methods: { enabled: false } });
     return { providerRef: pi.id, status: this.mapStatus(pi.status) };
   }
