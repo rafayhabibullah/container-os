@@ -421,7 +421,9 @@
       "incidents": "Vorfälle",
       "reports": "Berichte",
       "team": "Team",
-      "billing": "SiteLager Abrechnung"
+      "billing": "SiteLager Abrechnung",
+      "settings": "Einstellungen",
+      "logout": "Abmelden"
     },
     "sites": {
       "list": {

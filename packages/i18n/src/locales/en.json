@@ -421,7 +421,9 @@
       "incidents": "Incidents",
       "reports": "Reports",
       "team": "Team",
-      "billing": "SiteLager Billing"
+      "billing": "SiteLager Billing",
+      "settings": "Settings",
+      "logout": "Log out"
     },
     "sites": {
       "list": {
