@@ -581,14 +581,29 @@ model Transfer {
 }
 
 model Document {
-  id          String   @id @default(cuid())
-  subjectType String
-  subjectId   String
-  kind        String
-  storageKey  String
-  hash        String
-  locale      String?
-  createdAt   DateTime @default(now())
+  id                String   @id @default(cuid())
+  subjectType       String
+  subjectId         String
+  kind              String
+  storageKey        String
+  hash              String
+  locale            String?
+  version           Int      @default(1)
+  previousVersionId String?
+  previousVersion   Document?  @relation("DocumentVersions", fields: [previousVersionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  nextVersions      Document[] @relation("DocumentVersions")
+  scanStatus        String   @default("pending")
+  accessLogs        DocumentAccessLog[]
+  createdAt         DateTime @default(now())
+}
+
+model DocumentAccessLog {
+  id         String   @id @default(cuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id])
+  actorId    String
+  action     String
+  createdAt  DateTime @default(now())
 }
 
 model DocumentTemplate {

@@ -30,6 +30,15 @@ export class DocumentsController {
   @UseGuards(JwtAuthGuard)
   getDocuments(@CurrentUser() user: AuthenticatedUser) { return this.documents.getTenantDocuments(user.id); }
 
+  @Get('tenant/v1/documents/:documentId/download')
+  @UseGuards(JwtAuthGuard)
+  async downloadDocument(@Param('documentId') documentId: string, @CurrentUser() user: AuthenticatedUser) {
+    const doc = await this.prisma.document.findUniqueOrThrow({ where: { id: documentId } });
+    await this.documents.logAccess(documentId, user.id, 'download');
+    const downloadUrl = await this.documents.getDownloadUrl(doc.storageKey);
+    return { downloadUrl };
+  }
+
   @Get('v1/organisations/:organisationId/documents')
   @UseGuards(JwtAuthGuard, OrganisationGuard)
   @ApiOperation({ summary: 'List documents for all sites in organisation' })

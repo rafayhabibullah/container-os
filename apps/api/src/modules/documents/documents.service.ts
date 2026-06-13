@@ -1,18 +1,39 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import * as crypto from 'crypto';
 import { StorageService } from './storage.service';
 import { EvidencePackService } from './evidence-pack.service';
 import { AuditService } from '../audit/audit.service';
+import { DocumentScanService } from './document-scan.service';
 
 @Injectable()
 export class DocumentsService {
-  constructor(private prisma: PrismaClient, private storage: StorageService, private evidencePack: EvidencePackService, private audit: AuditService) {}
+  constructor(
+    private prisma: PrismaClient,
+    private storage: StorageService,
+    private evidencePack: EvidencePackService,
+    private audit: AuditService,
+    private documentScan: DocumentScanService,
+  ) {}
 
-  async initiateUpload(customerId: string, kind: string, fileName: string, locale?: string) {
+  async initiateUpload(customerId: string, kind: string, fileName: string, locale?: string, buffer?: Buffer) {
     const storageKey = `documents/${customerId}/${Date.now()}/${fileName}`;
-    const doc = await this.prisma.document.create({ data: { subjectType: 'Customer', subjectId: customerId, kind, storageKey, hash: 'pending', locale } });
+    const fileBuffer = buffer ?? Buffer.alloc(0);
+    const hash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+    const scanResult = await this.documentScan.scan(fileBuffer);
+    const doc = await this.prisma.document.create({
+      data: { subjectType: 'Customer', subjectId: customerId, kind, storageKey, hash, locale, version: 1, scanStatus: scanResult },
+    });
     const uploadUrl = await this.storage.getSignedUrl(storageKey, 900);
     return { documentId: doc.id, uploadUrl, status: 'awaiting_upload' };
+  }
+
+  async getDownloadUrl(storageKey: string) {
+    return this.storage.getSignedUrl(storageKey, 900);
+  }
+
+  async logAccess(documentId: string, actorId: string, action: string) {
+    return this.prisma.documentAccessLog.create({ data: { documentId, actorId, action } });
   }
 
   async createSignatureEnvelope(documentId: string) {
