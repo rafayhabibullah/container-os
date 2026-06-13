@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useT } from '@/lib/i18n';
 
 interface ChecklistItem { code: string; label: string; result: string; note?: string; }
 
@@ -19,26 +20,16 @@ interface InspectionRow {
   createdAt: string;
 }
 
-const RESULT: Record<string, { dot: string; text: string; bg: string; border: string; label: string }> = {
-  pass: { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', label: 'Pass'        },
-  fail: { dot: '#dc2626', text: '#b91c1c', bg: '#fef2f2', border: '#fecaca', label: 'Fail'        },
-  none: { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd', label: 'In progress' },
+const RESULT: Record<string, { dot: string; text: string; bg: string; border: string; key: string }> = {
+  pass: { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', key: 'pass' },
+  fail: { dot: '#dc2626', text: '#b91c1c', bg: '#fef2f2', border: '#fecaca', key: 'fail' },
+  none: { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd', key: 'none' },
 };
 
-const KIND_LABEL: Record<string, string> = {
-  move_in:  'Move in',
-  move_out: 'Move out',
-  routine:  'Routine',
-};
-
-const FILTERS = [
-  { key: 'all',         label: 'All'         },
-  { key: 'pass',        label: 'Pass'        },
-  { key: 'fail',        label: 'Fail'        },
-  { key: 'in_progress', label: 'In progress' },
-] as const;
+const FILTER_KEYS = ['all', 'pass', 'fail', 'in_progress'] as const;
 
 export default function InspectionsTable({ inspections, onContinue }: { inspections: InspectionRow[]; onContinue: (inspection: InspectionRow) => void }) {
+  const t = useT();
   const [query,        setQuery]        = useState('');
   const [resultFilter, setResultFilter] = useState<string>('all');
 
@@ -85,13 +76,13 @@ export default function InspectionsTable({ inspections, onContinue }: { inspecti
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 20px', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap' }}>
           {/* Filter tabs */}
           <div style={{ display: 'flex', gap: '2px' }}>
-            {FILTERS.map((f) => {
-              const active = resultFilter === f.key;
-              const count  = filterCount(f.key);
+            {FILTER_KEYS.map((key) => {
+              const active = resultFilter === key;
+              const count  = filterCount(key);
               return (
                 <button
-                  key={f.key}
-                  onClick={() => setResultFilter(f.key)}
+                  key={key}
+                  onClick={() => setResultFilter(key)}
                   className="insp-filter-btn"
                   style={{
                     padding: '6px 12px', borderRadius: '6px', border: 'none',
@@ -102,7 +93,7 @@ export default function InspectionsTable({ inspections, onContinue }: { inspecti
                     display: 'flex', alignItems: 'center', gap: '5px',
                   }}
                 >
-                  {f.label}
+                  {t(`dashboard.inspections.filters.${key}`)}
                   <span style={{
                     background: active ? '#e2e8f0' : '#f8fafc',
                     color: active ? '#475569' : '#cbd5e1',
@@ -136,7 +127,7 @@ export default function InspectionsTable({ inspections, onContinue }: { inspecti
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search inspections…"
+              placeholder={t('dashboard.inspections.searchPlaceholder')}
               style={{
                 flex: 1, background: 'transparent', border: 'none', outline: 'none',
                 color: '#0f172a', fontSize: '13px',
@@ -158,17 +149,27 @@ export default function InspectionsTable({ inspections, onContinue }: { inspecti
               </svg>
             </div>
             <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>
-              {inspections.length === 0 ? 'No inspections recorded' : 'No results found'}
+              {inspections.length === 0 ? t('dashboard.inspections.empty.noInspections') : t('dashboard.inspections.empty.noResults')}
             </p>
             <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: 0 }}>
-              {inspections.length === 0 ? 'Start a new inspection to track unit conditions.' : 'Try adjusting your search or filter.'}
+              {inspections.length === 0 ? t('dashboard.inspections.empty.startNew') : t('dashboard.inspections.empty.adjustFilter')}
             </p>
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                {['Site', 'Unit', 'Kind', 'Result', 'Checklist', 'Deposit', 'Completed', 'Created', ''].map((h, i) => (
+                {[
+                  t('dashboard.inspections.table.site'),
+                  t('dashboard.inspections.table.unit'),
+                  t('dashboard.inspections.table.kind'),
+                  t('dashboard.inspections.table.result'),
+                  t('dashboard.inspections.table.checklist'),
+                  t('dashboard.inspections.table.deposit'),
+                  t('dashboard.inspections.table.completed'),
+                  t('dashboard.inspections.table.created'),
+                  '',
+                ].map((h, i) => (
                   <th key={i} style={{
                     textAlign: 'left', padding: '10px 16px',
                     fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -209,7 +210,7 @@ export default function InspectionsTable({ inspections, onContinue }: { inspecti
                     {/* Kind */}
                     <td style={{ padding: '12px 16px' }}>
                       <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>
-                        {KIND_LABEL[insp.kind] ?? insp.kind}
+                        {['move_in', 'move_out', 'routine'].includes(insp.kind) ? t(`dashboard.inspections.kind.${insp.kind}`) : insp.kind}
                       </span>
                     </td>
 
@@ -224,7 +225,7 @@ export default function InspectionsTable({ inspections, onContinue }: { inspecti
                         fontFamily: "'Plus Jakarta Sans', sans-serif",
                       }}>
                         <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: res.dot, display: 'inline-block' }} />
-                        {res.label}
+                        {t(`dashboard.inspections.result.${res.key}`)}
                       </span>
                     </td>
 
@@ -285,7 +286,7 @@ export default function InspectionsTable({ inspections, onContinue }: { inspecti
                             cursor: 'pointer',
                           }}
                         >
-                          Continue
+                          {t('dashboard.inspections.table.continue')}
                         </button>
                       )}
                     </td>

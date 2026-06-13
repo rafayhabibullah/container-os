@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
+import { getT } from '@/lib/get-locale';
 import IncidentActions from './IncidentActions';
 import IncidentsTable from './IncidentsTable';
 
@@ -22,6 +23,7 @@ interface Site {
 
 export default async function IncidentsPage() {
   const user = await requireAuth();
+  const t = getT();
   const [incidents, sites] = await Promise.all([
     serverFetch<Incident[]>(`/v1/organisations/${user.organisationId}/incidents`).catch(() => [] as Incident[]),
     serverFetch<Site[]>(`/v1/organisations/${user.organisationId}/sites`).catch(() => [] as Site[]),
@@ -63,7 +65,7 @@ export default async function IncidentsPage() {
                 margin: '0 0 10px',
                 letterSpacing: '-0.02em',
               }}>
-                Incidents
+                {t('dashboard.incidents.title')}
               </h1>
 
               {/* Stat chips */}
@@ -77,7 +79,7 @@ export default async function IncidentsPage() {
                     fontSize: '12px', fontWeight: 600,
                   }}>
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#dc2626', display: 'inline-block' }} />
-                    {critical} critical
+                    {t('dashboard.incidents.critical', { count: String(critical) })}
                   </span>
                 )}
                 {open > 0 && (
@@ -88,7 +90,7 @@ export default async function IncidentsPage() {
                     borderRadius: '20px', padding: '3px 10px',
                     fontSize: '12px', fontWeight: 600,
                   }}>
-                    {open} open
+                    {t('dashboard.incidents.open', { count: String(open) })}
                   </span>
                 )}
                 {resolvedCount > 0 && (
@@ -99,7 +101,7 @@ export default async function IncidentsPage() {
                     borderRadius: '20px', padding: '3px 10px',
                     fontSize: '12px', fontWeight: 600,
                   }}>
-                    {resolvedCount} resolved
+                    {t('dashboard.incidents.resolved', { count: String(resolvedCount) })}
                   </span>
                 )}
                 {incidents.length === 0 && (
@@ -110,7 +112,7 @@ export default async function IncidentsPage() {
                     borderRadius: '20px', padding: '3px 10px',
                     fontSize: '12px', fontWeight: 600,
                   }}>
-                    All clear
+                    {t('dashboard.incidents.allClear')}
                   </span>
                 )}
               </div>

@@ -983,6 +983,315 @@
         "creating": "Wird erstellt…",
         "newListing": "Neues Angebot"
       }
+    },
+    "tasks": {
+      "title": "Aufgaben",
+      "overdue": "{{count}} überfällig",
+      "open": "{{count}} offen",
+      "inProgress": "{{count}} in Bearbeitung",
+      "blocked": "{{count}} blockiert",
+      "completed": "{{count}} abgeschlossen",
+      "noTasksYet": "Noch keine Aufgaben",
+      "newTask": "Neue Aufgabe",
+      "status": {
+        "open": "Offen",
+        "in_progress": "In Bearbeitung",
+        "blocked": "Blockiert",
+        "completed": "Abgeschlossen",
+        "cancelled": "Abgebrochen"
+      },
+      "filters": {
+        "all": "Alle",
+        "open": "Offen",
+        "in_progress": "In Bearbeitung",
+        "blocked": "Blockiert",
+        "completed": "Abgeschlossen",
+        "cancelled": "Abgebrochen"
+      },
+      "type": {
+        "move_in": "Einzug",
+        "move_out": "Auszug",
+        "inspect_unit": "Einheit prüfen",
+        "clean_unit": "Einheit reinigen",
+        "repair_unit": "Einheit reparieren",
+        "verify_document": "Dokument prüfen",
+        "approve_booking": "Buchung genehmigen",
+        "call_tenant": "Mieter anrufen",
+        "collect_payment": "Zahlung einziehen",
+        "assign_access": "Zugang zuweisen",
+        "upload_contract": "Vertrag hochladen",
+        "other": "Sonstiges"
+      },
+      "priority": {
+        "low": "Niedrig",
+        "normal": "Normal",
+        "high": "Hoch",
+        "urgent": "Dringend"
+      },
+      "transitionLabel": {
+        "in_progress": "Starten",
+        "completed": "Abschließen",
+        "blocked": "Blockieren",
+        "cancelled": "Abbrechen"
+      },
+      "searchPlaceholder": "Aufgaben suchen…",
+      "table": {
+        "site": "Standort",
+        "title": "Titel",
+        "type": "Typ",
+        "priority": "Priorität",
+        "assignee": "Zuständig",
+        "status": "Status",
+        "due": "Fällig"
+      },
+      "empty": {
+        "noTasks": "Noch keine Aufgaben",
+        "noResults": "Keine Ergebnisse gefunden",
+        "createFirst": "Erstellen Sie Ihre erste Aufgabe, um zu starten.",
+        "adjustFilter": "Passen Sie Ihre Suche oder Filter an."
+      },
+      "detail": {
+        "status": "Status",
+        "dueDate": "Fälligkeitsdatum",
+        "assignee": "Zuständig",
+        "site": "Standort",
+        "linkedRecords": "Verknüpfte Datensätze",
+        "unit": "Einheit",
+        "tenant": "Mieter",
+        "booking": "Buchung",
+        "notes": "Notizen",
+        "notesPlaceholder": "Notizen hinzufügen…",
+        "saveNotes": "Notizen speichern",
+        "saving": "Speichern…",
+        "moveTo": "Verschieben nach",
+        "moveArrow": "→ {{status}}",
+        "failed": "Fehlgeschlagen"
+      },
+      "create": {
+        "heading": "Neue Aufgabe",
+        "subheading": "Weisen Sie einem Ihrer Standorte eine Aufgabe zu",
+        "site": "STANDORT",
+        "selectSite": "Standort auswählen…",
+        "taskTitle": "AUFGABENTITEL",
+        "taskTitlePlaceholder": "z. B. Einheit 12 prüfen, Tor reparieren…",
+        "type": "TYP",
+        "optional": "(optional)",
+        "noneOption": "— keine —",
+        "priority": "PRIORITÄT",
+        "assignee": "ZUSTÄNDIG",
+        "unassigned": "— nicht zugewiesen —",
+        "notes": "NOTIZEN",
+        "notesPlaceholder": "Zusätzliche Details…",
+        "unitId": "EINHEITEN-ID",
+        "tenantId": "MIETER-ID",
+        "bookingId": "BUCHUNGS-ID",
+        "optShort": "(opt.)",
+        "unitIdPlaceholder": "Einheiten-ID…",
+        "tenantIdPlaceholder": "Mieter-ID…",
+        "bookingIdPlaceholder": "Buchungs-ID…",
+        "dueDate": "FÄLLIGKEITSDATUM",
+        "cancel": "Abbrechen",
+        "creating": "Wird erstellt…",
+        "submit": "Aufgabe erstellen",
+        "failed": "Fehlgeschlagen"
+      }
+    },
+    "incidents": {
+      "title": "Vorfälle",
+      "critical": "{{count}} kritisch",
+      "open": "{{count}} offen",
+      "resolved": "{{count}} gelöst",
+      "allClear": "Alles in Ordnung",
+      "reportIncident": "Vorfall melden",
+      "status": {
+        "open": "Offen",
+        "investigating": "In Prüfung",
+        "resolved": "Gelöst"
+      },
+      "severity": {
+        "critical": "Kritisch",
+        "high": "Hoch",
+        "medium": "Mittel",
+        "low": "Niedrig"
+      },
+      "filters": {
+        "all": "Alle",
+        "open": "Offen",
+        "investigating": "In Prüfung",
+        "resolved": "Gelöst"
+      },
+      "timeAgo": {
+        "minutes": "vor {{count}} Min.",
+        "hours": "vor {{count}} Std.",
+        "yesterday": "Gestern",
+        "days": "vor {{count}} Tagen"
+      },
+      "searchPlaceholder": "Vorfälle suchen…",
+      "table": {
+        "severity": "Schweregrad",
+        "incident": "Vorfall",
+        "site": "Standort",
+        "unit": "Einheit",
+        "status": "Status",
+        "reported": "Gemeldet"
+      },
+      "empty": {
+        "noIncidents": "Keine Vorfälle gemeldet",
+        "noResults": "Keine Ergebnisse gefunden",
+        "willAppear": "Gemeldete Vorfälle werden hier angezeigt.",
+        "adjustFilter": "Passen Sie Ihre Suche oder Filter an."
+      },
+      "detail": {
+        "incidentId": "Vorfall-ID",
+        "site": "Standort",
+        "unit": "Einheit",
+        "reported": "Gemeldet",
+        "reportedBy": "Gemeldet von",
+        "actions": "Aktionen"
+      },
+      "actionLabel": {
+        "investigating": "Prüfen",
+        "resolved": "Lösen"
+      },
+      "report": {
+        "heading": "Vorfall melden",
+        "subheading": "Erfassen Sie ein neues Problem an einem Ihrer Standorte",
+        "site": "STANDORT",
+        "selectSite": "Standort auswählen…",
+        "unit": "EINHEIT",
+        "optional": "(optional)",
+        "loadingUnits": "Wird geladen…",
+        "selectSiteFirst": "Zuerst Standort wählen",
+        "allUnits": "Alle Einheiten / nicht einheitenspezifisch",
+        "description": "BESCHREIBUNG",
+        "descriptionPlaceholder": "z. B. Tor defekt, Wassereinbruch…",
+        "severity": "SCHWEREGRAD",
+        "severityLow": "Niedrig — geringes Problem, keine Dringlichkeit",
+        "severityMedium": "Mittel — sollte bald bearbeitet werden",
+        "severityHigh": "Hoch — dringend, heute bearbeiten",
+        "severityCritical": "Kritisch — sofortige Reaktion erforderlich",
+        "cancel": "Abbrechen",
+        "submitting": "Wird gesendet…",
+        "submit": "Meldung absenden",
+        "failed": "Fehlgeschlagen"
+      }
+    },
+    "inspections": {
+      "title": "Inspektionen",
+      "failed": "{{count}} fehlgeschlagen",
+      "inProgress": "{{count}} in Bearbeitung",
+      "passed": "{{count}} bestanden",
+      "noneYet": "Noch keine Inspektionen",
+      "newInspection": "Neue Inspektion",
+      "result": {
+        "pass": "Bestanden",
+        "fail": "Fehlgeschlagen",
+        "none": "In Bearbeitung"
+      },
+      "kind": {
+        "move_in": "Einzug",
+        "move_out": "Auszug",
+        "routine": "Routine"
+      },
+      "filters": {
+        "all": "Alle",
+        "pass": "Bestanden",
+        "fail": "Fehlgeschlagen",
+        "in_progress": "In Bearbeitung"
+      },
+      "searchPlaceholder": "Inspektionen suchen…",
+      "table": {
+        "site": "Standort",
+        "unit": "Einheit",
+        "kind": "Art",
+        "result": "Ergebnis",
+        "checklist": "Checkliste",
+        "deposit": "Kaution",
+        "completed": "Abgeschlossen",
+        "created": "Erstellt",
+        "continue": "Fortsetzen"
+      },
+      "empty": {
+        "noInspections": "Keine Inspektionen erfasst",
+        "noResults": "Keine Ergebnisse gefunden",
+        "startNew": "Starten Sie eine neue Inspektion, um den Zustand der Einheiten zu erfassen.",
+        "adjustFilter": "Passen Sie Ihre Suche oder Filter an."
+      },
+      "checklist": {
+        "PHOTOS_UPLOADED": "Fotos hochgeladen",
+        "UNIT_CLEAN": "Einheit sauber",
+        "DOOR_WORKING": "Tür funktionsfähig",
+        "LOCK_WORKING": "Schloss funktionsfähig",
+        "FLOOR_OK": "Bodenzustand OK",
+        "WALLS_OK": "Wandzustand OK",
+        "NO_DAMP": "Keine Anzeichen von Feuchtigkeit/Wasser",
+        "NO_DAMAGE": "Keine vorhandenen Schäden",
+        "TENANT_CONFIRM": "Bestätigung des Mieters (optional)",
+        "UNIT_EMPTY": "Einheit leer",
+        "NO_NEW_DAMAGE": "Keine neuen Schäden",
+        "CLEANING_REQUIRED": "Reinigung erforderlich",
+        "REPAIR_REQUIRED": "Reparatur erforderlich",
+        "DEPOSIT_ASSESSED": "Kautionsabzug bewertet",
+        "RETURN_STATUS": "Einheit auf verfügbar/Wartung setzen",
+        "NO_DAMAGE_OBSERVED": "Keine Schäden festgestellt"
+      },
+      "form": {
+        "heading": "Neue Inspektion",
+        "subheading": "Zustand der Einheit mit strukturierter Checkliste erfassen",
+        "site": "STANDORT",
+        "selectSite": "Standort auswählen…",
+        "unit": "EINHEIT",
+        "loadingUnits": "Einheiten werden geladen…",
+        "selectSiteFirst": "Zuerst Standort wählen",
+        "selectUnit": "Einheit auswählen…",
+        "type": "INSPEKTIONSART",
+        "typeMoveIn": "Einzug",
+        "typeMoveOut": "Auszug",
+        "typeRoutine": "Routine",
+        "contract": "VERTRAG",
+        "optional": "(optional)",
+        "loadingContracts": "Verträge werden geladen…",
+        "noContracts": "Keine aktiven Verträge für diese Einheit",
+        "selectContract": "Vertrag auswählen…",
+        "fromDate": "· seit {{date}}",
+        "checklist": "CHECKLISTE",
+        "passFailPending": "{{pass}} bestanden · {{fail}} fehlgeschlagen · {{pending}} offen",
+        "notePlaceholder": "Grund oder Details vermerken…",
+        "overallResult": "Gesamtergebnis: {{result}}",
+        "resultFail": "Fehlgeschlagen ({{count}} Punkt)",
+        "resultPass": "Bestanden — alle Punkte OK",
+        "photos": "FOTOS",
+        "addPhotos": "+ Fotos hinzufügen",
+        "clickToAddPhotos": "Zum Hinzufügen von Fotos klicken",
+        "uploading": "wird hochgeladen…",
+        "notes": "NOTIZEN",
+        "notesPlaceholder": "Weitere Beobachtungen oder Anmerkungen…",
+        "depositDeduction": "KAUTIONSABZUG",
+        "optionalEuro": "(optional, €)",
+        "depositNote": "€{{amount}} wird für den Kautionsabzug vermerkt",
+        "cancel": "Abbrechen",
+        "saving": "Wird gespeichert…",
+        "submit": "Inspektion speichern",
+        "failed": "Fehlgeschlagen",
+        "waitForPhotos": "Bitte warten Sie, bis alle Fotos hochgeladen sind.",
+        "resultBtnPass": "Bestanden",
+        "resultBtnFail": "Fehlgeschlagen",
+        "resultBtnNA": "N/V",
+        "naLabel": "N/V",
+        "resultFailPlural": "Fehlgeschlagen ({{count}} Punkte)"
+      },
+      "complete": {
+        "heading": "Inspektion abschließen",
+        "subheading": "Füllen Sie die Checkliste aus, um diese Inspektion abzuschließen",
+        "site": "STANDORT",
+        "unit": "EINHEIT",
+        "type": "ART",
+        "checklist": "CHECKLISTE",
+        "photosAttached": "{{count}} Foto bereits angehängt",
+        "addMorePhotos": "Klicken, um weitere Fotos hinzuzufügen",
+        "complete": "Inspektion abschließen",
+        "photosAttachedPlural": "{{count}} Fotos bereits angehängt"
+      }
     }
   }
 }

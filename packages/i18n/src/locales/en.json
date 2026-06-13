@@ -983,6 +983,315 @@
         "creating": "Creating…",
         "newListing": "New listing"
       }
+    },
+    "tasks": {
+      "title": "Tasks",
+      "overdue": "{{count}} overdue",
+      "open": "{{count}} open",
+      "inProgress": "{{count}} in progress",
+      "blocked": "{{count}} blocked",
+      "completed": "{{count}} completed",
+      "noTasksYet": "No tasks yet",
+      "newTask": "New task",
+      "status": {
+        "open": "Open",
+        "in_progress": "In progress",
+        "blocked": "Blocked",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "filters": {
+        "all": "All",
+        "open": "Open",
+        "in_progress": "In progress",
+        "blocked": "Blocked",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      },
+      "type": {
+        "move_in": "Move-in",
+        "move_out": "Move-out",
+        "inspect_unit": "Inspect unit",
+        "clean_unit": "Clean unit",
+        "repair_unit": "Repair unit",
+        "verify_document": "Verify document",
+        "approve_booking": "Approve booking",
+        "call_tenant": "Call tenant",
+        "collect_payment": "Collect payment",
+        "assign_access": "Assign access",
+        "upload_contract": "Upload contract",
+        "other": "Other"
+      },
+      "priority": {
+        "low": "Low",
+        "normal": "Normal",
+        "high": "High",
+        "urgent": "Urgent"
+      },
+      "transitionLabel": {
+        "in_progress": "Start",
+        "completed": "Complete",
+        "blocked": "Block",
+        "cancelled": "Cancel"
+      },
+      "searchPlaceholder": "Search tasks…",
+      "table": {
+        "site": "Site",
+        "title": "Title",
+        "type": "Type",
+        "priority": "Priority",
+        "assignee": "Assignee",
+        "status": "Status",
+        "due": "Due"
+      },
+      "empty": {
+        "noTasks": "No tasks yet",
+        "noResults": "No results found",
+        "createFirst": "Create your first task to get started.",
+        "adjustFilter": "Try adjusting your search or filter."
+      },
+      "detail": {
+        "status": "Status",
+        "dueDate": "Due date",
+        "assignee": "Assignee",
+        "site": "Site",
+        "linkedRecords": "Linked records",
+        "unit": "Unit",
+        "tenant": "Tenant",
+        "booking": "Booking",
+        "notes": "Notes",
+        "notesPlaceholder": "Add notes…",
+        "saveNotes": "Save notes",
+        "saving": "Saving…",
+        "moveTo": "Move to",
+        "moveArrow": "→ {{status}}",
+        "failed": "Failed"
+      },
+      "create": {
+        "heading": "New task",
+        "subheading": "Assign a task to one of your sites",
+        "site": "SITE",
+        "selectSite": "Select a site…",
+        "taskTitle": "TASK TITLE",
+        "taskTitlePlaceholder": "e.g. Inspect unit 12, fix gate lock…",
+        "type": "TYPE",
+        "optional": "(optional)",
+        "noneOption": "— none —",
+        "priority": "PRIORITY",
+        "assignee": "ASSIGNEE",
+        "unassigned": "— unassigned —",
+        "notes": "NOTES",
+        "notesPlaceholder": "Additional details…",
+        "unitId": "UNIT ID",
+        "tenantId": "TENANT ID",
+        "bookingId": "BOOKING ID",
+        "optShort": "(opt)",
+        "unitIdPlaceholder": "unit ID…",
+        "tenantIdPlaceholder": "tenant ID…",
+        "bookingIdPlaceholder": "booking ID…",
+        "dueDate": "DUE DATE",
+        "cancel": "Cancel",
+        "creating": "Creating…",
+        "submit": "Create task",
+        "failed": "Failed"
+      }
+    },
+    "incidents": {
+      "title": "Incidents",
+      "critical": "{{count}} critical",
+      "open": "{{count}} open",
+      "resolved": "{{count}} resolved",
+      "allClear": "All clear",
+      "reportIncident": "Report incident",
+      "status": {
+        "open": "Open",
+        "investigating": "Investigating",
+        "resolved": "Resolved"
+      },
+      "severity": {
+        "critical": "Critical",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "filters": {
+        "all": "All",
+        "open": "Open",
+        "investigating": "Investigating",
+        "resolved": "Resolved"
+      },
+      "timeAgo": {
+        "minutes": "{{count}}m ago",
+        "hours": "{{count}}h ago",
+        "yesterday": "Yesterday",
+        "days": "{{count}}d ago"
+      },
+      "searchPlaceholder": "Search incidents…",
+      "table": {
+        "severity": "Severity",
+        "incident": "Incident",
+        "site": "Site",
+        "unit": "Unit",
+        "status": "Status",
+        "reported": "Reported"
+      },
+      "empty": {
+        "noIncidents": "No incidents reported",
+        "noResults": "No results found",
+        "willAppear": "When incidents are reported, they will appear here.",
+        "adjustFilter": "Try adjusting your search or filter."
+      },
+      "detail": {
+        "incidentId": "Incident ID",
+        "site": "Site",
+        "unit": "Unit",
+        "reported": "Reported",
+        "reportedBy": "Reported by",
+        "actions": "Actions"
+      },
+      "actionLabel": {
+        "investigating": "Investigate",
+        "resolved": "Resolve"
+      },
+      "report": {
+        "heading": "Report an incident",
+        "subheading": "Log a new issue at one of your sites",
+        "site": "SITE",
+        "selectSite": "Select a site…",
+        "unit": "UNIT",
+        "optional": "(optional)",
+        "loadingUnits": "Loading…",
+        "selectSiteFirst": "Select a site first",
+        "allUnits": "All units / not unit-specific",
+        "description": "DESCRIPTION",
+        "descriptionPlaceholder": "e.g. Gate malfunction, water leak…",
+        "severity": "SEVERITY",
+        "severityLow": "Low — minor issue, no urgency",
+        "severityMedium": "Medium — needs attention soon",
+        "severityHigh": "High — urgent, act today",
+        "severityCritical": "Critical — immediate response needed",
+        "cancel": "Cancel",
+        "submitting": "Submitting…",
+        "submit": "Submit report",
+        "failed": "Failed"
+      }
+    },
+    "inspections": {
+      "title": "Inspections",
+      "failed": "{{count}} failed",
+      "inProgress": "{{count}} in progress",
+      "passed": "{{count}} passed",
+      "noneYet": "No inspections yet",
+      "newInspection": "New inspection",
+      "result": {
+        "pass": "Pass",
+        "fail": "Fail",
+        "none": "In progress"
+      },
+      "kind": {
+        "move_in": "Move in",
+        "move_out": "Move out",
+        "routine": "Routine"
+      },
+      "filters": {
+        "all": "All",
+        "pass": "Pass",
+        "fail": "Fail",
+        "in_progress": "In progress"
+      },
+      "searchPlaceholder": "Search inspections…",
+      "table": {
+        "site": "Site",
+        "unit": "Unit",
+        "kind": "Kind",
+        "result": "Result",
+        "checklist": "Checklist",
+        "deposit": "Deposit",
+        "completed": "Completed",
+        "created": "Created",
+        "continue": "Continue"
+      },
+      "empty": {
+        "noInspections": "No inspections recorded",
+        "noResults": "No results found",
+        "startNew": "Start a new inspection to track unit conditions.",
+        "adjustFilter": "Try adjusting your search or filter."
+      },
+      "checklist": {
+        "PHOTOS_UPLOADED": "Photos uploaded",
+        "UNIT_CLEAN": "Unit clean",
+        "DOOR_WORKING": "Door working",
+        "LOCK_WORKING": "Lock working",
+        "FLOOR_OK": "Floor condition OK",
+        "WALLS_OK": "Wall condition OK",
+        "NO_DAMP": "No water / damp signs",
+        "NO_DAMAGE": "No existing damage",
+        "TENANT_CONFIRM": "Tenant confirmation (optional)",
+        "UNIT_EMPTY": "Unit empty",
+        "NO_NEW_DAMAGE": "No new damage",
+        "CLEANING_REQUIRED": "Cleaning required",
+        "REPAIR_REQUIRED": "Repair required",
+        "DEPOSIT_ASSESSED": "Deposit deduction assessed",
+        "RETURN_STATUS": "Return unit to available / maintenance",
+        "NO_DAMAGE_OBSERVED": "No damage observed"
+      },
+      "form": {
+        "heading": "New inspection",
+        "subheading": "Record unit condition with structured checklist",
+        "site": "SITE",
+        "selectSite": "Select a site…",
+        "unit": "UNIT",
+        "loadingUnits": "Loading units…",
+        "selectSiteFirst": "Select a site first",
+        "selectUnit": "Select a unit…",
+        "type": "INSPECTION TYPE",
+        "typeMoveIn": "Move in",
+        "typeMoveOut": "Move out",
+        "typeRoutine": "Routine",
+        "contract": "CONTRACT",
+        "optional": "(optional)",
+        "loadingContracts": "Loading contracts…",
+        "noContracts": "No active contracts for this unit",
+        "selectContract": "Select a contract…",
+        "fromDate": "· from {{date}}",
+        "checklist": "CHECKLIST",
+        "passFailPending": "{{pass}} pass · {{fail}} fail · {{pending}} pending",
+        "notePlaceholder": "Note reason or details…",
+        "overallResult": "Overall result: {{result}}",
+        "resultFail": "Fail ({{count}} item)",
+        "resultPass": "Pass — all items OK",
+        "photos": "PHOTOS",
+        "addPhotos": "+ Add photos",
+        "clickToAddPhotos": "Click to add photos",
+        "uploading": "uploading…",
+        "notes": "NOTES",
+        "notesPlaceholder": "Any additional observations or comments…",
+        "depositDeduction": "DEPOSIT DEDUCTION",
+        "optionalEuro": "(optional, €)",
+        "depositNote": "€{{amount}} will be noted for deposit deduction",
+        "cancel": "Cancel",
+        "saving": "Saving…",
+        "submit": "Save inspection",
+        "failed": "Failed",
+        "waitForPhotos": "Please wait for all photos to finish uploading.",
+        "resultBtnPass": "Pass",
+        "resultBtnFail": "Fail",
+        "resultBtnNA": "N/A",
+        "naLabel": "N/A",
+        "resultFailPlural": "Fail ({{count}} items)"
+      },
+      "complete": {
+        "heading": "Complete inspection",
+        "subheading": "Fill out the checklist to finish this inspection",
+        "site": "SITE",
+        "unit": "UNIT",
+        "type": "TYPE",
+        "checklist": "CHECKLIST",
+        "photosAttached": "{{count}} photo already attached",
+        "addMorePhotos": "Click to add more photos",
+        "complete": "Complete inspection",
+        "photosAttachedPlural": "{{count}} photos already attached"
+      }
     }
   }
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
+import { useT } from '@/lib/i18n';
 import type { Site, Member } from './page';
 
 interface Props {
@@ -21,34 +22,13 @@ const NEXT_STATUSES: Record<string, string[]> = {
   cancelled:   [],
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  in_progress: 'Start',
-  completed:   'Complete',
-  blocked:     'Block',
-  cancelled:   'Cancel',
-};
-
-const TASK_TYPES = [
-  { value: 'move_in',         label: 'Move-in'         },
-  { value: 'move_out',        label: 'Move-out'        },
-  { value: 'inspect_unit',    label: 'Inspect unit'    },
-  { value: 'clean_unit',      label: 'Clean unit'      },
-  { value: 'repair_unit',     label: 'Repair unit'     },
-  { value: 'verify_document', label: 'Verify document' },
-  { value: 'approve_booking', label: 'Approve booking' },
-  { value: 'call_tenant',     label: 'Call tenant'     },
-  { value: 'collect_payment', label: 'Collect payment' },
-  { value: 'assign_access',   label: 'Assign access'   },
-  { value: 'upload_contract', label: 'Upload contract' },
-  { value: 'other',           label: 'Other'           },
+const TASK_TYPE_VALUES = [
+  'move_in', 'move_out', 'inspect_unit', 'clean_unit', 'repair_unit',
+  'verify_document', 'approve_booking', 'call_tenant', 'collect_payment',
+  'assign_access', 'upload_contract', 'other',
 ];
 
-const TASK_PRIORITIES = [
-  { value: 'low',    label: 'Low'    },
-  { value: 'normal', label: 'Normal' },
-  { value: 'high',   label: 'High'   },
-  { value: 'urgent', label: 'Urgent' },
-];
+const TASK_PRIORITY_VALUES = ['low', 'normal', 'high', 'urgent'];
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -74,6 +54,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 export default function TaskActions({ type, taskId, currentStatus, sites = [], members = [] }: Props) {
+  const t = useT();
   const router = useRouter();
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
@@ -99,11 +80,11 @@ export default function TaskActions({ type, taskId, currentStatus, sites = [], m
         body:    body ? JSON.stringify(body) : undefined,
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.message ?? 'Failed');
+      if (!res.ok) throw new Error(data.message ?? t('dashboard.tasks.create.failed'));
       router.refresh();
       setShowForm(false);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed');
+      setError(err instanceof Error ? err.message : t('dashboard.tasks.create.failed'));
     } finally {
       setLoading(false);
     }
@@ -164,10 +145,10 @@ export default function TaskActions({ type, taskId, currentStatus, sites = [], m
             }}>
               <div>
                 <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: 0 }}>
-                  New task
+                  {t('dashboard.tasks.create.heading')}
                 </p>
                 <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: '3px 0 0' }}>
-                  Assign a task to one of your sites
+                  {t('dashboard.tasks.create.subheading')}
                 </p>
               </div>
               <button
@@ -204,9 +185,9 @@ export default function TaskActions({ type, taskId, currentStatus, sites = [], m
               style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}
             >
               <div>
-                <label style={labelStyle}>SITE</label>
+                <label style={labelStyle}>{t('dashboard.tasks.create.site')}</label>
                 <select name="siteId" required className="task-modal-input" style={inputStyle}>
-                  <option value="">Select a site…</option>
+                  <option value="">{t('dashboard.tasks.create.selectSite')}</option>
                   {sites.map((s) => (
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
@@ -214,10 +195,10 @@ export default function TaskActions({ type, taskId, currentStatus, sites = [], m
               </div>
 
               <div>
-                <label style={labelStyle}>TASK TITLE</label>
+                <label style={labelStyle}>{t('dashboard.tasks.create.taskTitle')}</label>
                 <input
                   name="title"
-                  placeholder="e.g. Inspect unit 12, fix gate lock…"
+                  placeholder={t('dashboard.tasks.create.taskTitlePlaceholder')}
                   required
                   className="task-modal-input"
                   style={inputStyle}
@@ -226,19 +207,19 @@ export default function TaskActions({ type, taskId, currentStatus, sites = [], m
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
-                  <label style={labelStyle}>TYPE <span style={{ color: '#cbd5e1', fontWeight: 400 }}>(optional)</span></label>
+                  <label style={labelStyle}>{t('dashboard.tasks.create.type')} <span style={{ color: '#cbd5e1', fontWeight: 400 }}>{t('dashboard.tasks.create.optional')}</span></label>
                   <select name="type" className="task-modal-input" style={inputStyle}>
-                    <option value="">— none —</option>
-                    {TASK_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
+                    <option value="">{t('dashboard.tasks.create.noneOption')}</option>
+                    {TASK_TYPE_VALUES.map((v) => (
+                      <option key={v} value={v}>{t(`dashboard.tasks.type.${v}`)}</option>
                     ))}
                   </select>
                 </div>
                 <div>
-                  <label style={labelStyle}>PRIORITY</label>
+                  <label style={labelStyle}>{t('dashboard.tasks.create.priority')}</label>
                   <select name="priority" defaultValue="normal" className="task-modal-input" style={inputStyle}>
-                    {TASK_PRIORITIES.map((p) => (
-                      <option key={p.value} value={p.value}>{p.label}</option>
+                    {TASK_PRIORITY_VALUES.map((v) => (
+                      <option key={v} value={v}>{t(`dashboard.tasks.priority.${v}`)}</option>
                     ))}
                   </select>
                 </div>
@@ -246,9 +227,9 @@ export default function TaskActions({ type, taskId, currentStatus, sites = [], m
 
               {members.length > 0 && (
                 <div>
-                  <label style={labelStyle}>ASSIGNEE <span style={{ color: '#cbd5e1', fontWeight: 400 }}>(optional)</span></label>
+                  <label style={labelStyle}>{t('dashboard.tasks.create.assignee')} <span style={{ color: '#cbd5e1', fontWeight: 400 }}>{t('dashboard.tasks.create.optional')}</span></label>
                   <select name="assigneeId" className="task-modal-input" style={inputStyle}>
-                    <option value="">— unassigned —</option>
+                    <option value="">{t('dashboard.tasks.create.unassigned')}</option>
                     {members.map((m) => (
                       <option key={m.userId} value={m.userId}>{m.user.name}</option>
                     ))}
@@ -257,10 +238,10 @@ export default function TaskActions({ type, taskId, currentStatus, sites = [], m
               )}
 
               <div>
-                <label style={labelStyle}>NOTES <span style={{ color: '#cbd5e1', fontWeight: 400 }}>(optional)</span></label>
+                <label style={labelStyle}>{t('dashboard.tasks.create.notes')} <span style={{ color: '#cbd5e1', fontWeight: 400 }}>{t('dashboard.tasks.create.optional')}</span></label>
                 <textarea
                   name="notes"
-                  placeholder="Additional details…"
+                  placeholder={t('dashboard.tasks.create.notesPlaceholder')}
                   rows={2}
                   className="task-modal-input"
                   style={{ ...inputStyle, resize: 'vertical', minHeight: '60px' }}
@@ -269,21 +250,21 @@ export default function TaskActions({ type, taskId, currentStatus, sites = [], m
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                 <div>
-                  <label style={labelStyle}>UNIT ID <span style={{ color: '#cbd5e1', fontWeight: 400 }}>(opt)</span></label>
-                  <input name="unitId" placeholder="unit ID…" className="task-modal-input" style={inputStyle} />
+                  <label style={labelStyle}>{t('dashboard.tasks.create.unitId')} <span style={{ color: '#cbd5e1', fontWeight: 400 }}>{t('dashboard.tasks.create.optShort')}</span></label>
+                  <input name="unitId" placeholder={t('dashboard.tasks.create.unitIdPlaceholder')} className="task-modal-input" style={inputStyle} />
                 </div>
                 <div>
-                  <label style={labelStyle}>TENANT ID <span style={{ color: '#cbd5e1', fontWeight: 400 }}>(opt)</span></label>
-                  <input name="tenantId" placeholder="tenant ID…" className="task-modal-input" style={inputStyle} />
+                  <label style={labelStyle}>{t('dashboard.tasks.create.tenantId')} <span style={{ color: '#cbd5e1', fontWeight: 400 }}>{t('dashboard.tasks.create.optShort')}</span></label>
+                  <input name="tenantId" placeholder={t('dashboard.tasks.create.tenantIdPlaceholder')} className="task-modal-input" style={inputStyle} />
                 </div>
                 <div>
-                  <label style={labelStyle}>BOOKING ID <span style={{ color: '#cbd5e1', fontWeight: 400 }}>(opt)</span></label>
-                  <input name="bookingId" placeholder="booking ID…" className="task-modal-input" style={inputStyle} />
+                  <label style={labelStyle}>{t('dashboard.tasks.create.bookingId')} <span style={{ color: '#cbd5e1', fontWeight: 400 }}>{t('dashboard.tasks.create.optShort')}</span></label>
+                  <input name="bookingId" placeholder={t('dashboard.tasks.create.bookingIdPlaceholder')} className="task-modal-input" style={inputStyle} />
                 </div>
               </div>
 
               <div>
-                <label style={labelStyle}>DUE DATE <span style={{ color: '#cbd5e1', fontWeight: 400 }}>(optional)</span></label>
+                <label style={labelStyle}>{t('dashboard.tasks.create.dueDate')} <span style={{ color: '#cbd5e1', fontWeight: 400 }}>{t('dashboard.tasks.create.optional')}</span></label>
                 <input
                   name="dueAt"
                   type="date"
@@ -318,7 +299,7 @@ export default function TaskActions({ type, taskId, currentStatus, sites = [], m
                     fontWeight: 600, fontSize: '13px',
                   }}
                 >
-                  Cancel
+                  {t('dashboard.tasks.create.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -334,7 +315,7 @@ export default function TaskActions({ type, taskId, currentStatus, sites = [], m
                     transition: 'background 0.15s',
                   }}
                 >
-                  {loading ? 'Creating…' : 'Create task'}
+                  {loading ? t('dashboard.tasks.create.creating') : t('dashboard.tasks.create.submit')}
                 </button>
               </div>
             </form>
@@ -364,7 +345,7 @@ export default function TaskActions({ type, taskId, currentStatus, sites = [], m
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
             <path d="M8 1v14M1 8h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
           </svg>
-          New task
+          {t('dashboard.tasks.newTask')}
         </button>
         {modal}
       </>
@@ -405,7 +386,7 @@ export default function TaskActions({ type, taskId, currentStatus, sites = [], m
             b.style.background = '#f8fafc'; b.style.color = '#64748b';
           }}
         >
-          {STATUS_LABELS[status] ?? status.replace('_', ' ')}
+          {t(`dashboard.tasks.transitionLabel.${status}`)}
         </button>
       ))}
       {error && (

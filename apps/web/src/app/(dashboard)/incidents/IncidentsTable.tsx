@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useT } from '@/lib/i18n';
 import IncidentActions from './IncidentActions';
 
 interface Incident {
@@ -21,37 +22,33 @@ interface Site {
   name: string;
 }
 
-const SEV: Record<string, { dot: string; text: string; bg: string; border: string; label: string }> = {
-  critical: { dot: '#dc2626', text: '#dc2626', bg: '#fef2f2', border: '#fecaca', label: 'Critical' },
-  high:     { dot: '#ea580c', text: '#ea580c', bg: '#fff7ed', border: '#fed7aa', label: 'High'     },
-  medium:   { dot: '#ca8a04', text: '#92400e', bg: '#fefce8', border: '#fde68a', label: 'Medium'   },
-  low:      { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', label: 'Low'      },
+const SEV: Record<string, { dot: string; text: string; bg: string; border: string }> = {
+  critical: { dot: '#dc2626', text: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
+  high:     { dot: '#ea580c', text: '#ea580c', bg: '#fff7ed', border: '#fed7aa' },
+  medium:   { dot: '#ca8a04', text: '#92400e', bg: '#fefce8', border: '#fde68a' },
+  low:      { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
 };
 
-const STAT: Record<string, { dot: string; text: string; bg: string; border: string; label: string }> = {
-  open:          { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd', label: 'Open'          },
-  investigating: { dot: '#8b5cf6', text: '#6d28d9', bg: '#faf5ff', border: '#ddd6fe', label: 'Investigating'  },
-  resolved:      { dot: '#94a3b8', text: '#64748b', bg: '#f8fafc', border: '#e2e8f0', label: 'Resolved'       },
+const STAT: Record<string, { dot: string; text: string; bg: string; border: string }> = {
+  open:          { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd' },
+  investigating: { dot: '#8b5cf6', text: '#6d28d9', bg: '#faf5ff', border: '#ddd6fe' },
+  resolved:      { dot: '#94a3b8', text: '#64748b', bg: '#f8fafc', border: '#e2e8f0' },
 };
 
-const FILTERS = [
-  { key: 'all',          label: 'All'           },
-  { key: 'open',         label: 'Open'          },
-  { key: 'investigating',label: 'Investigating' },
-  { key: 'resolved',     label: 'Resolved'      },
-] as const;
+const FILTER_KEYS = ['all', 'open', 'investigating', 'resolved'] as const;
 
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, t: ReturnType<typeof useT>): string {
   const ms = Date.now() - new Date(iso).getTime();
   const m  = Math.floor(ms / 60000);
-  if (m < 60) return `${m}m ago`;
+  if (m < 60) return t('dashboard.incidents.timeAgo.minutes', { count: String(m) });
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
+  if (h < 24) return t('dashboard.incidents.timeAgo.hours', { count: String(h) });
   const d = Math.floor(h / 24);
-  return d === 1 ? 'Yesterday' : `${d}d ago`;
+  return d === 1 ? t('dashboard.incidents.timeAgo.yesterday') : t('dashboard.incidents.timeAgo.days', { count: String(d) });
 }
 
 function IncidentDetailPanel({ incident, siteName, onClose }: { incident: Incident; siteName: string; onClose: () => void }) {
+  const t = useT();
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => {
@@ -112,7 +109,7 @@ function IncidentDetailPanel({ incident, siteName, onClose }: { incident: Incide
                 borderRadius: '20px', padding: '2px 9px', fontSize: '12px', fontWeight: 600,
               }}>
                 <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: sev.dot, display: 'inline-block' }} />
-                {sev.label}
+                {t(`dashboard.incidents.severity.${incident.severity}`)}
               </span>
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: '5px',
@@ -120,7 +117,7 @@ function IncidentDetailPanel({ incident, siteName, onClose }: { incident: Incide
                 borderRadius: '20px', padding: '2px 9px', fontSize: '12px', fontWeight: 600,
               }}>
                 <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: stat.dot, display: 'inline-block' }} />
-                {stat.label}
+                {t(`dashboard.incidents.status.${incident.status}`)}
               </span>
             </div>
           </div>
@@ -140,10 +137,10 @@ function IncidentDetailPanel({ incident, siteName, onClose }: { incident: Incide
         {/* Body */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {[
-            { label: 'Incident ID', value: incident.id },
-            { label: 'Site',        value: siteName },
-            ...(incident.unit ? [{ label: 'Unit', value: incident.unit.unitCode }] : []),
-            { label: 'Reported',    value: new Date(incident.createdAt).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' }) },
+            { label: t('dashboard.incidents.detail.incidentId'), value: incident.id },
+            { label: t('dashboard.incidents.detail.site'),        value: siteName },
+            ...(incident.unit ? [{ label: t('dashboard.incidents.detail.unit'), value: incident.unit.unitCode }] : []),
+            { label: t('dashboard.incidents.detail.reported'),    value: new Date(incident.createdAt).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' }) },
           ].map(({ label, value }) => (
             <div key={label}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 4px' }}>
@@ -162,7 +159,7 @@ function IncidentDetailPanel({ incident, siteName, onClose }: { incident: Incide
             return (
               <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
                 <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 10px' }}>
-                  Reported by
+                  {t('dashboard.incidents.detail.reportedBy')}
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <div style={{
@@ -185,7 +182,7 @@ function IncidentDetailPanel({ incident, siteName, onClose }: { incident: Incide
           {incident.status !== 'resolved' && (
             <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 10px' }}>
-                Actions
+                {t('dashboard.incidents.detail.actions')}
               </p>
               <IncidentActions type="update" incidentId={incident.id} currentStatus={incident.status} />
             </div>
@@ -198,6 +195,7 @@ function IncidentDetailPanel({ incident, siteName, onClose }: { incident: Incide
 }
 
 export default function IncidentsTable({ incidents, sites = [] }: { incidents: Incident[]; sites?: Site[] }) {
+  const t = useT();
   const [query,        setQuery]        = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selected,     setSelected]     = useState<Incident | null>(null);
@@ -250,13 +248,13 @@ export default function IncidentsTable({ incidents, sites = [] }: { incidents: I
         }}>
           {/* Filter tabs */}
           <div style={{ display: 'flex', gap: '2px' }}>
-            {FILTERS.map((f) => {
-              const active = statusFilter === f.key;
-              const count  = f.key === 'all' ? incidents.length : incidents.filter((i) => i.status === f.key).length;
+            {FILTER_KEYS.map((key) => {
+              const active = statusFilter === key;
+              const count  = key === 'all' ? incidents.length : incidents.filter((i) => i.status === key).length;
               return (
                 <button
-                  key={f.key}
-                  onClick={() => setStatusFilter(f.key)}
+                  key={key}
+                  onClick={() => setStatusFilter(key)}
                   className="filter-tab"
                   style={{
                     padding: '6px 12px',
@@ -273,7 +271,7 @@ export default function IncidentsTable({ incidents, sites = [] }: { incidents: I
                     gap: '5px',
                   }}
                 >
-                  {f.label}
+                  {t(`dashboard.incidents.filters.${key}`)}
                   <span style={{
                     background: active ? '#e2e8f0' : '#f8fafc',
                     color: active ? '#475569' : '#cbd5e1',
@@ -311,7 +309,7 @@ export default function IncidentsTable({ incidents, sites = [] }: { incidents: I
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search incidents…"
+              placeholder={t('dashboard.incidents.searchPlaceholder')}
               style={{
                 flex: 1, background: 'transparent', border: 'none', outline: 'none',
                 color: '#0f172a', fontSize: '13px',
@@ -342,17 +340,25 @@ export default function IncidentsTable({ incidents, sites = [] }: { incidents: I
               </svg>
             </div>
             <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>
-              {incidents.length === 0 ? 'No incidents reported' : 'No results found'}
+              {incidents.length === 0 ? t('dashboard.incidents.empty.noIncidents') : t('dashboard.incidents.empty.noResults')}
             </p>
             <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: 0 }}>
-              {incidents.length === 0 ? 'When incidents are reported, they will appear here.' : 'Try adjusting your search or filter.'}
+              {incidents.length === 0 ? t('dashboard.incidents.empty.willAppear') : t('dashboard.incidents.empty.adjustFilter')}
             </p>
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                {['Severity', 'Incident', 'Site', 'Unit', 'Status', 'Reported', ''].map((h, i) => (
+                {[
+                  t('dashboard.incidents.table.severity'),
+                  t('dashboard.incidents.table.incident'),
+                  t('dashboard.incidents.table.site'),
+                  t('dashboard.incidents.table.unit'),
+                  t('dashboard.incidents.table.status'),
+                  t('dashboard.incidents.table.reported'),
+                  '',
+                ].map((h, i) => (
                   <th
                     key={i}
                     style={{
@@ -401,7 +407,7 @@ export default function IncidentsTable({ incidents, sites = [] }: { incidents: I
                           width: '5px', height: '5px', borderRadius: '50%',
                           background: sev.dot, flexShrink: 0, display: 'inline-block',
                         }} />
-                        {sev.label}
+                        {t(`dashboard.incidents.severity.${inc.severity}`)}
                       </span>
                     </td>
 
@@ -458,7 +464,7 @@ export default function IncidentsTable({ incidents, sites = [] }: { incidents: I
                           width: '5px', height: '5px', borderRadius: '50%',
                           background: stat.dot, flexShrink: 0, display: 'inline-block',
                         }} />
-                        {stat.label}
+                        {t(`dashboard.incidents.status.${inc.status}`)}
                       </span>
                     </td>
 
@@ -468,7 +474,7 @@ export default function IncidentsTable({ incidents, sites = [] }: { incidents: I
                         fontFamily: "'Plus Jakarta Sans', sans-serif",
                         fontSize: '13px', color: '#94a3b8',
                       }}>
-                        {timeAgo(inc.createdAt)}
+                        {timeAgo(inc.createdAt, t)}
                       </span>
                     </td>
 

@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useT } from '@/lib/i18n';
 import TaskActions from './TaskActions';
 import TaskDetailSheet from './TaskDetailSheet';
-import { TYPE_LABELS, PRIORITY_COLORS } from './task-constants';
+import { TYPE_KEYS, PRIORITY_COLORS } from './task-constants';
 import type { Task, Site, Member } from './page';
 
 interface Props {
@@ -12,24 +13,18 @@ interface Props {
   membersById: Record<string, Member>;
 }
 
-const STAT: Record<string, { dot: string; text: string; bg: string; border: string; label: string }> = {
-  open:        { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a', label: 'Open'        },
-  in_progress: { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd', label: 'In progress' },
-  blocked:     { dot: '#a855f7', text: '#7e22ce', bg: '#fdf4ff', border: '#e9d5ff', label: 'Blocked'     },
-  completed:   { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', label: 'Completed'   },
-  cancelled:   { dot: '#94a3b8', text: '#64748b', bg: '#f8fafc', border: '#e2e8f0', label: 'Cancelled'   },
+const STAT: Record<string, { dot: string; text: string; bg: string; border: string }> = {
+  open:        { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a' },
+  in_progress: { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd' },
+  blocked:     { dot: '#a855f7', text: '#7e22ce', bg: '#fdf4ff', border: '#e9d5ff' },
+  completed:   { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+  cancelled:   { dot: '#94a3b8', text: '#64748b', bg: '#f8fafc', border: '#e2e8f0' },
 };
 
-const FILTERS = [
-  { key: 'all',         label: 'All'         },
-  { key: 'open',        label: 'Open'        },
-  { key: 'in_progress', label: 'In progress' },
-  { key: 'blocked',     label: 'Blocked'     },
-  { key: 'completed',   label: 'Completed'   },
-  { key: 'cancelled',   label: 'Cancelled'   },
-] as const;
+const FILTER_KEYS = ['all', 'open', 'in_progress', 'blocked', 'completed', 'cancelled'] as const;
 
 export default function TasksTable({ tasks, sitesById, membersById }: Props) {
+  const t = useT();
   const [query,        setQuery]        = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -72,13 +67,13 @@ export default function TasksTable({ tasks, sitesById, membersById }: Props) {
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 20px', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', gap: '2px' }}>
-            {FILTERS.map((f) => {
-              const active = statusFilter === f.key;
-              const count  = f.key === 'all' ? tasks.length : tasks.filter((t) => t.status === f.key).length;
+            {FILTER_KEYS.map((key) => {
+              const active = statusFilter === key;
+              const count  = key === 'all' ? tasks.length : tasks.filter((task) => task.status === key).length;
               return (
                 <button
-                  key={f.key}
-                  onClick={() => setStatusFilter(f.key)}
+                  key={key}
+                  onClick={() => setStatusFilter(key)}
                   className="task-filter-btn"
                   style={{
                     padding: '6px 12px', borderRadius: '6px', border: 'none',
@@ -89,7 +84,7 @@ export default function TasksTable({ tasks, sitesById, membersById }: Props) {
                     display: 'flex', alignItems: 'center', gap: '5px',
                   }}
                 >
-                  {f.label}
+                  {t(`dashboard.tasks.filters.${key}`)}
                   <span style={{
                     background: active ? '#e2e8f0' : '#f8fafc',
                     color: active ? '#475569' : '#cbd5e1',
@@ -122,7 +117,7 @@ export default function TasksTable({ tasks, sitesById, membersById }: Props) {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search tasks…"
+              placeholder={t('dashboard.tasks.searchPlaceholder')}
               style={{
                 flex: 1, background: 'transparent', border: 'none', outline: 'none',
                 color: '#0f172a', fontSize: '13px',
@@ -144,17 +139,26 @@ export default function TasksTable({ tasks, sitesById, membersById }: Props) {
               </svg>
             </div>
             <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>
-              {tasks.length === 0 ? 'No tasks yet' : 'No results found'}
+              {tasks.length === 0 ? t('dashboard.tasks.empty.noTasks') : t('dashboard.tasks.empty.noResults')}
             </p>
             <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: 0 }}>
-              {tasks.length === 0 ? 'Create your first task to get started.' : 'Try adjusting your search or filter.'}
+              {tasks.length === 0 ? t('dashboard.tasks.empty.createFirst') : t('dashboard.tasks.empty.adjustFilter')}
             </p>
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                {['Site', 'Title', 'Type', 'Priority', 'Assignee', 'Status', 'Due', ''].map((h, i) => (
+                {[
+                  t('dashboard.tasks.table.site'),
+                  t('dashboard.tasks.table.title'),
+                  t('dashboard.tasks.table.type'),
+                  t('dashboard.tasks.table.priority'),
+                  t('dashboard.tasks.table.assignee'),
+                  t('dashboard.tasks.table.status'),
+                  t('dashboard.tasks.table.due'),
+                  '',
+                ].map((h, i) => (
                   <th key={i} style={{
                     textAlign: 'left', padding: '10px 16px',
                     fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -213,7 +217,7 @@ export default function TasksTable({ tasks, sitesById, membersById }: Props) {
                     <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
                       {task.type ? (
                         <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '12px', color: '#475569', background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: '5px', padding: '2px 8px' }}>
-                          {TYPE_LABELS[task.type] ?? task.type}
+                          {TYPE_KEYS[task.type] ? t(`dashboard.tasks.type.${TYPE_KEYS[task.type]}`) : task.type}
                         </span>
                       ) : (
                         <span style={{ color: '#cbd5e1', fontSize: '13px' }}>—</span>
@@ -231,7 +235,7 @@ export default function TasksTable({ tasks, sitesById, membersById }: Props) {
                         fontFamily: "'Plus Jakarta Sans', sans-serif",
                         textTransform: 'capitalize',
                       }}>
-                        {task.priority}
+                        {t(`dashboard.tasks.priority.${task.priority}`)}
                       </span>
                     </td>
 
@@ -257,7 +261,7 @@ export default function TasksTable({ tasks, sitesById, membersById }: Props) {
                         fontFamily: "'Plus Jakarta Sans', sans-serif",
                       }}>
                         <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: stat.dot, display: 'inline-block' }} />
-                        {stat.label}
+                        {t(`dashboard.tasks.status.${task.status}`)}
                       </span>
                     </td>
 

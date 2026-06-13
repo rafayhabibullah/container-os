@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
+import { useT } from '@/lib/i18n';
 import { CHECKLISTS } from './checklists';
 
-interface ChecklistItem { code: string; label: string; result: 'pass' | 'fail' | 'na'; note: string; }
+interface ChecklistItem { code: string; i18nKey?: string; label?: string; result: 'pass' | 'fail' | 'na'; note: string; }
 
 interface InspectionRow {
   id: string;
@@ -25,12 +26,6 @@ interface Props {
   inspection: InspectionRow;
   onClose: () => void;
 }
-
-const KIND_LABEL: Record<string, string> = {
-  move_in: 'Move in',
-  move_out: 'Move out',
-  routine: 'Routine',
-};
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -56,18 +51,21 @@ const labelStyle: React.CSSProperties = {
 };
 
 function normalizeChecklist(raw: InspectionRow['checklist'], kind: string): ChecklistItem[] {
+  const template = CHECKLISTS[kind] ?? CHECKLISTS.routine;
   if (raw && raw.length > 0) {
     return raw.map((item) => ({
       code: item.code,
+      i18nKey: template.find((tpl) => tpl.code === item.code)?.i18nKey,
       label: item.label,
       result: (item.result as 'pass' | 'fail' | 'na') ?? 'na',
       note: item.note ?? '',
     }));
   }
-  return (CHECKLISTS[kind] ?? CHECKLISTS.routine).map((item) => ({ ...item, result: 'na' as const, note: '' }));
+  return template.map((item) => ({ code: item.code, i18nKey: item.i18nKey, result: 'na' as const, note: '' }));
 }
 
 export default function InspectionComplete({ inspection, onClose }: Props) {
+  const t = useT();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -143,7 +141,7 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (newPhotos.some((p) => p.uploading)) {
-      setError('Please wait for all photos to finish uploading.');
+      setError(t('dashboard.inspections.form.waitForPhotos'));
       return;
     }
     setLoading(true);
@@ -153,7 +151,12 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          checklist,
+          checklist: checklist.map(({ code, i18nKey, label, result, note }) => ({
+            code,
+            label: i18nKey ? t(`dashboard.inspections.checklist.${i18nKey}`) : (label ?? code),
+            result,
+            note,
+          })),
           notes: notes || undefined,
           photoIds: [
             ...(inspection.photoIds ?? []),
@@ -163,11 +166,11 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.message ?? 'Failed');
+      if (!res.ok) throw new Error(data.message ?? t('dashboard.inspections.form.failed'));
       router.refresh();
       onClose();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed');
+      setError(err instanceof Error ? err.message : t('dashboard.inspections.form.failed'));
     } finally {
       setLoading(false);
     }
@@ -221,8 +224,8 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px 16px', borderBottom: '1px solid #f1f5f9' }}>
             <div>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Complete inspection</p>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: '3px 0 0' }}>Fill out the checklist to finish this inspection</p>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: 0 }}>{t('dashboard.inspections.complete.heading')}</p>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: '3px 0 0' }}>{t('dashboard.inspections.complete.subheading')}</p>
             </div>
             <button onClick={onClose} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b', fontSize: '14px', flexShrink: 0 }}>✕</button>
           </div>
@@ -232,9 +235,9 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
             {/* Read-only summary */}
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {[
-                { label: 'SITE', value: inspection.siteName ?? (inspection.siteId ? inspection.siteId.slice(0, 8) + '…' : '—') },
-                { label: 'UNIT', value: inspection.unitCode ?? inspection.unitId.slice(0, 8) + '…' },
-                { label: 'TYPE', value: KIND_LABEL[inspection.kind] ?? inspection.kind },
+                { label: t('dashboard.inspections.complete.site'), value: inspection.siteName ?? (inspection.siteId ? inspection.siteId.slice(0, 8) + '…' : '—') },
+                { label: t('dashboard.inspections.complete.unit'), value: inspection.unitCode ?? inspection.unitId.slice(0, 8) + '…' },
+                { label: t('dashboard.inspections.complete.type'), value: ['move_in','move_out','routine'].includes(inspection.kind) ? t(`dashboard.inspections.kind.${inspection.kind}`) : inspection.kind },
               ].map(({ label, value }) => (
                 <div key={label} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px' }}>
                   <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '10px', fontWeight: 700, color: '#94a3b8', margin: '0 0 2px', letterSpacing: '0.06em' }}>{label}</p>
@@ -247,9 +250,9 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
             {checklist.length > 0 && (
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <label style={{ ...labelStyle, marginBottom: 0 }}>CHECKLIST</label>
+                  <label style={{ ...labelStyle, marginBottom: 0 }}>{t('dashboard.inspections.complete.checklist')}</label>
                   <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '11px', color: '#94a3b8' }}>
-                    {passCount} pass · {failCount} fail · {checklist.length - passCount - failCount} pending
+                    {t('dashboard.inspections.form.passFailPending', { pass: String(passCount), fail: String(failCount), pending: String(checklist.length - passCount - failCount) })}
                   </span>
                 </div>
                 <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
@@ -260,7 +263,7 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
                       style={{ padding: '10px 14px', borderBottom: idx < checklist.length - 1 ? '1px solid #f1f5f9' : 'none', transition: 'background 0.1s' }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                        <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#374151', flex: 1 }}>{item.label}</span>
+                        <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#374151', flex: 1 }}>{item.i18nKey ? t(`dashboard.inspections.checklist.${item.i18nKey}`) : item.label}</span>
                         <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
                           {(['pass', 'fail', 'na'] as const).map((v) => (
                             <button
@@ -269,7 +272,7 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
                               className={`result-btn ${item.result === v ? `selected-${v}` : v}`}
                               onClick={() => updateChecklistItem(idx, 'result', v)}
                             >
-                              {v === 'na' ? 'N/A' : v.charAt(0).toUpperCase() + v.slice(1)}
+                              {v === 'na' ? t('dashboard.inspections.form.naLabel') : t(`dashboard.inspections.form.resultBtn${v.charAt(0).toUpperCase() + v.slice(1)}`)}
                             </button>
                           ))}
                         </div>
@@ -277,7 +280,7 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
                       {item.result === 'fail' && (
                         <input
                           type="text"
-                          placeholder="Note reason or details…"
+                          placeholder={t('dashboard.inspections.form.notePlaceholder')}
                           value={item.note}
                           onChange={(e) => updateChecklistItem(idx, 'note', e.target.value)}
                           style={{ ...inputStyle, marginTop: '8px', fontSize: '13px', padding: '7px 10px' }}
@@ -288,7 +291,11 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
                 </div>
                 {allDone && (
                   <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '12px', color: failCount > 0 ? '#dc2626' : '#16a34a', margin: '6px 0 0', fontWeight: 600 }}>
-                    Overall result: {failCount > 0 ? `Fail (${failCount} item${failCount > 1 ? 's' : ''})` : 'Pass — all items OK'}
+                    {t('dashboard.inspections.form.overallResult', {
+                      result: failCount > 0
+                        ? t(`dashboard.inspections.form.${failCount > 1 ? 'resultFailPlural' : 'resultFail'}`, { count: String(failCount) })
+                        : t('dashboard.inspections.form.resultPass'),
+                    })}
                   </p>
                 )}
               </div>
@@ -298,20 +305,20 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                 <label style={{ ...labelStyle, marginBottom: 0 }}>
-                  PHOTOS <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional)</span>
+                  {t('dashboard.inspections.form.photos')} <span style={{ fontWeight: 400, color: '#94a3b8' }}>{t('dashboard.inspections.form.optional')}</span>
                 </label>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '12px', fontWeight: 600, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                 >
-                  + Add photos
+                  {t('dashboard.inspections.form.addPhotos')}
                 </button>
               </div>
               <input ref={fileInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handlePhotoSelect} />
               {existingPhotoCount > 0 && (
                 <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '12px', color: '#64748b', margin: '0 0 8px' }}>
-                  {existingPhotoCount} photo{existingPhotoCount > 1 ? 's' : ''} already attached
+                  {t(`dashboard.inspections.complete.${existingPhotoCount > 1 ? 'photosAttachedPlural' : 'photosAttached'}`, { count: String(existingPhotoCount) })}
                 </p>
               )}
               {newPhotos.length > 0 ? (
@@ -321,7 +328,7 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
                       <img src={p.previewUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       {p.uploading && (
                         <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <span style={{ fontSize: '10px', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#64748b' }}>uploading…</span>
+                          <span style={{ fontSize: '10px', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#64748b' }}>{t('dashboard.inspections.form.uploading')}</span>
                         </div>
                       )}
                       {!p.uploading && (
@@ -335,18 +342,18 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
                   onClick={() => fileInputRef.current?.click()}
                   style={{ border: '1px dashed #e2e8f0', borderRadius: '8px', padding: '16px', textAlign: 'center', cursor: 'pointer', background: '#f8fafc' }}
                 >
-                  <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: 0 }}>Click to add more photos</p>
+                  <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: 0 }}>{t('dashboard.inspections.complete.addMorePhotos')}</p>
                 </div>
               )}
             </div>
 
             {/* Notes */}
             <div>
-              <label style={labelStyle}>NOTES <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional)</span></label>
+              <label style={labelStyle}>{t('dashboard.inspections.form.notes')} <span style={{ fontWeight: 400, color: '#94a3b8' }}>{t('dashboard.inspections.form.optional')}</span></label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Any additional observations or comments…"
+                placeholder={t('dashboard.inspections.form.notesPlaceholder')}
                 rows={3}
                 className="insp-complete-input"
                 style={{ ...inputStyle, resize: 'vertical', minHeight: '72px' }}
@@ -356,7 +363,7 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
             {/* Deposit deduction — move_out only */}
             {inspection.kind === 'move_out' && (
               <div>
-                <label style={labelStyle}>DEPOSIT DEDUCTION <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional, €)</span></label>
+                <label style={labelStyle}>{t('dashboard.inspections.form.depositDeduction')} <span style={{ fontWeight: 400, color: '#94a3b8' }}>{t('dashboard.inspections.form.optionalEuro')}</span></label>
                 <input
                   type="number"
                   min="0"
@@ -369,7 +376,7 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
                 />
                 {depositDeduction && parseFloat(depositDeduction) > 0 && (
                   <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '12px', color: '#f59e0b', margin: '4px 0 0' }}>
-                    €{parseFloat(depositDeduction).toFixed(2)} will be noted for deposit deduction
+                    {t('dashboard.inspections.form.depositNote', { amount: parseFloat(depositDeduction).toFixed(2) })}
                   </p>
                 )}
               </div>
@@ -387,14 +394,14 @@ export default function InspectionComplete({ inspection, onClose }: Props) {
                 onClick={onClose}
                 style={{ flex: 1, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', color: '#64748b', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: '13px' }}
               >
-                Cancel
+                {t('dashboard.inspections.form.cancel')}
               </button>
               <button
                 type="submit"
                 disabled={loading}
                 style={{ flex: 2, background: loading ? '#e2e8f0' : '#0f172a', color: loading ? '#94a3b8' : '#ffffff', border: 'none', borderRadius: '8px', padding: '10px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: '13px', transition: 'background 0.15s' }}
               >
-                {loading ? 'Saving…' : 'Complete inspection'}
+                {loading ? t('dashboard.inspections.form.saving') : t('dashboard.inspections.complete.complete')}
               </button>
             </div>
           </form>

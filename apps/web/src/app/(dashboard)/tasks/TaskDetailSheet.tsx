@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { TYPE_LABELS, PRIORITY_COLORS } from './task-constants';
+import { useT } from '@/lib/i18n';
+import { TYPE_KEYS, PRIORITY_COLORS } from './task-constants';
 import type { Task, Site, Member } from './page';
 
 const STATUS_TRANSITIONS: Record<string, string[]> = {
@@ -12,11 +13,6 @@ const STATUS_TRANSITIONS: Record<string, string[]> = {
   blocked:     ['in_progress', 'cancelled'],
   completed:   [],
   cancelled:   [],
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  open: 'Open', in_progress: 'In progress', blocked: 'Blocked',
-  completed: 'Completed', cancelled: 'Cancelled',
 };
 
 interface Props {
@@ -39,6 +35,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 export default function TaskDetailSheet({ task, sitesById, membersById, onClose }: Props) {
+  const t = useT();
   const router = useRouter();
   const [notes,   setNotes]   = useState(task.notes ?? '');
   const [loading, setLoading] = useState(false);
@@ -63,10 +60,10 @@ export default function TaskDetailSheet({ task, sitesById, membersById, onClose 
         body: JSON.stringify(data),
       });
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error((json as { message?: string }).message ?? 'Failed');
+      if (!res.ok) throw new Error((json as { message?: string }).message ?? t('dashboard.tasks.detail.failed'));
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed');
+      setError(err instanceof Error ? err.message : t('dashboard.tasks.detail.failed'));
     } finally {
       setLoading(false);
     }
@@ -133,7 +130,7 @@ export default function TaskDetailSheet({ task, sitesById, membersById, onClose 
               </span>
               {task.type && (
                 <span style={{ fontSize: '11px', fontWeight: 600, color: '#475569', background: '#f1f5f9', borderRadius: '4px', padding: '2px 7px', border: '1px solid #e2e8f0' }}>
-                  {TYPE_LABELS[task.type] ?? task.type}
+                  {TYPE_KEYS[task.type] ? t(`dashboard.tasks.type.${TYPE_KEYS[task.type]}`) : task.type}
                 </span>
               )}
               <span style={{
@@ -142,7 +139,7 @@ export default function TaskDetailSheet({ task, sitesById, membersById, onClose 
                 borderRadius: '20px', padding: '2px 8px', border: `1px solid ${priColor.border}`,
                 textTransform: 'capitalize',
               }}>
-                {task.priority}
+                {t(`dashboard.tasks.priority.${task.priority}`)}
               </span>
             </div>
           </div>
@@ -163,13 +160,13 @@ export default function TaskDetailSheet({ task, sitesById, membersById, onClose 
           {/* Meta grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
-              <p style={labelStyle}>Status</p>
+              <p style={labelStyle}>{t('dashboard.tasks.detail.status')}</p>
               <p style={{ fontSize: '13px', color: '#0f172a', fontWeight: 600, margin: 0 }}>
-                {STATUS_LABELS[task.status] ?? task.status}
+                {t(`dashboard.tasks.status.${task.status}`)}
               </p>
             </div>
             <div>
-              <p style={labelStyle}>Due date</p>
+              <p style={labelStyle}>{t('dashboard.tasks.detail.dueDate')}</p>
               <p style={{ fontSize: '13px', color: isOverdue ? '#dc2626' : '#0f172a', margin: 0, fontWeight: isOverdue ? 600 : 400 }}>
                 {task.dueAt
                   ? `${isOverdue ? '⚠ ' : ''}${new Date(task.dueAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
@@ -177,13 +174,13 @@ export default function TaskDetailSheet({ task, sitesById, membersById, onClose 
               </p>
             </div>
             <div>
-              <p style={labelStyle}>Assignee</p>
+              <p style={labelStyle}>{t('dashboard.tasks.detail.assignee')}</p>
               <p style={{ fontSize: '13px', color: '#0f172a', margin: 0 }}>
                 {assignee?.name ?? '—'}
               </p>
             </div>
             <div>
-              <p style={labelStyle}>Site</p>
+              <p style={labelStyle}>{t('dashboard.tasks.detail.site')}</p>
               <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
                 {siteName}
               </p>
@@ -193,21 +190,21 @@ export default function TaskDetailSheet({ task, sitesById, membersById, onClose 
           {/* Linked records */}
           {(task.unitId || task.tenantId || task.bookingId) && (
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <p style={{ ...labelStyle, marginBottom: '8px' }}>Linked records</p>
-              {task.unitId    && <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}><strong>Unit:</strong> {task.unitId}</p>}
-              {task.tenantId  && <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}><strong>Tenant:</strong> {task.tenantId}</p>}
-              {task.bookingId && <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}><strong>Booking:</strong> {task.bookingId}</p>}
+              <p style={{ ...labelStyle, marginBottom: '8px' }}>{t('dashboard.tasks.detail.linkedRecords')}</p>
+              {task.unitId    && <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}><strong>{t('dashboard.tasks.detail.unit')}:</strong> {task.unitId}</p>}
+              {task.tenantId  && <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}><strong>{t('dashboard.tasks.detail.tenant')}:</strong> {task.tenantId}</p>}
+              {task.bookingId && <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}><strong>{t('dashboard.tasks.detail.booking')}:</strong> {task.bookingId}</p>}
             </div>
           )}
 
           {/* Notes */}
           <div>
-            <label style={labelStyle}>Notes</label>
+            <label style={labelStyle}>{t('dashboard.tasks.detail.notes')}</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
-              placeholder="Add notes…"
+              placeholder={t('dashboard.tasks.detail.notesPlaceholder')}
               className="task-detail-input"
               style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }}
             />
@@ -225,7 +222,7 @@ export default function TaskDetailSheet({ task, sitesById, membersById, onClose 
                 transition: 'background 0.15s',
               }}
             >
-              {loading ? 'Saving…' : 'Save notes'}
+              {loading ? t('dashboard.tasks.detail.saving') : t('dashboard.tasks.detail.saveNotes')}
             </button>
           </div>
 
@@ -238,7 +235,7 @@ export default function TaskDetailSheet({ task, sitesById, membersById, onClose 
           {/* Status transitions */}
           {nextStatuses.length > 0 && (
             <div>
-              <p style={{ ...labelStyle, marginBottom: '8px' }}>Move to</p>
+              <p style={{ ...labelStyle, marginBottom: '8px' }}>{t('dashboard.tasks.detail.moveTo')}</p>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {nextStatuses.map((status) => (
                   <button
@@ -256,7 +253,7 @@ export default function TaskDetailSheet({ task, sitesById, membersById, onClose 
                       transition: 'background 0.12s, color 0.12s',
                     }}
                   >
-                    → {STATUS_LABELS[status] ?? status}
+                    → {t(`dashboard.tasks.status.${status}`)}
                   </button>
                 ))}
               </div>

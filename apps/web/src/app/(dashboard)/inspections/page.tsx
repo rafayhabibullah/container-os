@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
+import { getT } from '@/lib/get-locale';
 import InspectionActions from './InspectionActions';
 import InspectionsPageClient from './InspectionsPageClient';
 
@@ -26,6 +27,7 @@ interface Site {
 
 export default async function InspectionsPage() {
   const user = await requireAuth();
+  const t = getT();
   const [inspections, sites] = await Promise.all([
     serverFetch<InspectionRow[]>(`/v1/organisations/${user.organisationId}/inspections`).catch(() => [] as InspectionRow[]),
     serverFetch<Site[]>(`/v1/organisations/${user.organisationId}/sites`).catch(() => [] as Site[]),
@@ -48,28 +50,28 @@ export default async function InspectionsPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', gap: '20px', flexWrap: 'wrap' }}>
             <div>
               <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 10px', letterSpacing: '-0.02em' }}>
-                Inspections
+                {t('dashboard.inspections.title')}
               </h1>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {failed > 0 && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#dc2626', display: 'inline-block' }} />
-                    {failed} failed
+                    {t('dashboard.inspections.failed', { count: String(failed) })}
                   </span>
                 )}
                 {inProgress > 0 && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
-                    {inProgress} in progress
+                    {t('dashboard.inspections.inProgress', { count: String(inProgress) })}
                   </span>
                 )}
                 {passed > 0 && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
-                    {passed} passed
+                    {t('dashboard.inspections.passed', { count: String(passed) })}
                   </span>
                 )}
                 {inspections.length === 0 && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#f8fafc', color: '#94a3b8', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
-                    No inspections yet
+                    {t('dashboard.inspections.noneYet')}
                   </span>
                 )}
               </div>

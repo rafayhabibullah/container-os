@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
+import { useT } from '@/lib/i18n';
 
 interface Site {
   id: string;
@@ -40,6 +41,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 export default function IncidentActions({ type, incidentId, currentStatus, sites = [] }: Props) {
+  const t = useT();
   const router = useRouter();
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState('');
@@ -68,11 +70,11 @@ export default function IncidentActions({ type, incidentId, currentStatus, sites
         body:    body ? JSON.stringify(body) : undefined,
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.message ?? 'Failed');
+      if (!res.ok) throw new Error(data.message ?? t('dashboard.incidents.report.failed'));
       router.refresh();
       setShowForm(false);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed');
+      setError(err instanceof Error ? err.message : t('dashboard.incidents.report.failed'));
     } finally {
       setLoading(false);
     }
@@ -138,14 +140,14 @@ export default function IncidentActions({ type, incidentId, currentStatus, sites
                   fontSize: '16px', fontWeight: 700,
                   color: '#0f172a', margin: 0,
                 }}>
-                  Report an incident
+                  {t('dashboard.incidents.report.heading')}
                 </p>
                 <p style={{
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
                   fontSize: '13px', color: '#94a3b8',
                   margin: '3px 0 0',
                 }}>
-                  Log a new issue at one of your sites
+                  {t('dashboard.incidents.report.subheading')}
                 </p>
               </div>
               <button
@@ -178,7 +180,7 @@ export default function IncidentActions({ type, incidentId, currentStatus, sites
               style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}
             >
               <div>
-                <label style={labelStyle}>SITE</label>
+                <label style={labelStyle}>{t('dashboard.incidents.report.site')}</label>
                 <select
                   name="siteId"
                   required
@@ -198,7 +200,7 @@ export default function IncidentActions({ type, incidentId, currentStatus, sites
                     }
                   }}
                 >
-                  <option value="">Select a site…</option>
+                  <option value="">{t('dashboard.incidents.report.selectSite')}</option>
                   {sites.map((s) => (
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
@@ -206,9 +208,9 @@ export default function IncidentActions({ type, incidentId, currentStatus, sites
               </div>
 
               <div>
-                <label style={labelStyle}>UNIT <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional)</span></label>
+                <label style={labelStyle}>{t('dashboard.incidents.report.unit')} <span style={{ fontWeight: 400, color: '#94a3b8' }}>{t('dashboard.incidents.report.optional')}</span></label>
                 <select name="unitId" className="inc-modal-input" style={{ ...inputStyle, color: loadingUnits ? '#94a3b8' : undefined }} disabled={loadingUnits || units.length === 0}>
-                  <option value="">{loadingUnits ? 'Loading…' : units.length === 0 ? 'Select a site first' : 'All units / not unit-specific'}</option>
+                  <option value="">{loadingUnits ? t('dashboard.incidents.report.loadingUnits') : units.length === 0 ? t('dashboard.incidents.report.selectSiteFirst') : t('dashboard.incidents.report.allUnits')}</option>
                   {units.map((u) => (
                     <option key={u.id} value={u.id}>{u.unitCode}</option>
                   ))}
@@ -216,10 +218,10 @@ export default function IncidentActions({ type, incidentId, currentStatus, sites
               </div>
 
               <div>
-                <label style={labelStyle}>DESCRIPTION</label>
+                <label style={labelStyle}>{t('dashboard.incidents.report.description')}</label>
                 <input
                   name="type"
-                  placeholder="e.g. Gate malfunction, water leak…"
+                  placeholder={t('dashboard.incidents.report.descriptionPlaceholder')}
                   required
                   className="inc-modal-input"
                   style={inputStyle}
@@ -227,12 +229,12 @@ export default function IncidentActions({ type, incidentId, currentStatus, sites
               </div>
 
               <div>
-                <label style={labelStyle}>SEVERITY</label>
+                <label style={labelStyle}>{t('dashboard.incidents.report.severity')}</label>
                 <select name="severity" className="inc-modal-input" style={inputStyle}>
-                  <option value="low">Low — minor issue, no urgency</option>
-                  <option value="medium">Medium — needs attention soon</option>
-                  <option value="high">High — urgent, act today</option>
-                  <option value="critical">Critical — immediate response needed</option>
+                  <option value="low">{t('dashboard.incidents.report.severityLow')}</option>
+                  <option value="medium">{t('dashboard.incidents.report.severityMedium')}</option>
+                  <option value="high">{t('dashboard.incidents.report.severityHigh')}</option>
+                  <option value="critical">{t('dashboard.incidents.report.severityCritical')}</option>
                 </select>
               </div>
 
@@ -263,7 +265,7 @@ export default function IncidentActions({ type, incidentId, currentStatus, sites
                     fontWeight: 600, fontSize: '13px',
                   }}
                 >
-                  Cancel
+                  {t('dashboard.incidents.report.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -279,7 +281,7 @@ export default function IncidentActions({ type, incidentId, currentStatus, sites
                     transition: 'background 0.15s',
                   }}
                 >
-                  {loading ? 'Submitting…' : 'Submit report'}
+                  {loading ? t('dashboard.incidents.report.submitting') : t('dashboard.incidents.report.submit')}
                 </button>
               </div>
             </form>
@@ -309,7 +311,7 @@ export default function IncidentActions({ type, incidentId, currentStatus, sites
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
             <path d="M8 1v14M1 8h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
           </svg>
-          Report incident
+          {t('dashboard.incidents.reportIncident')}
         </button>
         {modal}
       </>
@@ -346,7 +348,7 @@ export default function IncidentActions({ type, incidentId, currentStatus, sites
             whiteSpace: 'nowrap',
           }}
         >
-          {status === 'investigating' ? 'Investigate' : 'Resolve'}
+          {status === 'investigating' ? t('dashboard.incidents.actionLabel.investigating') : t('dashboard.incidents.actionLabel.resolved')}
         </button>
       ))}
       {error && (

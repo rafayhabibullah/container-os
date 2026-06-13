@@ -3,12 +3,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
+import { useT } from '@/lib/i18n';
 import { CHECKLISTS } from './checklists';
 
 interface Site { id: string; name: string; }
 interface Unit { id: string; unitCode: string; }
 interface Contract { id: string; status: string; effectiveFrom: string | null; }
-interface ChecklistItem { code: string; label: string; result: 'pass' | 'fail' | 'na'; note: string; }
+interface ChecklistItem { code: string; i18nKey: string; result: 'pass' | 'fail' | 'na'; note: string; }
 
 interface Props { sites?: Site[]; }
 
@@ -37,13 +38,15 @@ const labelStyle: React.CSSProperties = {
 
 function buildChecklist(kind: string): ChecklistItem[] {
   return (CHECKLISTS[kind] ?? CHECKLISTS.routine).map((item) => ({
-    ...item,
+    code: item.code,
+    i18nKey: item.i18nKey,
     result: 'na' as const,
     note: '',
   }));
 }
 
 export default function InspectionActions({ sites = [] }: Props) {
+  const t = useT();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -173,7 +176,7 @@ export default function InspectionActions({ sites = [] }: Props) {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (photos.some((p) => p.uploading)) {
-      setError('Please wait for all photos to finish uploading.');
+      setError(t('dashboard.inspections.form.waitForPhotos'));
       return;
     }
     const form = new FormData(e.currentTarget);
@@ -187,7 +190,12 @@ export default function InspectionActions({ sites = [] }: Props) {
           siteId:          form.get('siteId'),
           unitId:          form.get('unitId'),
           kind,
-          checklist,
+          checklist: checklist.map(({ code, i18nKey, result, note }) => ({
+            code,
+            label: t(`dashboard.inspections.checklist.${i18nKey}`),
+            result,
+            note,
+          })),
           photoIds:        photos.map((p) => p.photoId).filter(Boolean),
           notes:           notes || undefined,
           contractId:      form.get('contractId') || undefined,
@@ -195,11 +203,11 @@ export default function InspectionActions({ sites = [] }: Props) {
         }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.message ?? 'Failed');
+      if (!res.ok) throw new Error(data.message ?? t('dashboard.inspections.form.failed'));
       router.refresh();
       closeModal();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed');
+      setError(err instanceof Error ? err.message : t('dashboard.inspections.form.failed'));
     } finally {
       setLoading(false);
     }
@@ -252,8 +260,8 @@ export default function InspectionActions({ sites = [] }: Props) {
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px 16px', borderBottom: '1px solid #f1f5f9' }}>
             <div>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: 0 }}>New inspection</p>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: '3px 0 0' }}>Record unit condition with structured checklist</p>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: 0 }}>{t('dashboard.inspections.form.heading')}</p>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: '3px 0 0' }}>{t('dashboard.inspections.form.subheading')}</p>
             </div>
             <button onClick={closeModal} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b', fontSize: '14px', flexShrink: 0 }}>✕</button>
           </div>
@@ -262,40 +270,40 @@ export default function InspectionActions({ sites = [] }: Props) {
 
             {/* Site */}
             <div>
-              <label style={labelStyle}>SITE</label>
+              <label style={labelStyle}>{t('dashboard.inspections.form.site')}</label>
               <select name="siteId" required className="insp-modal-input" style={inputStyle} onChange={(e) => onSiteChange(e.target.value)}>
-                <option value="">Select a site…</option>
+                <option value="">{t('dashboard.inspections.form.selectSite')}</option>
                 {sites.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
 
             {/* Unit */}
             <div>
-              <label style={labelStyle}>UNIT</label>
+              <label style={labelStyle}>{t('dashboard.inspections.form.unit')}</label>
               <select name="unitId" required disabled={units.length === 0} className="insp-modal-input" style={{ ...inputStyle, opacity: units.length === 0 ? 0.5 : 1 }} onChange={(e) => onUnitChange(e.target.value)}>
-                <option value="">{unitsLoading ? 'Loading units…' : units.length === 0 ? 'Select a site first' : 'Select a unit…'}</option>
+                <option value="">{unitsLoading ? t('dashboard.inspections.form.loadingUnits') : units.length === 0 ? t('dashboard.inspections.form.selectSiteFirst') : t('dashboard.inspections.form.selectUnit')}</option>
                 {units.map((u) => <option key={u.id} value={u.id}>{u.unitCode}</option>)}
               </select>
             </div>
 
             {/* Kind */}
             <div>
-              <label style={labelStyle}>INSPECTION TYPE</label>
+              <label style={labelStyle}>{t('dashboard.inspections.form.type')}</label>
               <select name="kind" className="insp-modal-input" style={inputStyle} value={kind} onChange={(e) => onKindChange(e.target.value)}>
-                <option value="move_in">Move in</option>
-                <option value="move_out">Move out</option>
-                <option value="routine">Routine</option>
+                <option value="move_in">{t('dashboard.inspections.form.typeMoveIn')}</option>
+                <option value="move_out">{t('dashboard.inspections.form.typeMoveOut')}</option>
+                <option value="routine">{t('dashboard.inspections.form.typeRoutine')}</option>
               </select>
             </div>
 
             {/* Contract (Fix 3) */}
             <div>
-              <label style={labelStyle}>CONTRACT <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional)</span></label>
+              <label style={labelStyle}>{t('dashboard.inspections.form.contract')} <span style={{ fontWeight: 400, color: '#94a3b8' }}>{t('dashboard.inspections.form.optional')}</span></label>
               <select name="contractId" className="insp-modal-input" style={{ ...inputStyle, opacity: contracts.length === 0 ? 0.6 : 1 }}>
-                <option value="">{contractsLoading ? 'Loading contracts…' : contracts.length === 0 ? 'No active contracts for this unit' : 'Select a contract…'}</option>
+                <option value="">{contractsLoading ? t('dashboard.inspections.form.loadingContracts') : contracts.length === 0 ? t('dashboard.inspections.form.noContracts') : t('dashboard.inspections.form.selectContract')}</option>
                 {contracts.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.id.slice(0, 8)}… · {c.status.replace(/_/g, ' ')} {c.effectiveFrom ? `· from ${new Date(c.effectiveFrom).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}
+                    {c.id.slice(0, 8)}… · {c.status.replace(/_/g, ' ')} {c.effectiveFrom ? t('dashboard.inspections.form.fromDate', { date: new Date(c.effectiveFrom).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' }) }) : ''}
                   </option>
                 ))}
               </select>
@@ -304,9 +312,9 @@ export default function InspectionActions({ sites = [] }: Props) {
             {/* Structured Checklist (Fix 1) */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <label style={{ ...labelStyle, marginBottom: 0 }}>CHECKLIST</label>
+                <label style={{ ...labelStyle, marginBottom: 0 }}>{t('dashboard.inspections.form.checklist')}</label>
                 <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '11px', color: '#94a3b8' }}>
-                  {passCount} pass · {failCount} fail · {checklist.length - passCount - failCount} pending
+                  {t('dashboard.inspections.form.passFailPending', { pass: String(passCount), fail: String(failCount), pending: String(checklist.length - passCount - failCount) })}
                 </span>
               </div>
               <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
@@ -317,7 +325,7 @@ export default function InspectionActions({ sites = [] }: Props) {
                     style={{ padding: '10px 14px', borderBottom: idx < checklist.length - 1 ? '1px solid #f1f5f9' : 'none', transition: 'background 0.1s' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                      <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#374151', flex: 1 }}>{item.label}</span>
+                      <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#374151', flex: 1 }}>{t(`dashboard.inspections.checklist.${item.i18nKey}`)}</span>
                       <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
                         {(['pass', 'fail', 'na'] as const).map((v) => (
                           <button
@@ -326,7 +334,7 @@ export default function InspectionActions({ sites = [] }: Props) {
                             className={`result-btn ${item.result === v ? `selected-${v}` : v}`}
                             onClick={() => updateChecklistItem(idx, 'result', v)}
                           >
-                            {v === 'na' ? 'N/A' : v.charAt(0).toUpperCase() + v.slice(1)}
+                            {v === 'na' ? t('dashboard.inspections.form.naLabel') : t(`dashboard.inspections.form.resultBtn${v.charAt(0).toUpperCase() + v.slice(1)}`)}
                           </button>
                         ))}
                       </div>
@@ -334,7 +342,7 @@ export default function InspectionActions({ sites = [] }: Props) {
                     {item.result === 'fail' && (
                       <input
                         type="text"
-                        placeholder="Note reason or details…"
+                        placeholder={t('dashboard.inspections.form.notePlaceholder')}
                         value={item.note}
                         onChange={(e) => updateChecklistItem(idx, 'note', e.target.value)}
                         style={{ ...inputStyle, marginTop: '8px', fontSize: '13px', padding: '7px 10px' }}
@@ -345,7 +353,11 @@ export default function InspectionActions({ sites = [] }: Props) {
               </div>
               {allDone && (
                 <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '12px', color: failCount > 0 ? '#dc2626' : '#16a34a', margin: '6px 0 0', fontWeight: 600 }}>
-                  Overall result: {failCount > 0 ? `Fail (${failCount} item${failCount > 1 ? 's' : ''})` : 'Pass — all items OK'}
+                  {t('dashboard.inspections.form.overallResult', {
+                    result: failCount > 0
+                      ? t(`dashboard.inspections.form.${failCount > 1 ? 'resultFailPlural' : 'resultFail'}`, { count: String(failCount) })
+                      : t('dashboard.inspections.form.resultPass'),
+                  })}
                 </p>
               )}
             </div>
@@ -353,13 +365,13 @@ export default function InspectionActions({ sites = [] }: Props) {
             {/* Photos (Fix 4) */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <label style={{ ...labelStyle, marginBottom: 0 }}>PHOTOS <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional)</span></label>
+                <label style={{ ...labelStyle, marginBottom: 0 }}>{t('dashboard.inspections.form.photos')} <span style={{ fontWeight: 400, color: '#94a3b8' }}>{t('dashboard.inspections.form.optional')}</span></label>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '12px', fontWeight: 600, color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                 >
-                  + Add photos
+                  {t('dashboard.inspections.form.addPhotos')}
                 </button>
               </div>
               <input ref={fileInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handlePhotoSelect} />
@@ -370,7 +382,7 @@ export default function InspectionActions({ sites = [] }: Props) {
                       <img src={p.previewUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       {p.uploading && (
                         <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <span style={{ fontSize: '10px', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#64748b' }}>uploading…</span>
+                          <span style={{ fontSize: '10px', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#64748b' }}>{t('dashboard.inspections.form.uploading')}</span>
                         </div>
                       )}
                       {!p.uploading && (
@@ -384,18 +396,18 @@ export default function InspectionActions({ sites = [] }: Props) {
                   onClick={() => fileInputRef.current?.click()}
                   style={{ border: '1px dashed #e2e8f0', borderRadius: '8px', padding: '16px', textAlign: 'center', cursor: 'pointer', background: '#f8fafc' }}
                 >
-                  <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: 0 }}>Click to add photos</p>
+                  <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: 0 }}>{t('dashboard.inspections.form.clickToAddPhotos')}</p>
                 </div>
               )}
             </div>
 
             {/* Notes (Fix 2) */}
             <div>
-              <label style={labelStyle}>NOTES <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional)</span></label>
+              <label style={labelStyle}>{t('dashboard.inspections.form.notes')} <span style={{ fontWeight: 400, color: '#94a3b8' }}>{t('dashboard.inspections.form.optional')}</span></label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Any additional observations or comments…"
+                placeholder={t('dashboard.inspections.form.notesPlaceholder')}
                 rows={3}
                 className="insp-modal-input"
                 style={{ ...inputStyle, resize: 'vertical', minHeight: '72px' }}
@@ -405,7 +417,7 @@ export default function InspectionActions({ sites = [] }: Props) {
             {/* Deposit deduction — move_out only (Fix 6) */}
             {showDeposit && (
               <div>
-                <label style={labelStyle}>DEPOSIT DEDUCTION <span style={{ fontWeight: 400, color: '#94a3b8' }}>(optional, €)</span></label>
+                <label style={labelStyle}>{t('dashboard.inspections.form.depositDeduction')} <span style={{ fontWeight: 400, color: '#94a3b8' }}>{t('dashboard.inspections.form.optionalEuro')}</span></label>
                 <input
                   type="number"
                   min="0"
@@ -418,7 +430,7 @@ export default function InspectionActions({ sites = [] }: Props) {
                 />
                 {depositDeduction && parseFloat(depositDeduction) > 0 && (
                   <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '12px', color: '#f59e0b', margin: '4px 0 0' }}>
-                    €{parseFloat(depositDeduction).toFixed(2)} will be noted for deposit deduction
+                    {t('dashboard.inspections.form.depositNote', { amount: parseFloat(depositDeduction).toFixed(2) })}
                   </p>
                 )}
               </div>
@@ -436,14 +448,14 @@ export default function InspectionActions({ sites = [] }: Props) {
                 onClick={closeModal}
                 style={{ flex: 1, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', color: '#64748b', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: '13px' }}
               >
-                Cancel
+                {t('dashboard.inspections.form.cancel')}
               </button>
               <button
                 type="submit"
                 disabled={loading}
                 style={{ flex: 2, background: loading ? '#e2e8f0' : '#0f172a', color: loading ? '#94a3b8' : '#ffffff', border: 'none', borderRadius: '8px', padding: '10px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: '13px', transition: 'background 0.15s' }}
               >
-                {loading ? 'Saving…' : 'Save inspection'}
+                {loading ? t('dashboard.inspections.form.saving') : t('dashboard.inspections.form.submit')}
               </button>
             </div>
           </form>
@@ -464,7 +476,7 @@ export default function InspectionActions({ sites = [] }: Props) {
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
           <path d="M8 1v14M1 8h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
         </svg>
-        New inspection
+        {t('dashboard.inspections.newInspection')}
       </button>
       {modal}
     </>

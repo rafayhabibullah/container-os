@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
+import { getT } from '@/lib/get-locale';
 import TaskActions from './TaskActions';
 import TasksTable from './TasksTable';
 
@@ -32,6 +33,7 @@ export interface Member {
 
 export default async function TasksPage() {
   const user = await requireAuth();
+  const t = getT();
   const [tasks, sites, members] = await Promise.all([
     serverFetch<Task[]>(`/v1/organisations/${user.organisationId}/tasks`).catch(() => [] as Task[]),
     serverFetch<Site[]>(`/v1/organisations/${user.organisationId}/sites`).catch(() => [] as Site[]),
@@ -60,38 +62,38 @@ export default async function TasksPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', gap: '20px', flexWrap: 'wrap' }}>
             <div>
               <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 10px', letterSpacing: '-0.02em' }}>
-                Tasks
+                {t('dashboard.tasks.title')}
               </h1>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {overdue > 0 && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#dc2626', display: 'inline-block' }} />
-                    {overdue} overdue
+                    {t('dashboard.tasks.overdue', { count: String(overdue) })}
                   </span>
                 )}
                 {open > 0 && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#fff7ed', color: '#ea580c', border: '1px solid #fed7aa', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
-                    {open} open
+                    {t('dashboard.tasks.open', { count: String(open) })}
                   </span>
                 )}
                 {inProgress > 0 && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
-                    {inProgress} in progress
+                    {t('dashboard.tasks.inProgress', { count: String(inProgress) })}
                   </span>
                 )}
                 {blocked > 0 && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#fdf4ff', color: '#7e22ce', border: '1px solid #e9d5ff', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
-                    {blocked} blocked
+                    {t('dashboard.tasks.blocked', { count: String(blocked) })}
                   </span>
                 )}
                 {completed > 0 && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
-                    {completed} completed
+                    {t('dashboard.tasks.completed', { count: String(completed) })}
                   </span>
                 )}
                 {tasks.length === 0 && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#f8fafc', color: '#94a3b8', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
-                    No tasks yet
+                    {t('dashboard.tasks.noTasksYet')}
                   </span>
                 )}
               </div>

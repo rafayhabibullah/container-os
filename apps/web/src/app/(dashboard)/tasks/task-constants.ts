@@ -1,16 +1,16 @@
-export const TYPE_LABELS: Record<string, string> = {
-  move_in:         'Move-in',
-  move_out:        'Move-out',
-  inspect_unit:    'Inspect unit',
-  clean_unit:      'Clean unit',
-  repair_unit:     'Repair unit',
-  verify_document: 'Verify document',
-  approve_booking: 'Approve booking',
-  call_tenant:     'Call tenant',
-  collect_payment: 'Collect payment',
-  assign_access:   'Assign access',
-  upload_contract: 'Upload contract',
-  other:           'Other',
+export const TYPE_KEYS: Record<string, string> = {
+  move_in:         'move_in',
+  move_out:        'move_out',
+  inspect_unit:    'inspect_unit',
+  clean_unit:      'clean_unit',
+  repair_unit:     'repair_unit',
+  verify_document: 'verify_document',
+  approve_booking: 'approve_booking',
+  call_tenant:     'call_tenant',
+  collect_payment: 'collect_payment',
+  assign_access:   'assign_access',
+  upload_contract: 'upload_contract',
+  other:           'other',
 };
 
 export const PRIORITY_COLORS: Record<string, { text: string; bg: string; border: string }> = {
