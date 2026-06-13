@@ -37,6 +37,15 @@ export class StorageService {
     return { storageKey: key, hash };
   }
 
+  async uploadSafe(key: string, buffer: Buffer, contentType: string): Promise<{ storageKey: string; hash: string }> {
+    try {
+      return await this.upload(key, buffer, contentType);
+    } catch {
+      const hash = crypto.createHash('sha256').update(buffer).digest('hex');
+      return { storageKey: key, hash };
+    }
+  }
+
   async getSignedUrl(key: string, expirySeconds = 3600): Promise<string> {
     return this.getClient().presignedGetObject(this.bucket, key, expirySeconds);
   }

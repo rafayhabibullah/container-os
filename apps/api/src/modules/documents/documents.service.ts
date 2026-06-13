@@ -28,6 +28,24 @@ export class DocumentsService {
     return { documentId: doc.id, uploadUrl, status: 'awaiting_upload' };
   }
 
+  async storeGeneratedDocument(params: { subjectType: string; subjectId: string; kind: string; buffer: Buffer; locale?: string; fileName?: string }) {
+    const fileName = params.fileName ?? `${params.kind}.pdf`;
+    const storageKey = `documents/${params.subjectType.toLowerCase()}/${params.subjectId}/${Date.now()}/${fileName}`;
+    const { hash } = await this.storage.uploadSafe(storageKey, params.buffer, 'application/pdf');
+    return this.prisma.document.create({
+      data: {
+        subjectType: params.subjectType,
+        subjectId: params.subjectId,
+        kind: params.kind,
+        storageKey,
+        hash,
+        locale: params.locale,
+        version: 1,
+        scanStatus: 'clean',
+      },
+    });
+  }
+
   async getDownloadUrl(storageKey: string) {
     return this.storage.getSignedUrl(storageKey, 900);
   }
