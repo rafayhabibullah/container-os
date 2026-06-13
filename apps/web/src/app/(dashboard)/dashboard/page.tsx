@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
+import { getT } from '@/lib/get-locale';
 import Link from 'next/link';
 
 interface Site {
@@ -93,12 +94,12 @@ const SEVERITY_PILL: Record<string, { color: string; bg: string; border: string 
   low:      { color: '#475569', bg: '#f8fafc', border: '#e2e8f0' },
 };
 
-function tenantName(customer: InvoiceRow['agreement']['customer']) {
+function tenantName(customer: InvoiceRow['agreement']['customer'], t: (key: string, vars?: Record<string, string>) => string) {
   const d = customer.personOrOrgData;
   if (d.companyName) return d.companyName;
   if (d.name) return d.name;
   if (d.firstName || d.lastName) return `${d.firstName ?? ''} ${d.lastName ?? ''}`.trim();
-  return 'Unknown';
+  return t('dashboard.overview.unknown');
 }
 
 function fmtCurrency(minor: number, currency: string) {
@@ -106,6 +107,7 @@ function fmtCurrency(minor: number, currency: string) {
 }
 
 export default async function DashboardPage() {
+  const t = getT();
   const user = await requireAuth();
 
   const [sites, members, bookings, tasks, incidents, invoices] = await Promise.all([
@@ -123,12 +125,12 @@ export default async function DashboardPage() {
   const overdueInvoices = invoices.filter((i) => i.status === 'overdue');
 
   const stats = [
-    { label: 'TOTAL SITES', value: sites.length, href: '/sites' },
-    { label: 'TEAM MEMBERS', value: members.length, href: '/team' },
-    { label: 'PENDING RESERVATIONS', value: pendingReservations, href: '/reservations', accent: pendingReservations > 0 },
-    { label: 'OPEN TASKS', value: openTasks.length, href: '/tasks', accent: openTasks.length > 0 },
-    { label: 'OPEN INCIDENTS', value: openIncidents.length, href: '/incidents', accent: openIncidents.length > 0 },
-    { label: 'OVERDUE INVOICES', value: overdueInvoices.length, href: '/invoices', accent: overdueInvoices.length > 0 },
+    { label: t('dashboard.overview.statTotalSites'), value: sites.length, href: '/sites' },
+    { label: t('dashboard.overview.statTeamMembers'), value: members.length, href: '/team' },
+    { label: t('dashboard.overview.statPendingReservations'), value: pendingReservations, href: '/reservations', accent: pendingReservations > 0 },
+    { label: t('dashboard.overview.statOpenTasks'), value: openTasks.length, href: '/tasks', accent: openTasks.length > 0 },
+    { label: t('dashboard.overview.statOpenIncidents'), value: openIncidents.length, href: '/incidents', accent: openIncidents.length > 0 },
+    { label: t('dashboard.overview.statOverdueInvoices'), value: overdueInvoices.length, href: '/invoices', accent: overdueInvoices.length > 0 },
   ];
 
   const panelStyle = {
@@ -211,7 +213,7 @@ export default async function DashboardPage() {
                 margin: 0,
               }}
             >
-              Dashboard
+              {t('dashboard.overview.title')}
             </h1>
             <p
               style={{
@@ -313,11 +315,11 @@ export default async function DashboardPage() {
           {/* Recent Reservations */}
           <div style={panelStyle}>
             <div style={panelHeaderStyle}>
-              <span style={panelTitleStyle}>Recent Reservations</span>
-              <Link href="/reservations" className="dash-link" style={viewAllStyle}>View all →</Link>
+              <span style={panelTitleStyle}>{t('dashboard.overview.recentReservations')}</span>
+              <Link href="/reservations" className="dash-link" style={viewAllStyle}>{t('dashboard.overview.viewAll')}</Link>
             </div>
             {bookings.length === 0 ? (
-              <p style={emptyStyle}>No reservations yet.</p>
+              <p style={emptyStyle}>{t('dashboard.overview.noReservations')}</p>
             ) : (
               <div>
                 {bookings.slice(0, 5).map((b) => {
@@ -329,7 +331,7 @@ export default async function DashboardPage() {
                           {b.customerName ?? b.customerEmail ?? `#${b.id.slice(0, 8)}`}
                         </span>
                         <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                          Starts {new Date(b.startDate).toLocaleDateString('de-DE')} · {b.source}
+                          {t('dashboard.overview.startsOn', { date: new Date(b.startDate).toLocaleDateString('de-DE'), source: b.source })}
                         </span>
                       </div>
                       <span style={{
@@ -338,7 +340,7 @@ export default async function DashboardPage() {
                         borderRadius: '20px', padding: '2px 8px', fontSize: '12px', fontWeight: 600,
                       }}>
                         <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: s.dot, display: 'inline-block' }} />
-                        {b.status}
+                        {t(`dashboard.overview.bookingStatus.${b.status}`)}
                       </span>
                     </Link>
                   );
@@ -350,21 +352,21 @@ export default async function DashboardPage() {
           {/* Overdue Invoices */}
           <div style={panelStyle}>
             <div style={panelHeaderStyle}>
-              <span style={panelTitleStyle}>Overdue Invoices</span>
-              <Link href="/invoices" className="dash-link" style={viewAllStyle}>View all →</Link>
+              <span style={panelTitleStyle}>{t('dashboard.overview.overdueInvoices')}</span>
+              <Link href="/invoices" className="dash-link" style={viewAllStyle}>{t('dashboard.overview.viewAll')}</Link>
             </div>
             {overdueInvoices.length === 0 ? (
-              <p style={emptyStyle}>No overdue invoices.</p>
+              <p style={emptyStyle}>{t('dashboard.overview.noOverdueInvoices')}</p>
             ) : (
               <div>
                 {overdueInvoices.slice(0, 5).map((inv) => (
                   <Link key={inv.id} href={`/invoices/${inv.id}`} className="dash-row" style={{ ...rowStyle, textDecoration: 'none', cursor: 'pointer' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                       <span style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>
-                        {tenantName(inv.agreement.customer)}
+                        {tenantName(inv.agreement.customer, t)}
                       </span>
                       <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                        Due {new Date(inv.dueDate).toLocaleDateString('de-DE')}
+                        {t('dashboard.overview.dueOn', { date: new Date(inv.dueDate).toLocaleDateString('de-DE') })}
                       </span>
                     </div>
                     <span style={{ fontSize: '14px', fontWeight: 700, color: '#991b1b' }}>
@@ -379,24 +381,24 @@ export default async function DashboardPage() {
           {/* Open Tasks */}
           <div style={panelStyle}>
             <div style={panelHeaderStyle}>
-              <span style={panelTitleStyle}>Open Tasks</span>
-              <Link href="/tasks" className="dash-link" style={viewAllStyle}>View all →</Link>
+              <span style={panelTitleStyle}>{t('dashboard.overview.openTasks')}</span>
+              <Link href="/tasks" className="dash-link" style={viewAllStyle}>{t('dashboard.overview.viewAll')}</Link>
             </div>
             {openTasks.length === 0 ? (
-              <p style={emptyStyle}>No open tasks.</p>
+              <p style={emptyStyle}>{t('dashboard.overview.noOpenTasks')}</p>
             ) : (
               <div>
-                {openTasks.slice(0, 5).map((t) => {
-                  const p = PRIORITY_PILL[t.priority] ?? PRIORITY_PILL.low;
+                {openTasks.slice(0, 5).map((task) => {
+                  const p = PRIORITY_PILL[task.priority] ?? PRIORITY_PILL.low;
                   return (
-                    <Link key={t.id} href="/tasks" className="dash-row" style={{ ...rowStyle, textDecoration: 'none', cursor: 'pointer' }}>
+                    <Link key={task.id} href="/tasks" className="dash-row" style={{ ...rowStyle, textDecoration: 'none', cursor: 'pointer' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, minWidth: 0 }}>
                         <span style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {t.title}
+                          {task.title}
                         </span>
-                        {t.dueAt && (
+                        {task.dueAt && (
                           <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                            Due {new Date(t.dueAt).toLocaleDateString('de-DE')}
+                            {t('dashboard.overview.dueOn', { date: new Date(task.dueAt).toLocaleDateString('de-DE') })}
                           </span>
                         )}
                       </div>
@@ -406,7 +408,7 @@ export default async function DashboardPage() {
                         borderRadius: '20px', padding: '2px 8px', fontSize: '12px', fontWeight: 600,
                         marginLeft: '12px', flexShrink: 0, textTransform: 'capitalize',
                       }}>
-                        {t.priority}
+                        {t(`dashboard.overview.priority.${task.priority}`)}
                       </span>
                     </Link>
                   );
@@ -418,11 +420,11 @@ export default async function DashboardPage() {
           {/* Open Incidents */}
           <div style={panelStyle}>
             <div style={panelHeaderStyle}>
-              <span style={panelTitleStyle}>Open Incidents</span>
-              <Link href="/incidents" className="dash-link" style={viewAllStyle}>View all →</Link>
+              <span style={panelTitleStyle}>{t('dashboard.overview.openIncidents')}</span>
+              <Link href="/incidents" className="dash-link" style={viewAllStyle}>{t('dashboard.overview.viewAll')}</Link>
             </div>
             {openIncidents.length === 0 ? (
-              <p style={emptyStyle}>No open incidents.</p>
+              <p style={emptyStyle}>{t('dashboard.overview.noOpenIncidents')}</p>
             ) : (
               <div>
                 {openIncidents.slice(0, 5).map((inc) => {
@@ -443,7 +445,7 @@ export default async function DashboardPage() {
                         borderRadius: '20px', padding: '2px 8px', fontSize: '12px', fontWeight: 600,
                         textTransform: 'capitalize',
                       }}>
-                        {inc.severity}
+                        {t(`dashboard.overview.severity.${inc.severity}`)}
                       </span>
                     </Link>
                   );
@@ -457,11 +459,11 @@ export default async function DashboardPage() {
         {/* Team panel — full width */}
         <div style={{ ...panelStyle, marginBottom: '20px' }}>
           <div style={panelHeaderStyle}>
-            <span style={panelTitleStyle}>Team</span>
-            <Link href="/team" className="dash-link" style={viewAllStyle}>View all →</Link>
+            <span style={panelTitleStyle}>{t('dashboard.overview.team')}</span>
+            <Link href="/team" className="dash-link" style={viewAllStyle}>{t('dashboard.overview.viewAll')}</Link>
           </div>
           {members.length === 0 ? (
-            <p style={emptyStyle}>No members.</p>
+            <p style={emptyStyle}>{t('dashboard.overview.noMembers')}</p>
           ) : (
             <div>
               {members.map((m) => {
@@ -477,7 +479,7 @@ export default async function DashboardPage() {
                       background: r.bg, color: r.color, border: `1px solid ${r.border}`,
                       borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600,
                     }}>
-                      {m.role}
+                      {t(`dashboard.overview.role.${m.role}`)}
                     </span>
                   </div>
                 );
@@ -489,15 +491,15 @@ export default async function DashboardPage() {
         {/* Sites panel — full width */}
         <div style={panelStyle}>
           <div style={panelHeaderStyle}>
-            <span style={panelTitleStyle}>Sites</span>
-            <Link href="/sites" className="dash-link" style={viewAllStyle}>View all →</Link>
+            <span style={panelTitleStyle}>{t('dashboard.overview.sites')}</span>
+            <Link href="/sites" className="dash-link" style={viewAllStyle}>{t('dashboard.overview.viewAll')}</Link>
           </div>
 
           {sites.length === 0 ? (
             <p style={emptyStyle}>
-              No sites yet.{' '}
+              {t('dashboard.overview.noSites')}{' '}
               <Link href="/sites/new" style={{ color: '#64748b', textDecoration: 'underline' }}>
-                Add your first site →
+                {t('dashboard.overview.addFirstSite')}
               </Link>
             </p>
           ) : (
@@ -513,7 +515,7 @@ export default async function DashboardPage() {
                     {site.name}
                   </span>
                   <span style={{ fontSize: '13px', color: '#64748b' }}>
-                    Manage →
+                    {t('dashboard.overview.manage')}
                   </span>
                 </Link>
               ))}

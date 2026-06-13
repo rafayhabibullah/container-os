@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
+import { getT } from '@/lib/get-locale';
 import Link from 'next/link';
 
 interface SiteAddress {
@@ -15,6 +16,7 @@ interface Site {
 }
 
 export default async function SitesPage() {
+  const t = getT();
   const user = await requireAuth();
   const sites = await serverFetch<Site[]>(
     `/v1/organisations/${user.organisationId}/sites`,
@@ -62,7 +64,7 @@ export default async function SitesPage() {
                   margin: 0,
                 }}
               >
-                Sites
+                {t('dashboard.sites.list.title')}
               </h1>
               <p
                 style={{
@@ -71,7 +73,9 @@ export default async function SitesPage() {
                   margin: '4px 0 0',
                 }}
               >
-                {sites.length} location{sites.length !== 1 ? 's' : ''}
+                {sites.length === 1
+                  ? t('dashboard.sites.list.locationCount', { count: String(sites.length) })
+                  : t('dashboard.sites.list.locationCount_plural', { count: String(sites.length) })}
               </p>
             </div>
             {user.role === 'owner' && (
@@ -91,7 +95,7 @@ export default async function SitesPage() {
                   display: 'inline-block',
                 }}
               >
-                + Add site
+                {t('dashboard.sites.list.addSite')}
               </Link>
             )}
           </div>
@@ -125,7 +129,7 @@ export default async function SitesPage() {
               </svg>
               <input
                 type="text"
-                placeholder="Search sites…"
+                placeholder={t('dashboard.sites.list.searchPlaceholder')}
                 style={{
                   background: 'transparent',
                   border: 'none',
@@ -153,8 +157,8 @@ export default async function SitesPage() {
                 textAlign: 'center',
               }}
             >
-              <p style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>No sites yet</p>
-              <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 12px' }}>Sites will appear here once added.</p>
+              <p style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>{t('dashboard.sites.list.emptyTitle')}</p>
+              <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 12px' }}>{t('dashboard.sites.list.emptyBody')}</p>
               {user.role === 'owner' && (
                 <Link
                   href="/sites/new"
@@ -165,7 +169,7 @@ export default async function SitesPage() {
                     textDecoration: 'none',
                   }}
                 >
-                  Add your first site →
+                  {t('dashboard.sites.list.emptyCta')}
                 </Link>
               )}
             </div>
@@ -193,7 +197,7 @@ export default async function SitesPage() {
                         padding: '10px 16px',
                       }}
                     >
-                      Name
+                      {t('dashboard.sites.list.columnName')}
                     </th>
                     <th
                       style={{
@@ -206,7 +210,7 @@ export default async function SitesPage() {
                         padding: '10px 16px',
                       }}
                     >
-                      City
+                      {t('dashboard.sites.list.columnCity')}
                     </th>
                     <th
                       style={{
@@ -219,7 +223,7 @@ export default async function SitesPage() {
                         padding: '10px 16px',
                       }}
                     >
-                      Slug
+                      {t('dashboard.sites.list.columnSlug')}
                     </th>
                     <th
                       style={{
@@ -232,7 +236,7 @@ export default async function SitesPage() {
                         padding: '10px 16px',
                       }}
                     >
-                      Status
+                      {t('dashboard.sites.list.columnStatus')}
                     </th>
                     <th style={{ padding: '10px 16px' }} />
                   </tr>
@@ -286,7 +290,7 @@ export default async function SitesPage() {
                                   flexShrink: 0,
                                 }}
                               />
-                              active
+                              {t('dashboard.sites.list.statusActive')}
                             </span>
                           ) : (
                             <span
@@ -313,7 +317,7 @@ export default async function SitesPage() {
                                   flexShrink: 0,
                                 }}
                               />
-                              inactive
+                              {t('dashboard.sites.list.statusInactive')}
                             </span>
                           )}
                         </Link>
@@ -329,7 +333,7 @@ export default async function SitesPage() {
                             justifyContent: 'flex-end',
                           }}
                         >
-                          Manage →
+                          {t('dashboard.sites.list.manage')}
                         </Link>
                       </td>
                     </tr>

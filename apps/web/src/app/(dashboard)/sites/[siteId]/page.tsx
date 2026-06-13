@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
+import { getT } from '@/lib/get-locale';
 import SiteDetailTabs from './SiteDetailTabs';
 import Link from 'next/link';
 
@@ -15,6 +16,7 @@ interface Site {
 interface SiteSummary { id: string; name: string; }
 
 export default async function SiteDetailPage({ params }: { params: { siteId: string } }) {
+  const t = getT();
   const user = await requireAuth();
   const base = `/v1/organisations/${user.organisationId}`;
 
@@ -38,7 +40,7 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
 
           <Link href="/sites" style={{ display: 'inline-block', fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', marginBottom: '20px' }}>
-            ← Sites
+            {t('dashboard.sites.detail.backToSites')}
           </Link>
 
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 24px', letterSpacing: '-0.02em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>

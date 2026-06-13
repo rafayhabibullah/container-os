@@ -3,6 +3,7 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useT } from '@/lib/i18n';
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -28,6 +29,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 export default function NewSitePage() {
+  const t = useT();
   const router = useRouter();
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
@@ -54,11 +56,11 @@ export default function NewSitePage() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? 'Failed to create site');
+      if (!res.ok) throw new Error(data.message ?? t('dashboard.sites.new.errorCreate'));
       router.push(`/sites/${data.id}#unit-types`);
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to create site');
+      setError(err instanceof Error ? err.message : t('dashboard.sites.new.errorCreate'));
     } finally {
       setLoading(false);
     }
@@ -74,38 +76,38 @@ export default function NewSitePage() {
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
 
           <Link href="/sites" style={{ display: 'inline-block', fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', marginBottom: '20px' }}>
-            ← Sites
+            {t('dashboard.sites.new.backToSites')}
           </Link>
 
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 24px', letterSpacing: '-0.02em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Add a new site
+            {t('dashboard.sites.new.title')}
           </h1>
 
           <form onSubmit={handleSubmit} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <label style={labelStyle}>SITE NAME</label>
-              <input name="name" type="text" required placeholder="Berlin Mitte Self-Storage" style={inputStyle} />
+              <label style={labelStyle}>{t('dashboard.sites.new.labelSiteName')}</label>
+              <input name="name" type="text" required placeholder={t('dashboard.sites.new.placeholderSiteName')} style={inputStyle} />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelStyle}>STREET ADDRESS</label>
-                <input name="street" type="text" required placeholder="Hauptstr. 1" style={inputStyle} />
+                <label style={labelStyle}>{t('dashboard.sites.new.labelStreetAddress')}</label>
+                <input name="street" type="text" required placeholder={t('dashboard.sites.new.placeholderStreetAddress')} style={inputStyle} />
               </div>
               <div>
-                <label style={labelStyle}>CITY</label>
-                <input name="city" type="text" required placeholder="Berlin" style={inputStyle} />
+                <label style={labelStyle}>{t('dashboard.sites.new.labelCity')}</label>
+                <input name="city" type="text" required placeholder={t('dashboard.sites.new.placeholderCity')} style={inputStyle} />
               </div>
               <div>
-                <label style={labelStyle}>POSTAL CODE</label>
-                <input name="postalCode" type="text" required placeholder="10115" style={inputStyle} />
+                <label style={labelStyle}>{t('dashboard.sites.new.labelPostalCode')}</label>
+                <input name="postalCode" type="text" required placeholder={t('dashboard.sites.new.placeholderPostalCode')} style={inputStyle} />
               </div>
               <div>
-                <label style={labelStyle}>COUNTRY CODE</label>
+                <label style={labelStyle}>{t('dashboard.sites.new.labelCountryCode')}</label>
                 <input name="country" type="text" defaultValue="DE" maxLength={2} style={inputStyle} />
               </div>
               <div>
-                <label style={labelStyle}>TIMEZONE</label>
+                <label style={labelStyle}>{t('dashboard.sites.new.labelTimezone')}</label>
                 <input name="timezone" type="text" defaultValue="Europe/Berlin" style={inputStyle} />
               </div>
             </div>
@@ -122,10 +124,10 @@ export default function NewSitePage() {
                 disabled={loading}
                 style={{ background: loading ? '#e2e8f0' : '#0f172a', color: loading ? '#94a3b8' : '#ffffff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontWeight: 700, fontSize: '13px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
-                {loading ? 'Creating…' : 'Create site'}
+                {loading ? t('dashboard.sites.new.creating') : t('dashboard.sites.new.createSite')}
               </button>
               <Link href="/sites" style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', padding: '10px 16px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                Cancel
+                {t('dashboard.sites.new.cancel')}
               </Link>
             </div>
           </form>

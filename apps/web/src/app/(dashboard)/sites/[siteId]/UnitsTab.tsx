@@ -2,6 +2,7 @@
 
 import React, { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useT } from '@/lib/i18n';
 import type { UnitType } from './UnitTypesTab';
 
 interface Unit {
@@ -23,12 +24,12 @@ interface Props {
   canEdit: boolean;
 }
 
-const UNIT_STATUS: Record<string, { dot: string; text: string; bg: string; border: string; label: string }> = {
-  available:      { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', label: 'Available'      },
-  reserved:       { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a', label: 'Reserved'       },
-  occupied:       { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd', label: 'Occupied'       },
-  maintenance:    { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a', label: 'Maintenance'    },
-  out_of_service: { dot: '#f87171', text: '#dc2626', bg: '#fef2f2', border: '#fecaca', label: 'Out of service' },
+const UNIT_STATUS: Record<string, { dot: string; text: string; bg: string; border: string; i18n: string }> = {
+  available:      { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', i18n: 'statusAvailable'    },
+  reserved:       { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a', i18n: 'statusReserved'     },
+  occupied:       { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd', i18n: 'statusOccupied'     },
+  maintenance:    { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a', i18n: 'statusMaintenance' },
+  out_of_service: { dot: '#f87171', text: '#dc2626', bg: '#fef2f2', border: '#fecaca', i18n: 'statusOutOfService' },
 };
 
 const inp: React.CSSProperties = {
@@ -57,6 +58,7 @@ const btnSecondary: React.CSSProperties = {
 };
 
 export default function UnitsTab({ siteId, unitTypes, units, otherSites, canEdit }: Props) {
+  const t = useT();
   const router = useRouter();
   const [showAdd, setShowAdd]         = useState(false);
   const [showBulk, setShowBulk]       = useState(false);
@@ -358,7 +360,7 @@ export default function UnitsTab({ siteId, unitTypes, units, otherSites, canEdit
                     </td>
                   </tr>
                   {typeUnits.map((unit, i) => {
-                    const stat = UNIT_STATUS[unit.status] ?? { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0', label: unit.status };
+                    const stat = UNIT_STATUS[unit.status] ?? { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0', i18n: '' };
                     return (
                       <tr key={unit.id} onClick={() => openEdit(unit)} style={{ borderBottom: i < typeUnits.length - 1 ? '1px solid #f8fafc' : '1px solid #f1f5f9', cursor: 'pointer' }}>
                         <td style={{ padding: '11px 16px', fontFamily: 'monospace', fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{unit.unitCode}</td>
@@ -367,7 +369,7 @@ export default function UnitsTab({ siteId, unitTypes, units, otherSites, canEdit
                         <td style={{ padding: '11px 16px' }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: stat.bg, color: stat.text, border: `1px solid ${stat.border}`, borderRadius: '20px', padding: '2px 9px', fontSize: '12px', fontWeight: 600, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                             <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: stat.dot, display: 'inline-block', flexShrink: 0 }} />
-                            {stat.label}
+                            {stat.i18n ? t(`dashboard.sites.units.${stat.i18n}`) : unit.status}
                           </span>
                         </td>
                         <td style={{ padding: '11px 16px', textAlign: 'right' }}>
@@ -379,7 +381,7 @@ export default function UnitsTab({ siteId, unitTypes, units, otherSites, canEdit
                 </React.Fragment>
               ))}
               {untyped.map((unit, i) => {
-                const stat = UNIT_STATUS[unit.status] ?? { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0', label: unit.status };
+                const stat = UNIT_STATUS[unit.status] ?? { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0', i18n: '' };
                 return (
                   <tr key={unit.id} onClick={() => openEdit(unit)} style={{ borderBottom: i < untyped.length - 1 ? '1px solid #f8fafc' : 'none', cursor: 'pointer' }}>
                     <td style={{ padding: '11px 16px', fontFamily: 'monospace', fontSize: '13px', fontWeight: 600, color: '#0f172a' }}>{unit.unitCode}</td>
@@ -388,7 +390,7 @@ export default function UnitsTab({ siteId, unitTypes, units, otherSites, canEdit
                     <td style={{ padding: '11px 16px' }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: stat.bg, color: stat.text, border: `1px solid ${stat.border}`, borderRadius: '20px', padding: '2px 9px', fontSize: '12px', fontWeight: 600, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                         <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: stat.dot, display: 'inline-block', flexShrink: 0 }} />
-                        {stat.label}
+                        {stat.i18n ? t(`dashboard.sites.units.${stat.i18n}`) : unit.status}
                       </span>
                     </td>
                     <td style={{ padding: '11px 16px', textAlign: 'right' }}>
