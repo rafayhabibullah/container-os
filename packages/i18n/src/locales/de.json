@@ -1292,6 +1292,202 @@
         "complete": "Inspektion abschließen",
         "photosAttachedPlural": "{{count}} Fotos bereits angehängt"
       }
+    },
+    "customers": {
+      "title": "Kunden",
+      "count": "{{count}} Kunde",
+      "count_plural": "{{count}} Kunden",
+      "filters": {
+        "all": "Alle",
+        "person": "Person",
+        "organisation": "Organisation"
+      },
+      "searchPlaceholder": "Kunden suchen…",
+      "table": {
+        "name": "Name",
+        "email": "E-Mail",
+        "type": "Typ",
+        "since": "Seit"
+      },
+      "type": {
+        "person": "Person",
+        "organisation": "Organisation"
+      },
+      "empty": {
+        "noCustomers": "Noch keine Kunden",
+        "noResults": "Keine Ergebnisse gefunden"
+      },
+      "emptyHint": {
+        "noCustomers": "Kunden werden hier angezeigt, sobald sie Verträge haben.",
+        "noResults": "Passe deine Suche oder den Filter an."
+      },
+      "drawer": {
+        "id": "ID",
+        "memberSince": "Mitglied seit",
+        "contact": "Kontakt",
+        "agreements": "Verträge",
+        "noAgreements": "Keine Verträge",
+        "loadError": "Konnte nicht geladen werden — prüfe, ob der API-Server läuft.",
+        "site": "Standort",
+        "cycle": "Zyklus",
+        "from": "Ab",
+        "agreementStatus": {
+          "draft": "Entwurf",
+          "pending_signature": "Unterschrift ausstehend",
+          "active": "Aktiv",
+          "terminated": "Gekündigt",
+          "expired": "Abgelaufen"
+        }
+      },
+      "mandates": {
+        "backToDashboard": "← Dashboard",
+        "title": "Zahlungsmandate",
+        "customer": "Kunde",
+        "loading": "Lädt…",
+        "noMandatesYet": "Noch keine Mandate",
+        "noMandatesHint": "Füge unten ein Mandat hinzu, um zu beginnen.",
+        "table": {
+          "scheme": "Schema",
+          "ibanLast4": "IBAN letzte 4",
+          "status": "Status",
+          "created": "Erstellt"
+        },
+        "status": {
+          "pending": "Ausstehend",
+          "active": "Aktiv",
+          "cancelled": "Abgebrochen",
+          "failed": "Fehlgeschlagen"
+        },
+        "addMandate": "Mandat hinzufügen",
+        "scheme": "Schema",
+        "schemeOptions": {
+          "sepa_core": "SEPA-Basislastschrift",
+          "sepa_b2b": "SEPA-Firmenlastschrift",
+          "card": "Karte",
+          "bank_transfer": "Banküberweisung",
+          "manual_invoice": "Manuelle Rechnung",
+          "cash": "Bargeld"
+        },
+        "ibanLast4Label": "IBAN letzte 4 Ziffern",
+        "createMandate": "Mandat erstellen",
+        "creating": "Wird erstellt…",
+        "failedToCreate": "Mandat konnte nicht erstellt werden",
+        "unknownError": "Unbekannter Fehler"
+      }
+    },
+    "payments": {
+      "title": "Zahlungen",
+      "count": "{{count}} Eintrag",
+      "count_plural": "{{count}} Einträge",
+      "searchPlaceholder": "Suchen…",
+      "table": {
+        "reference": "Referenz",
+        "method": "Methode",
+        "amount": "Betrag",
+        "status": "Status",
+        "date": "Datum"
+      },
+      "empty": {
+        "title": "Noch keine Zahlungen erfasst",
+        "hint": "Zahlungen werden hier angezeigt, sobald sie verarbeitet wurden."
+      },
+      "status": {
+        "pending": "Ausstehend",
+        "succeeded": "Erfolgreich",
+        "failed": "Fehlgeschlagen",
+        "refunded": "Erstattet"
+      },
+      "method": {
+        "card": "Karte",
+        "sepa_core": "SEPA-Basislastschrift",
+        "sepa_b2b": "SEPA-Firmenlastschrift",
+        "bank_transfer": "Banküberweisung",
+        "manual_invoice": "Manuelle Rechnung",
+        "cash": "Bargeld"
+      }
+    },
+    "invoices": {
+      "title": "Rechnungen",
+      "count": "{{count}} Rechnung",
+      "count_plural": "{{count}} Rechnungen",
+      "exportDatev": "DATEV exportieren",
+      "runInvoices": "Rechnungen ausführen",
+      "searchPlaceholder": "Suchen…",
+      "empty": {
+        "title": "Noch keine Rechnungen",
+        "hint": "Rechnungen werden hier angezeigt, sobald sie erstellt wurden."
+      },
+      "table": {
+        "customer": "Kunde",
+        "invoiceDate": "Rechnungsdatum",
+        "dueDate": "Fälligkeitsdatum",
+        "amount": "Betrag",
+        "status": "Status",
+        "view": "Ansehen →"
+      },
+      "status": {
+        "pending": "Ausstehend",
+        "sent": "Versendet",
+        "paid": "Bezahlt",
+        "overdue": "Überfällig",
+        "void": "Storniert"
+      },
+      "detail": {
+        "backToInvoices": "← Rechnungen",
+        "title": "Rechnung",
+        "customer": "Kunde",
+        "invoiceDate": "Rechnungsdatum",
+        "dueDate": "Fälligkeitsdatum",
+        "period": "Zeitraum",
+        "lineItems": "Posten",
+        "description": "Beschreibung",
+        "kind": "Art",
+        "amount": "Betrag",
+        "total": "Gesamt",
+        "paymentHistory": "Zahlungsverlauf",
+        "method": "Methode",
+        "status": "Status",
+        "date": "Datum",
+        "creditNotes": "Gutschriften",
+        "payNow": "Jetzt bezahlen (Mollie)",
+        "voidInvoice": "Rechnung stornieren"
+      },
+      "export": {
+        "backToInvoices": "← Rechnungen",
+        "title": "Export zu DATEV",
+        "siteIdsLabel": "Standort-IDs (kommagetrennt)",
+        "fromLabel": "Von",
+        "toLabel": "Bis",
+        "exportCsv": "CSV exportieren",
+        "generating": "Export wird erstellt…",
+        "exportFailed": "Export fehlgeschlagen: {{status}}",
+        "unknownError": "Unbekannter Fehler",
+        "complete": "Export abgeschlossen!",
+        "jobId": "Job-ID: {{jobId}}",
+        "downloadCsv": "DATEV-CSV herunterladen"
+      }
+    },
+    "billing": {
+      "title": "SiteLager Abrechnung",
+      "subtitle": "Verwalte dein SiteLager-Abonnement",
+      "currentPlan": "Aktueller Plan",
+      "active": "Aktiv",
+      "upgradePlan": "Plan upgraden",
+      "sitesIncluded": "Standorte inklusive",
+      "unitsIncluded": "Einheiten inklusive",
+      "marketplaceCommission": "Marktplatz-Provision",
+      "availablePlans": "Verfügbare Pläne",
+      "current": "Aktuell",
+      "switch": "Wechseln",
+      "sites": "{{count}} Standort",
+      "sites_plural": "{{count}} Standorte",
+      "units": "{{count}} Einheiten",
+      "plans": {
+        "starter": "Starter",
+        "growth": "Growth",
+        "pro": "Pro",
+        "professional": "Professional"
+      }
     }
   }
 }

@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
+import { getT } from '@/lib/get-locale';
 import Link from 'next/link';
 
 interface InvoiceLine {
@@ -66,7 +67,7 @@ function tenantName(customer: InvoiceDetail['agreement']['customer']) {
   return [d.firstName, d.lastName].filter(Boolean).join(' ') || customer.id;
 }
 
-function StatusPill({ status }: { status: string }) {
+function StatusPill({ status, t }: { status: string; t: ReturnType<typeof getT> }) {
   const pill = STATUS_PILL[status as StatusKey] ?? STATUS_PILL.void;
   return (
     <span style={{
@@ -82,13 +83,14 @@ function StatusPill({ status }: { status: string }) {
       border: `1px solid ${pill.border}`,
     }}>
       <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: pill.dot, flexShrink: 0 }} />
-      {status}
+      {t(`dashboard.invoices.status.${status}`)}
     </span>
   );
 }
 
 export default async function InvoiceDetailPage({ params }: { params: { id: string } }) {
   const user = await requireAuth();
+  const t = getT();
   const invoice = await serverFetch<InvoiceDetail>(
     `/v1/organisations/${user.organisationId}/invoices/${params.id}`,
   );
@@ -122,35 +124,35 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
 
           <Link href="/invoices" style={{ display: 'inline-block', fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', marginBottom: '20px' }}>
-            ← Invoices
+            {t('dashboard.invoices.detail.backToInvoices')}
           </Link>
 
           {/* Header row */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
             <div>
-              <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>Invoice</h1>
+              <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>{t('dashboard.invoices.detail.title')}</h1>
               <p style={{ margin: 0, fontSize: '13px', fontFamily: 'monospace', color: '#64748b' }}>{invoice.id}</p>
             </div>
-            <StatusPill status={invoice.status} />
+            <StatusPill status={invoice.status} t={t} />
           </div>
 
           {/* Meta card */}
           <div style={{ ...cardStyle, padding: '24px' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', fontSize: '14px' }}>
               <div>
-                <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Customer</p>
+                <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('dashboard.invoices.detail.customer')}</p>
                 <p style={{ margin: 0, fontWeight: 600, color: '#0f172a' }}>{tenantName(invoice.agreement.customer)}</p>
               </div>
               <div>
-                <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Invoice date</p>
+                <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('dashboard.invoices.detail.invoiceDate')}</p>
                 <p style={{ margin: 0, fontWeight: 600, color: '#0f172a' }}>{new Date(invoice.invoiceDate).toLocaleDateString('de-DE')}</p>
               </div>
               <div>
-                <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Due date</p>
+                <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('dashboard.invoices.detail.dueDate')}</p>
                 <p style={{ margin: 0, fontWeight: 600, color: '#0f172a' }}>{new Date(invoice.dueDate).toLocaleDateString('de-DE')}</p>
               </div>
               <div>
-                <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Period</p>
+                <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('dashboard.invoices.detail.period')}</p>
                 <p style={{ margin: 0, fontWeight: 600, color: '#0f172a' }}>
                   {new Date(invoice.periodStart).toLocaleDateString('de-DE')} – {new Date(invoice.periodEnd).toLocaleDateString('de-DE')}
                 </p>
@@ -161,14 +163,14 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
           {/* Line items */}
           <div style={cardStyle}>
             <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0' }}>
-              <h2 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#475569' }}>Line items</h2>
+              <h2 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#475569' }}>{t('dashboard.invoices.detail.lineItems')}</h2>
             </div>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                  <th style={thStyle}>Description</th>
-                  <th style={thStyle}>Kind</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Amount</th>
+                  <th style={thStyle}>{t('dashboard.invoices.detail.description')}</th>
+                  <th style={thStyle}>{t('dashboard.invoices.detail.kind')}</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>{t('dashboard.invoices.detail.amount')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -184,7 +186,7 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
               </tbody>
               <tfoot>
                 <tr style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
-                  <td colSpan={2} style={{ padding: '12px 16px', fontWeight: 700, color: '#475569', textAlign: 'right' }}>Total</td>
+                  <td colSpan={2} style={{ padding: '12px 16px', fontWeight: 700, color: '#475569', textAlign: 'right' }}>{t('dashboard.invoices.detail.total')}</td>
                   <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 800, color: '#0f172a', fontFamily: 'monospace' }}>
                     {formatMinor(invoice.totalMinor, invoice.currency)}
                   </td>
@@ -197,15 +199,15 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
           {invoice.payments.length > 0 && (
             <div style={cardStyle}>
               <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0' }}>
-                <h2 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#475569' }}>Payment history</h2>
+                <h2 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#475569' }}>{t('dashboard.invoices.detail.paymentHistory')}</h2>
               </div>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                 <thead>
                   <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                    <th style={thStyle}>Method</th>
-                    <th style={thStyle}>Status</th>
-                    <th style={{ ...thStyle, textAlign: 'right' }}>Amount</th>
-                    <th style={thStyle}>Date</th>
+                    <th style={thStyle}>{t('dashboard.invoices.detail.method')}</th>
+                    <th style={thStyle}>{t('dashboard.invoices.detail.status')}</th>
+                    <th style={{ ...thStyle, textAlign: 'right' }}>{t('dashboard.invoices.detail.amount')}</th>
+                    <th style={thStyle}>{t('dashboard.invoices.detail.date')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -230,7 +232,7 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
           {invoice.credits.length > 0 && (
             <div style={cardStyle}>
               <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0' }}>
-                <h2 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#475569' }}>Credit notes</h2>
+                <h2 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#475569' }}>{t('dashboard.invoices.detail.creditNotes')}</h2>
               </div>
               <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
                 {invoice.credits.map((cn) => (
@@ -248,8 +250,8 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
           {/* Actions */}
           {(canPay || canVoid) && (
             <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-              {canPay && <PayNowButton orgId={user.organisationId} invoiceId={invoice.id} />}
-              {canVoid && <VoidInvoiceButton orgId={user.organisationId} invoiceId={invoice.id} />}
+              {canPay && <PayNowButton orgId={user.organisationId} invoiceId={invoice.id} t={t} />}
+              {canVoid && <VoidInvoiceButton orgId={user.organisationId} invoiceId={invoice.id} t={t} />}
             </div>
           )}
         </div>
@@ -260,7 +262,7 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
 
 // ─── Island action components ─────────────────────────────────────────────────
 
-function PayNowButton({ orgId, invoiceId }: { orgId: string; invoiceId: string }) {
+function PayNowButton({ orgId, invoiceId, t }: { orgId: string; invoiceId: string; t: ReturnType<typeof getT> }) {
   return (
     <form action="/api/billing/pay-invoice" method="POST">
       <input type="hidden" name="organisationId" value={orgId} />
@@ -269,13 +271,13 @@ function PayNowButton({ orgId, invoiceId }: { orgId: string; invoiceId: string }
         type="submit"
         style={{ background: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '10px 18px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}
       >
-        Pay now (Mollie)
+        {t('dashboard.invoices.detail.payNow')}
       </button>
     </form>
   );
 }
 
-function VoidInvoiceButton({ orgId, invoiceId }: { orgId: string; invoiceId: string }) {
+function VoidInvoiceButton({ orgId, invoiceId, t }: { orgId: string; invoiceId: string; t: ReturnType<typeof getT> }) {
   return (
     <form action="/api/billing/void-invoice" method="POST">
       <input type="hidden" name="organisationId" value={orgId} />
@@ -284,7 +286,7 @@ function VoidInvoiceButton({ orgId, invoiceId }: { orgId: string; invoiceId: str
         type="submit"
         style={{ border: '1px solid #fecaca', color: '#dc2626', background: '#fef2f2', borderRadius: '8px', padding: '10px 18px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}
       >
-        Void invoice
+        {t('dashboard.invoices.detail.voidInvoice')}
       </button>
     </form>
   );

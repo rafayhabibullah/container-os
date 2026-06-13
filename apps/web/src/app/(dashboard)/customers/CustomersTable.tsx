@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useT } from '@/lib/i18n';
 import CustomerDrawer from './CustomerDrawer';
 
 interface Customer {
@@ -19,9 +20,9 @@ function displayName(c: Customer): string {
 }
 
 const FILTERS = [
-  { key: 'all',          label: 'All'          },
-  { key: 'person',       label: 'Person'       },
-  { key: 'organisation', label: 'Organisation' },
+  { key: 'all',          labelKey: 'dashboard.customers.filters.all'          },
+  { key: 'person',       labelKey: 'dashboard.customers.filters.person'       },
+  { key: 'organisation', labelKey: 'dashboard.customers.filters.organisation' },
 ] as const;
 
 const thStyle: React.CSSProperties = {
@@ -32,6 +33,7 @@ const thStyle: React.CSSProperties = {
 };
 
 export default function CustomersTable({ customers }: { customers: Customer[] }) {
+  const t = useT();
   const [query,      setQuery]      = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [selected,   setSelected]   = useState<Customer | null>(null);
@@ -85,7 +87,7 @@ export default function CustomersTable({ customers }: { customers: Customer[] })
                     display: 'flex', alignItems: 'center', gap: '5px',
                   }}
                 >
-                  {f.label}
+                  {t(f.labelKey)}
                   <span style={{
                     background: active ? '#e2e8f0' : '#f8fafc',
                     color: active ? '#475569' : '#cbd5e1',
@@ -118,7 +120,7 @@ export default function CustomersTable({ customers }: { customers: Customer[] })
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search customers…"
+              placeholder={t('dashboard.customers.searchPlaceholder')}
               style={{
                 flex: 1, background: 'transparent', border: 'none', outline: 'none',
                 color: '#0f172a', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -138,20 +140,20 @@ export default function CustomersTable({ customers }: { customers: Customer[] })
               </svg>
             </div>
             <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>
-              {customers.length === 0 ? 'No customers yet' : 'No results found'}
+              {t(customers.length === 0 ? 'dashboard.customers.empty.noCustomers' : 'dashboard.customers.empty.noResults')}
             </p>
             <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: 0 }}>
-              {customers.length === 0 ? 'Customers will appear here once they have agreements.' : 'Try adjusting your search or filter.'}
+              {t(customers.length === 0 ? 'dashboard.customers.emptyHint.noCustomers' : 'dashboard.customers.emptyHint.noResults')}
             </p>
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <th style={thStyle}>Name</th>
-                <th style={thStyle}>Email</th>
-                <th style={thStyle}>Type</th>
-                <th style={thStyle}>Since</th>
+                <th style={thStyle}>{t('dashboard.customers.table.name')}</th>
+                <th style={thStyle}>{t('dashboard.customers.table.email')}</th>
+                <th style={thStyle}>{t('dashboard.customers.table.type')}</th>
+                <th style={thStyle}>{t('dashboard.customers.table.since')}</th>
               </tr>
             </thead>
             <tbody>
@@ -180,7 +182,7 @@ export default function CustomersTable({ customers }: { customers: Customer[] })
                       fontFamily: "'Plus Jakarta Sans', sans-serif",
                     }}>
                       <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#94a3b8', flexShrink: 0 }} />
-                      {c.type === 'organisation' ? 'Organisation' : 'Person'}
+                      {c.type === 'organisation' ? t('dashboard.customers.type.organisation') : t('dashboard.customers.type.person')}
                     </span>
                   </td>
                   <td style={{ padding: '12px 16px', fontSize: '13px', color: '#94a3b8', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>

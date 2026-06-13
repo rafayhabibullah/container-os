@@ -1292,6 +1292,202 @@
         "complete": "Complete inspection",
         "photosAttachedPlural": "{{count}} photos already attached"
       }
+    },
+    "customers": {
+      "title": "Customers",
+      "count": "{{count}} customer",
+      "count_plural": "{{count}} customers",
+      "filters": {
+        "all": "All",
+        "person": "Person",
+        "organisation": "Organisation"
+      },
+      "searchPlaceholder": "Search customers…",
+      "table": {
+        "name": "Name",
+        "email": "Email",
+        "type": "Type",
+        "since": "Since"
+      },
+      "type": {
+        "person": "Person",
+        "organisation": "Organisation"
+      },
+      "empty": {
+        "noCustomers": "No customers yet",
+        "noResults": "No results found"
+      },
+      "emptyHint": {
+        "noCustomers": "Customers will appear here once they have agreements.",
+        "noResults": "Try adjusting your search or filter."
+      },
+      "drawer": {
+        "id": "ID",
+        "memberSince": "Member since",
+        "contact": "Contact",
+        "agreements": "Agreements",
+        "noAgreements": "No agreements",
+        "loadError": "Could not load — check the API server is running.",
+        "site": "Site",
+        "cycle": "Cycle",
+        "from": "From",
+        "agreementStatus": {
+          "draft": "Draft",
+          "pending_signature": "Pending signature",
+          "active": "Active",
+          "terminated": "Terminated",
+          "expired": "Expired"
+        }
+      },
+      "mandates": {
+        "backToDashboard": "← Dashboard",
+        "title": "Payment mandates",
+        "customer": "Customer",
+        "loading": "Loading…",
+        "noMandatesYet": "No mandates yet",
+        "noMandatesHint": "Add a mandate below to get started.",
+        "table": {
+          "scheme": "Scheme",
+          "ibanLast4": "IBAN last 4",
+          "status": "Status",
+          "created": "Created"
+        },
+        "status": {
+          "pending": "Pending",
+          "active": "Active",
+          "cancelled": "Cancelled",
+          "failed": "Failed"
+        },
+        "addMandate": "Add mandate",
+        "scheme": "Scheme",
+        "schemeOptions": {
+          "sepa_core": "SEPA Core",
+          "sepa_b2b": "SEPA B2B",
+          "card": "Card",
+          "bank_transfer": "Bank transfer",
+          "manual_invoice": "Manual invoice",
+          "cash": "Cash"
+        },
+        "ibanLast4Label": "IBAN last 4 digits",
+        "createMandate": "Create mandate",
+        "creating": "Creating…",
+        "failedToCreate": "Failed to create mandate",
+        "unknownError": "Unknown error"
+      }
+    },
+    "payments": {
+      "title": "Payments",
+      "count": "{{count}} record",
+      "count_plural": "{{count}} records",
+      "searchPlaceholder": "Search…",
+      "table": {
+        "reference": "Reference",
+        "method": "Method",
+        "amount": "Amount",
+        "status": "Status",
+        "date": "Date"
+      },
+      "empty": {
+        "title": "No payments recorded yet",
+        "hint": "Payments will appear here once processed."
+      },
+      "status": {
+        "pending": "Pending",
+        "succeeded": "Succeeded",
+        "failed": "Failed",
+        "refunded": "Refunded"
+      },
+      "method": {
+        "card": "Card",
+        "sepa_core": "SEPA Core",
+        "sepa_b2b": "SEPA B2B",
+        "bank_transfer": "Bank transfer",
+        "manual_invoice": "Manual invoice",
+        "cash": "Cash"
+      }
+    },
+    "invoices": {
+      "title": "Invoices",
+      "count": "{{count}} invoice",
+      "count_plural": "{{count}} invoices",
+      "exportDatev": "Export DATEV",
+      "runInvoices": "Run invoices",
+      "searchPlaceholder": "Search…",
+      "empty": {
+        "title": "No invoices yet",
+        "hint": "Invoices will appear here once generated."
+      },
+      "table": {
+        "customer": "Customer",
+        "invoiceDate": "Invoice date",
+        "dueDate": "Due date",
+        "amount": "Amount",
+        "status": "Status",
+        "view": "View →"
+      },
+      "status": {
+        "pending": "Pending",
+        "sent": "Sent",
+        "paid": "Paid",
+        "overdue": "Overdue",
+        "void": "Void"
+      },
+      "detail": {
+        "backToInvoices": "← Invoices",
+        "title": "Invoice",
+        "customer": "Customer",
+        "invoiceDate": "Invoice date",
+        "dueDate": "Due date",
+        "period": "Period",
+        "lineItems": "Line items",
+        "description": "Description",
+        "kind": "Kind",
+        "amount": "Amount",
+        "total": "Total",
+        "paymentHistory": "Payment history",
+        "method": "Method",
+        "status": "Status",
+        "date": "Date",
+        "creditNotes": "Credit notes",
+        "payNow": "Pay now (Mollie)",
+        "voidInvoice": "Void invoice"
+      },
+      "export": {
+        "backToInvoices": "← Invoices",
+        "title": "Export to DATEV",
+        "siteIdsLabel": "Site IDs (comma-separated)",
+        "fromLabel": "From",
+        "toLabel": "To",
+        "exportCsv": "Export CSV",
+        "generating": "Generating export…",
+        "exportFailed": "Export failed: {{status}}",
+        "unknownError": "Unknown error",
+        "complete": "Export complete!",
+        "jobId": "Job ID: {{jobId}}",
+        "downloadCsv": "Download DATEV CSV"
+      }
+    },
+    "billing": {
+      "title": "SiteLager Billing",
+      "subtitle": "Manage your SiteLager subscription",
+      "currentPlan": "Current plan",
+      "active": "Active",
+      "upgradePlan": "Upgrade plan",
+      "sitesIncluded": "Sites included",
+      "unitsIncluded": "Units included",
+      "marketplaceCommission": "Marketplace commission",
+      "availablePlans": "Available plans",
+      "current": "Current",
+      "switch": "Switch",
+      "sites": "{{count}} site",
+      "sites_plural": "{{count}} sites",
+      "units": "{{count}} units",
+      "plans": {
+        "starter": "Starter",
+        "growth": "Growth",
+        "pro": "Pro",
+        "professional": "Professional"
+      }
     }
   }
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useT } from '@/lib/i18n';
 
 interface CustomerSummary {
   id: string;
@@ -27,12 +28,12 @@ interface CustomerDetails {
   }[];
 }
 
-const AGREEMENT_STATUS: Record<string, { dot: string; text: string; bg: string; border: string; label: string }> = {
-  draft:             { dot: '#94a3b8', text: '#64748b',  bg: '#f8fafc', border: '#e2e8f0', label: 'Draft'             },
-  pending_signature: { dot: '#0ea5e9', text: '#0369a1',  bg: '#f0f9ff', border: '#bae6fd', label: 'Pending signature' },
-  active:            { dot: '#16a34a', text: '#15803d',  bg: '#f0fdf4', border: '#bbf7d0', label: 'Active'            },
-  terminated:        { dot: '#f87171', text: '#dc2626',  bg: '#fef2f2', border: '#fecaca', label: 'Terminated'        },
-  expired:           { dot: '#cbd5e1', text: '#94a3b8',  bg: '#f8fafc', border: '#e2e8f0', label: 'Expired'          },
+const AGREEMENT_STATUS: Record<string, { dot: string; text: string; bg: string; border: string; key: string }> = {
+  draft:             { dot: '#94a3b8', text: '#64748b',  bg: '#f8fafc', border: '#e2e8f0', key: 'draft'             },
+  pending_signature: { dot: '#0ea5e9', text: '#0369a1',  bg: '#f0f9ff', border: '#bae6fd', key: 'pending_signature' },
+  active:            { dot: '#16a34a', text: '#15803d',  bg: '#f0fdf4', border: '#bbf7d0', key: 'active'            },
+  terminated:        { dot: '#f87171', text: '#dc2626',  bg: '#fef2f2', border: '#fecaca', key: 'terminated'        },
+  expired:           { dot: '#cbd5e1', text: '#94a3b8',  bg: '#f8fafc', border: '#e2e8f0', key: 'expired'           },
 };
 
 function displayName(c: CustomerSummary): string {
@@ -56,6 +57,7 @@ function SkeletonLine({ width = '100%', height = 14 }: { width?: string; height?
 }
 
 export default function CustomerDrawer({ customer, onClose }: { customer: CustomerSummary; onClose: () => void }) {
+  const t = useT();
   const [details, setDetails] = useState<CustomerDetails | null>(null);
   const [fetching, setFetching] = useState(true);
 
@@ -121,7 +123,7 @@ export default function CustomerDrawer({ customer, onClose }: { customer: Custom
                 background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0',
                 borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600,
               }}>
-                {customer.type === 'organisation' ? 'Organisation' : 'Person'}
+                {customer.type === 'organisation' ? t('dashboard.customers.type.organisation') : t('dashboard.customers.type.person')}
               </span>
             </div>
           </div>
@@ -144,8 +146,8 @@ export default function CustomerDrawer({ customer, onClose }: { customer: Custom
 
           {/* Details */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <Field label="ID" value={<span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#94a3b8' }}>{customer.id.slice(0, 12)}…</span>} />
-            <Field label="Member since" value={new Date(customer.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })} />
+            <Field label={t('dashboard.customers.drawer.id')} value={<span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#94a3b8' }}>{customer.id.slice(0, 12)}…</span>} />
+            <Field label={t('dashboard.customers.drawer.memberSince')} value={new Date(customer.createdAt).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })} />
           </div>
 
           {/* Contacts */}
@@ -157,7 +159,7 @@ export default function CustomerDrawer({ customer, onClose }: { customer: Custom
             </div>
           ) : details && details.contacts.length > 0 && (
             <div>
-              <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: '10px' }}>Contact</div>
+              <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: '10px' }}>{t('dashboard.customers.drawer.contact')}</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {details.contacts.map((c, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#0f172a' }}>
@@ -182,7 +184,7 @@ export default function CustomerDrawer({ customer, onClose }: { customer: Custom
 
           {/* Agreements */}
           <div>
-            <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: '10px' }}>Agreements</div>
+            <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: '10px' }}>{t('dashboard.customers.drawer.agreements')}</div>
             {fetching ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -195,10 +197,10 @@ export default function CustomerDrawer({ customer, onClose }: { customer: Custom
                 </div>
               </div>
             ) : !details ? (
-              <span style={{ fontSize: '12px', color: '#f87171' }}>Could not load — check the API server is running.</span>
+              <span style={{ fontSize: '12px', color: '#f87171' }}>{t('dashboard.customers.drawer.loadError')}</span>
             ) : details.agreements.length === 0 ? (
               <div style={{ padding: '24px', textAlign: 'center', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '13px', color: '#94a3b8' }}>No agreements</span>
+                <span style={{ fontSize: '13px', color: '#94a3b8' }}>{t('dashboard.customers.drawer.noAgreements')}</span>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -214,13 +216,13 @@ export default function CustomerDrawer({ customer, onClose }: { customer: Custom
                           borderRadius: '20px', padding: '2px 8px', fontSize: '11px', fontWeight: 600,
                         }}>
                           <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: stat.dot }} />
-                          {stat.label}
+                          {t(`dashboard.customers.drawer.agreementStatus.${stat.key}`)}
                         </span>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                        <Field label="Site" value={a.siteName} />
-                        <Field label="Cycle" value={a.billingCycle} />
-                        {a.effectiveFrom && <Field label="From" value={new Date(a.effectiveFrom).toLocaleDateString('de-DE')} />}
+                        <Field label={t('dashboard.customers.drawer.site')} value={a.siteName} />
+                        <Field label={t('dashboard.customers.drawer.cycle')} value={a.billingCycle} />
+                        {a.effectiveFrom && <Field label={t('dashboard.customers.drawer.from')} value={new Date(a.effectiveFrom).toLocaleDateString('de-DE')} />}
                       </div>
                     </div>
                   );

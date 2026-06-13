@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
+import { getT } from '@/lib/get-locale';
 import Link from 'next/link';
 
 interface InvoiceRow {
@@ -45,7 +46,7 @@ function tenantName(customer: InvoiceRow['agreement']['customer']) {
   return [d.firstName, d.lastName].filter(Boolean).join(' ') || customer.id;
 }
 
-function StatusPill({ status }: { status: string }) {
+function StatusPill({ status, t }: { status: string; t: ReturnType<typeof getT> }) {
   const pill = STATUS_PILL[status as StatusKey] ?? STATUS_PILL.void;
   return (
     <span style={{
@@ -61,7 +62,7 @@ function StatusPill({ status }: { status: string }) {
       border: `1px solid ${pill.border}`,
     }}>
       <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: pill.dot, flexShrink: 0 }} />
-      {status}
+      {t(`dashboard.invoices.status.${status}`)}
     </span>
   );
 }
@@ -72,6 +73,7 @@ export default async function InvoicesPage({
   searchParams?: { siteId?: string; status?: string };
 }) {
   const user = await requireAuth();
+  const t = getT();
 
   const params = new URLSearchParams();
   if (searchParams?.siteId) params.set('siteId', searchParams.siteId);
@@ -93,10 +95,10 @@ export default async function InvoicesPage({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
             <div>
               <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
-                Invoices
+                {t('dashboard.invoices.title')}
               </h1>
               <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>
-                {invoices.length} invoice{invoices.length !== 1 ? 's' : ''}
+                {t(invoices.length === 1 ? 'dashboard.invoices.count' : 'dashboard.invoices.count_plural', { count: String(invoices.length) })}
               </p>
             </div>
             {user.role === 'owner' && (
@@ -105,7 +107,7 @@ export default async function InvoicesPage({
                   href="/invoices/export"
                   style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px 16px', color: '#64748b', fontWeight: 600, fontSize: '13px', cursor: 'pointer', textDecoration: 'none', display: 'inline-block' }}
                 >
-                  Export DATEV
+                  {t('dashboard.invoices.exportDatev')}
                 </Link>
                 <form action="/api/billing/run-invoices" method="POST" style={{ display: 'inline' }}>
                   <input type="hidden" name="organisationId" value={user.organisationId} />
@@ -113,7 +115,7 @@ export default async function InvoicesPage({
                     type="submit"
                     style={{ background: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '10px 18px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}
                   >
-                    Run invoices
+                    {t('dashboard.invoices.runInvoices')}
                   </button>
                 </form>
               </div>
@@ -125,25 +127,25 @@ export default async function InvoicesPage({
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ color: '#94a3b8', flexShrink: 0 }}>
               <path d="M7 13A6 6 0 1 0 7 1a6 6 0 0 0 0 12zM14 14l-3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
-            <input type="text" placeholder="Search…" readOnly style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '14px', color: '#94a3b8', fontFamily: "'Plus Jakarta Sans', sans-serif", width: '100%' }} />
+            <input type="text" placeholder={t('dashboard.invoices.searchPlaceholder')} readOnly style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '14px', color: '#94a3b8', fontFamily: "'Plus Jakarta Sans', sans-serif", width: '100%' }} />
           </div>
 
           {/* Table / empty state */}
           {invoices.length === 0 ? (
             <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '48px', textAlign: 'center' }}>
-              <p style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>No invoices yet</p>
-              <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>Invoices will appear here once generated.</p>
+              <p style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>{t('dashboard.invoices.empty.title')}</p>
+              <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>{t('dashboard.invoices.empty.hint')}</p>
             </div>
           ) : (
             <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                 <thead>
                   <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Customer</th>
-                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Invoice date</th>
-                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Due date</th>
-                    <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Amount</th>
-                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Status</th>
+                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{t('dashboard.invoices.table.customer')}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{t('dashboard.invoices.table.invoiceDate')}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{t('dashboard.invoices.table.dueDate')}</th>
+                    <th style={{ textAlign: 'right', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{t('dashboard.invoices.table.amount')}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{t('dashboard.invoices.table.status')}</th>
                     <th style={{ padding: '10px 16px' }} />
                   </tr>
                 </thead>
@@ -163,11 +165,11 @@ export default async function InvoicesPage({
                         {formatMinor(inv.totalMinor, inv.currency)}
                       </td>
                       <td style={{ padding: '12px 16px' }}>
-                        <StatusPill status={inv.status} />
+                        <StatusPill status={inv.status} t={t} />
                       </td>
                       <td style={{ padding: '12px 16px', textAlign: 'right' }}>
                         <Link href={`/invoices/${inv.id}`} style={{ color: '#64748b', fontSize: '13px', fontWeight: 600, textDecoration: 'none' }}>
-                          View →
+                          {t('dashboard.invoices.table.view')}
                         </Link>
                       </td>
                     </tr>

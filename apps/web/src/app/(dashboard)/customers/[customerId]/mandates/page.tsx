@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useT } from '@/lib/i18n';
 
 interface Mandate {
   id: string;
@@ -54,6 +55,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 export default function CustomerMandatesPage() {
+  const t = useT();
   const params = useParams<{ customerId: string }>();
   const customerId = params.customerId;
 
@@ -88,13 +90,13 @@ export default function CustomerMandatesPage() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setError(body.message ?? 'Failed to create mandate');
+        setError(body.message ?? t('dashboard.customers.mandates.failedToCreate'));
         return;
       }
       setIbanLast4('');
       await loadMandates();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : t('dashboard.customers.mandates.unknownError'));
     } finally {
       setCreating(false);
     }
@@ -107,32 +109,32 @@ export default function CustomerMandatesPage() {
       <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <Link href="/dashboard" style={{ color: '#64748b', fontSize: '13px', fontWeight: 600, textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>
-            ← Dashboard
+            {t('dashboard.customers.mandates.backToDashboard')}
           </Link>
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
-            Payment mandates
+            {t('dashboard.customers.mandates.title')}
           </h1>
           <p style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '24px', fontFamily: 'monospace' }}>
-            Customer: {customerId}
+            {t('dashboard.customers.mandates.customer')}: {customerId}
           </p>
 
           {/* Mandate list */}
           {loading ? (
-            <p style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '24px' }}>Loading…</p>
+            <p style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '24px' }}>{t('dashboard.customers.mandates.loading')}</p>
           ) : mandates.length === 0 ? (
             <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '64px 24px', textAlign: 'center', marginBottom: '24px' }}>
-              <p style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>No mandates yet</p>
-              <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>Add a mandate below to get started.</p>
+              <p style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>{t('dashboard.customers.mandates.noMandatesYet')}</p>
+              <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>{t('dashboard.customers.mandates.noMandatesHint')}</p>
             </div>
           ) : (
             <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', marginBottom: '24px' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <th style={thStyle}>Scheme</th>
-                    <th style={thStyle}>IBAN last 4</th>
-                    <th style={thStyle}>Status</th>
-                    <th style={thStyle}>Created</th>
+                    <th style={thStyle}>{t('dashboard.customers.mandates.table.scheme')}</th>
+                    <th style={thStyle}>{t('dashboard.customers.mandates.table.ibanLast4')}</th>
+                    <th style={thStyle}>{t('dashboard.customers.mandates.table.status')}</th>
+                    <th style={thStyle}>{t('dashboard.customers.mandates.table.created')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -145,7 +147,7 @@ export default function CustomerMandatesPage() {
                         <td style={{ padding: '12px 16px' }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, background: pill.bg, color: pill.color, border: `1px solid ${pill.border}` }}>
                             <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: pill.dot, flexShrink: 0 }} />
-                            {m.status}
+                            {t(`dashboard.customers.mandates.status.${m.status}`)}
                           </span>
                         </td>
                         <td style={{ padding: '12px 16px', color: '#94a3b8' }}>
@@ -161,27 +163,27 @@ export default function CustomerMandatesPage() {
 
           {/* Add mandate form */}
           <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '24px' }}>
-            <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 20px' }}>Add mandate</h2>
+            <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 20px' }}>{t('dashboard.customers.mandates.addMandate')}</h2>
             <form onSubmit={handleCreate}>
               <div style={{ marginBottom: '16px' }}>
-                <label style={labelStyle}>Scheme</label>
+                <label style={labelStyle}>{t('dashboard.customers.mandates.scheme')}</label>
                 <select
                   value={scheme}
                   onChange={(e) => setScheme(e.target.value)}
                   style={inputStyle}
                 >
-                  <option value="sepa_core">SEPA Core</option>
-                  <option value="sepa_b2b">SEPA B2B</option>
-                  <option value="card">Card</option>
-                  <option value="bank_transfer">Bank transfer</option>
-                  <option value="manual_invoice">Manual invoice</option>
-                  <option value="cash">Cash</option>
+                  <option value="sepa_core">{t('dashboard.customers.mandates.schemeOptions.sepa_core')}</option>
+                  <option value="sepa_b2b">{t('dashboard.customers.mandates.schemeOptions.sepa_b2b')}</option>
+                  <option value="card">{t('dashboard.customers.mandates.schemeOptions.card')}</option>
+                  <option value="bank_transfer">{t('dashboard.customers.mandates.schemeOptions.bank_transfer')}</option>
+                  <option value="manual_invoice">{t('dashboard.customers.mandates.schemeOptions.manual_invoice')}</option>
+                  <option value="cash">{t('dashboard.customers.mandates.schemeOptions.cash')}</option>
                 </select>
               </div>
 
               {(scheme === 'sepa_core' || scheme === 'sepa_b2b') && (
                 <div style={{ marginBottom: '16px' }}>
-                  <label style={labelStyle}>IBAN last 4 digits</label>
+                  <label style={labelStyle}>{t('dashboard.customers.mandates.ibanLast4Label')}</label>
                   <input
                     type="text"
                     maxLength={4}
@@ -203,7 +205,7 @@ export default function CustomerMandatesPage() {
                 disabled={creating}
                 style={{ width: '100%', background: '#0f172a', color: '#ffffff', fontWeight: 700, fontSize: '14px', padding: '10px', borderRadius: '8px', border: 'none', cursor: creating ? 'not-allowed' : 'pointer', opacity: creating ? 0.5 : 1, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
-                {creating ? 'Creating…' : 'Create mandate'}
+                {creating ? t('dashboard.customers.mandates.creating') : t('dashboard.customers.mandates.createMandate')}
               </button>
             </form>
           </div>
