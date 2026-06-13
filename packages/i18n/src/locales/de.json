@@ -713,6 +713,276 @@
         "operator": "Betreiber",
         "tenant": "Mieter"
       }
+    },
+    "reservations": {
+      "title": "Reservierungen",
+      "totalBadge": "{{count}} gesamt",
+      "pendingBadge": "{{count}} ausstehend",
+      "filters": {
+        "all": "Alle",
+        "pending": "Ausstehend",
+        "pending_signature": "Unterschrift ausstehend",
+        "confirmed": "Bestätigt",
+        "converted": "Umgewandelt",
+        "cancelled": "Storniert",
+        "expired": "Abgelaufen"
+      },
+      "status": {
+        "pending": "Ausstehend",
+        "pending_signature": "Unterschrift ausstehend",
+        "confirmed": "Bestätigt",
+        "converted": "Umgewandelt",
+        "cancelled": "Storniert",
+        "expired": "Abgelaufen"
+      },
+      "searchPlaceholder": "Reservierungen suchen…",
+      "emptyTitleNone": "Noch keine Reservierungen",
+      "emptyTitleFiltered": "Keine Ergebnisse gefunden",
+      "emptyBodyNone": "Reservierungen erscheinen hier, sobald Kunden buchen.",
+      "emptyBodyFiltered": "Suche oder Filter anpassen.",
+      "columns": {
+        "id": "ID",
+        "customer": "Kunde",
+        "site": "Standort",
+        "unit": "Einheit",
+        "moveIn": "Einzug",
+        "expires": "Läuft ab",
+        "status": "Status"
+      },
+      "actions": {
+        "confirm": "Bestätigen",
+        "createAgreement": "Vertrag erstellen",
+        "cancel": "Stornieren"
+      },
+      "drawer": {
+        "title": "Reservierung",
+        "via": "via {{source}}",
+        "customer": "Kunde",
+        "moveInDate": "Einzugsdatum",
+        "expires": "Läuft ab",
+        "created": "Erstellt",
+        "unit": "Einheit",
+        "unitType": "Einheitstyp",
+        "site": "Standort",
+        "unitCode": "Einheitencode",
+        "kind": "Art",
+        "status": "Status",
+        "driveUp": "Drive-up",
+        "condition": "Zustand",
+        "name": "Name",
+        "size": "Größe",
+        "doorType": "Türtyp",
+        "features": "Ausstattung",
+        "address": "Adresse",
+        "currency": "Währung",
+        "timezone": "Zeitzone",
+        "loadError": "Konnte nicht geladen werden — bitte prüfen, ob der API-Server läuft.",
+        "yes": "Ja",
+        "no": "Nein"
+      }
+    },
+    "agreements": {
+      "title": "Verträge",
+      "tabs": {
+        "agreements": "Verträge",
+        "documents": "Dokumente"
+      },
+      "filters": {
+        "all": "Alle",
+        "draft": "Entwurf",
+        "pending_signature": "Unterschrift ausstehend",
+        "signed": "Unterschrieben",
+        "active": "Aktiv",
+        "terminated": "Beendet"
+      },
+      "status": {
+        "draft": "Entwurf",
+        "pending_signature": "Unterschrift ausstehend",
+        "signed": "Unterschrieben",
+        "active": "Aktiv",
+        "terminated": "Beendet"
+      },
+      "searchPlaceholder": "Verträge suchen…",
+      "searchDocumentsPlaceholder": "Dokumente suchen…",
+      "emptyTitleNone": "Noch keine Verträge",
+      "emptyTitleFiltered": "Keine Ergebnisse gefunden",
+      "emptyBodyNone": "Verträge erscheinen hier, sobald sie erstellt werden.",
+      "emptyBodyFiltered": "Suche oder Filter anpassen.",
+      "emptyDocumentsTitleNone": "Noch keine Dokumente gespeichert",
+      "emptyDocumentsTitleFiltered": "Keine Ergebnisse gefunden",
+      "emptyDocumentsBodyNone": "Dokumente erscheinen hier, sobald sie erstellt werden.",
+      "emptyDocumentsBodyFiltered": "Suche anpassen.",
+      "columns": {
+        "id": "ID",
+        "customer": "Kunde",
+        "site": "Standort",
+        "unit": "Einheit",
+        "billing": "Abrechnung",
+        "effectiveFrom": "Gültig ab",
+        "status": "Status",
+        "kind": "Art",
+        "subject": "Objekt",
+        "locale": "Sprache",
+        "date": "Datum"
+      },
+      "actions": {
+        "send": "Senden",
+        "terminate": "Kündigen",
+        "sendForSignature": "Zur Unterschrift senden"
+      },
+      "drawer": {
+        "title": "Vertrag",
+        "customer": "Kunde",
+        "billingCycle": "Abrechnungszyklus",
+        "language": "Sprache",
+        "effectiveFrom": "Gültig ab",
+        "created": "Erstellt",
+        "reservation": "Reservierung",
+        "unit": "Einheit",
+        "unitCode": "Einheitencode",
+        "kind": "Art",
+        "driveUp": "Drive-up",
+        "type": "Typ",
+        "size": "Größe",
+        "door": "Tür",
+        "features": "Ausstattung",
+        "site": "Standort",
+        "name": "Name",
+        "address": "Adresse",
+        "signatories": "Unterzeichner",
+        "amendments": "Nachträge",
+        "noSignatories": "Noch keine Unterzeichner zugewiesen.",
+        "loadError": "Konnte nicht geladen werden — bitte prüfen, ob der API-Server läuft.",
+        "yes": "Ja",
+        "no": "Nein"
+      },
+      "detail": {
+        "backLink": "← Verträge",
+        "title": "Vertrag",
+        "details": "Details",
+        "billingCycle": "Abrechnungszyklus",
+        "language": "Sprache",
+        "effectiveFrom": "Gültig ab",
+        "created": "Erstellt",
+        "pricingSnapshot": "Preisstand",
+        "signatories": "Unterzeichner",
+        "amendments": "Nachträge",
+        "noSignatories": "Noch keine Unterzeichner zugewiesen.",
+        "actions": "Aktionen"
+      },
+      "detailActions": {
+        "sendForSignature": "Zur Unterschrift senden",
+        "requestTermination": "Kündigung beantragen",
+        "terminationTitle": "Kündigungsanfrage",
+        "requestedEndDate": "Gewünschtes Enddatum",
+        "operatorNote": "Anmerkung des Betreibers (optional)",
+        "cancel": "Abbrechen",
+        "submit": "Absenden"
+      }
+    },
+    "listings": {
+      "title": "Angebote",
+      "badges": {
+        "published": "{{count}} veröffentlicht",
+        "draft": "{{count}} Entwurf",
+        "draft_plural": "{{count}} Entwürfe",
+        "paused": "{{count}} pausiert",
+        "fullyBooked": "{{count}} ausgebucht",
+        "archived": "{{count}} archiviert",
+        "none": "Noch keine Angebote"
+      },
+      "filters": {
+        "all": "Alle",
+        "published": "Veröffentlicht",
+        "draft": "Entwurf",
+        "paused": "Pausiert",
+        "fully_booked": "Ausgebucht",
+        "archived": "Archiviert"
+      },
+      "status": {
+        "draft": "Entwurf",
+        "published": "Veröffentlicht",
+        "paused": "Pausiert",
+        "fully_booked": "Ausgebucht",
+        "archived": "Archiviert"
+      },
+      "bookingMode": {
+        "approval_required": "Genehmigung",
+        "instant_booking": "Sofort",
+        "request_price": "Angebot"
+      },
+      "bookingModeFull": {
+        "approval_required": "Genehmigung erforderlich",
+        "instant_booking": "Sofortbuchung",
+        "request_price": "Preis anfragen"
+      },
+      "searchPlaceholder": "Angebote suchen…",
+      "emptyTitleNone": "Noch keine Angebote",
+      "emptyTitleFiltered": "Keine Ergebnisse gefunden",
+      "emptyBodyNone": "Erstellen Sie Ihr erstes Angebot, um Einheiten auf dem Marktplatz zu veröffentlichen.",
+      "emptyBodyFiltered": "Suche oder Filter anpassen.",
+      "priceHidden": "Verborgen",
+      "columns": {
+        "title": "Titel",
+        "site": "Standort",
+        "unit": "Einheit",
+        "mode": "Modus",
+        "price": "Preis",
+        "status": "Status"
+      },
+      "actions": {
+        "edit": "Bearbeiten",
+        "publish": "Veröffentlichen",
+        "pause": "Pausieren",
+        "archive": "Archivieren",
+        "failed": "Fehlgeschlagen"
+      },
+      "editModal": {
+        "title": "Angebot bearbeiten",
+        "subtitle": "Titel, Beschreibung, Modus oder Preis aktualisieren",
+        "site": "STANDORT",
+        "selectSite": "Standort auswählen…",
+        "unit": "EINHEIT",
+        "loadingUnits": "Einheiten werden geladen…",
+        "selectSiteFirst": "Zuerst Standort auswählen…",
+        "noAvailableUnits": "Keine verfügbaren Einheiten",
+        "selectUnit": "Einheit auswählen…",
+        "listingTitle": "ANGEBOTSTITEL",
+        "description": "BESCHREIBUNG",
+        "optional": "(optional)",
+        "bookingMode": "BUCHUNGSMODUS",
+        "pricePerMonth": "PREIS / MONAT (€)",
+        "opt": "(opt)",
+        "showPricePublicly": "Preis öffentlich anzeigen",
+        "cancel": "Abbrechen",
+        "saveChanges": "Änderungen speichern",
+        "saving": "Speichert…"
+      },
+      "newModal": {
+        "title": "Neues Angebot",
+        "subtitle": "Eine Einheit auf dem Marktplatz veröffentlichen",
+        "site": "STANDORT",
+        "selectSite": "Standort auswählen…",
+        "unit": "EINHEIT",
+        "loadingUnits": "Einheiten werden geladen…",
+        "selectSiteFirst": "Zuerst Standort auswählen…",
+        "noAvailableUnits": "Keine verfügbaren Einheiten",
+        "selectUnit": "Einheit auswählen…",
+        "listingTitle": "ANGEBOTSTITEL",
+        "listingTitlePlaceholder": "z. B. 20-Fuß-Container — Drive-up-Zugang",
+        "description": "BESCHREIBUNG",
+        "optional": "(optional)",
+        "descriptionPlaceholder": "Weitere Details, die für Kunden sichtbar sind…",
+        "bookingMode": "BUCHUNGSMODUS",
+        "pricePerMonth": "PREIS / MONAT (€)",
+        "opt": "(opt)",
+        "pricePlaceholder": "z. B. 119,00",
+        "showPricePublicly": "Preis öffentlich anzeigen",
+        "cancel": "Abbrechen",
+        "create": "Angebot erstellen",
+        "creating": "Wird erstellt…",
+        "newListing": "Neues Angebot"
+      }
     }
   }
 }

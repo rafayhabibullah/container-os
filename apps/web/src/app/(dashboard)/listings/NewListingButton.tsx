@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { clientFetch } from '@/lib/client-api';
+import { useT } from '@/lib/i18n';
 
 interface Site {
   id: string;
@@ -23,11 +24,7 @@ interface Props {
   listedUnitIds: string[];
 }
 
-const BOOKING_MODES = [
-  { value: 'approval_required', label: 'Approval required' },
-  { value: 'instant_booking',   label: 'Instant booking'   },
-  { value: 'request_price',     label: 'Request price'     },
-];
+const BOOKING_MODE_KEYS = ['approval_required', 'instant_booking', 'request_price'] as const;
 
 const inputStyle: React.CSSProperties = {
   width: '100%',
@@ -54,6 +51,7 @@ const labelStyle: React.CSSProperties = {
 
 export default function NewListingButton({ orgId, sites, listedUnitIds }: Props) {
   const router = useRouter();
+  const t = useT();
   const [showForm, setShowForm] = useState(false);
   const [mounted,  setMounted]  = useState(false);
   const [loading,  setLoading]  = useState(false);
@@ -103,7 +101,7 @@ export default function NewListingButton({ orgId, sites, listedUnitIds }: Props)
       router.refresh();
       setShowForm(false);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed');
+      setError(err instanceof Error ? err.message : t('dashboard.listings.actions.failed'));
     } finally {
       setLoading(false);
     }
@@ -132,8 +130,8 @@ export default function NewListingButton({ orgId, sites, listedUnitIds }: Props)
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px 16px', borderBottom: '1px solid #f1f5f9' }}>
             <div>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: 0 }}>New listing</p>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: '3px 0 0' }}>Publish a unit to the marketplace</p>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: 0 }}>{t('dashboard.listings.newModal.title')}</p>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: '3px 0 0' }}>{t('dashboard.listings.newModal.subtitle')}</p>
             </div>
             <button
               onClick={() => setShowForm(false)}
@@ -147,7 +145,7 @@ export default function NewListingButton({ orgId, sites, listedUnitIds }: Props)
           <form onSubmit={handleSubmit} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {/* Site */}
             <div>
-              <label style={labelStyle}>SITE</label>
+              <label style={labelStyle}>{t('dashboard.listings.newModal.site')}</label>
               <select
                 name="siteId"
                 required
@@ -156,50 +154,50 @@ export default function NewListingButton({ orgId, sites, listedUnitIds }: Props)
                 className="listing-modal-input"
                 style={inputStyle}
               >
-                <option value="">Select a site…</option>
+                <option value="">{t('dashboard.listings.newModal.selectSite')}</option>
                 {sites.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
 
             {/* Unit */}
             <div>
-              <label style={labelStyle}>UNIT</label>
+              <label style={labelStyle}>{t('dashboard.listings.newModal.unit')}</label>
               <select name="unitId" required disabled={!siteId || unitsLoading} className="listing-modal-input" style={{ ...inputStyle, opacity: (!siteId || unitsLoading) ? 0.6 : 1 }}>
-                <option value="">{unitsLoading ? 'Loading units…' : !siteId ? 'Select a site first…' : units.length === 0 ? 'No available units' : 'Select a unit…'}</option>
+                <option value="">{unitsLoading ? t('dashboard.listings.newModal.loadingUnits') : !siteId ? t('dashboard.listings.newModal.selectSiteFirst') : units.length === 0 ? t('dashboard.listings.newModal.noAvailableUnits') : t('dashboard.listings.newModal.selectUnit')}</option>
                 {units.map((u) => <option key={u.id} value={u.id}>{u.unitCode} ({u.kind.replace('_', ' ')})</option>)}
               </select>
             </div>
 
             {/* Title */}
             <div>
-              <label style={labelStyle}>LISTING TITLE</label>
-              <input name="title" required placeholder="e.g. 20ft Container — Drive-up access" className="listing-modal-input" style={inputStyle} />
+              <label style={labelStyle}>{t('dashboard.listings.newModal.listingTitle')}</label>
+              <input name="title" required placeholder={t('dashboard.listings.newModal.listingTitlePlaceholder')} className="listing-modal-input" style={inputStyle} />
             </div>
 
             {/* Description */}
             <div>
-              <label style={labelStyle}>DESCRIPTION <span style={{ color: '#cbd5e1', fontWeight: 400 }}>(optional)</span></label>
-              <textarea name="description" placeholder="Additional details visible to customers…" rows={2} className="listing-modal-input" style={{ ...inputStyle, resize: 'vertical', minHeight: '60px' }} />
+              <label style={labelStyle}>{t('dashboard.listings.newModal.description')} <span style={{ color: '#cbd5e1', fontWeight: 400 }}>{t('dashboard.listings.newModal.optional')}</span></label>
+              <textarea name="description" placeholder={t('dashboard.listings.newModal.descriptionPlaceholder')} rows={2} className="listing-modal-input" style={{ ...inputStyle, resize: 'vertical', minHeight: '60px' }} />
             </div>
 
             {/* Booking mode */}
             <div>
-              <label style={labelStyle}>BOOKING MODE</label>
+              <label style={labelStyle}>{t('dashboard.listings.newModal.bookingMode')}</label>
               <select name="bookingMode" required defaultValue="approval_required" className="listing-modal-input" style={inputStyle}>
-                {BOOKING_MODES.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+                {BOOKING_MODE_KEYS.map((m) => <option key={m} value={m}>{t(`dashboard.listings.bookingModeFull.${m}`)}</option>)}
               </select>
             </div>
 
             {/* Price */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
-                <label style={labelStyle}>PRICE / MONTH (€) <span style={{ color: '#cbd5e1', fontWeight: 400 }}>(opt)</span></label>
-                <input name="publicPriceMinor" type="number" min="0" step="0.01" placeholder="e.g. 119.00" className="listing-modal-input" style={inputStyle} />
+                <label style={labelStyle}>{t('dashboard.listings.newModal.pricePerMonth')} <span style={{ color: '#cbd5e1', fontWeight: 400 }}>{t('dashboard.listings.newModal.opt')}</span></label>
+                <input name="publicPriceMinor" type="number" min="0" step="0.01" placeholder={t('dashboard.listings.newModal.pricePlaceholder')} className="listing-modal-input" style={inputStyle} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
                 <label style={{ ...labelStyle, marginBottom: '10px' }}>
                   <input type="checkbox" name="showPrice" value="true" defaultChecked style={{ marginRight: '6px' }} />
-                  Show price publicly
+                  {t('dashboard.listings.newModal.showPricePublicly')}
                 </label>
               </div>
             </div>
@@ -212,10 +210,10 @@ export default function NewListingButton({ orgId, sites, listedUnitIds }: Props)
 
             <div style={{ display: 'flex', gap: '8px', paddingTop: '4px', borderTop: '1px solid #f1f5f9', marginTop: '2px' }}>
               <button type="button" onClick={() => setShowForm(false)} style={{ flex: 1, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', color: '#64748b', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: '13px' }}>
-                Cancel
+                {t('dashboard.listings.newModal.cancel')}
               </button>
               <button type="submit" disabled={loading} style={{ flex: 2, background: loading ? '#e2e8f0' : '#0f172a', color: loading ? '#94a3b8' : '#ffffff', border: 'none', borderRadius: '8px', padding: '10px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, fontSize: '13px', transition: 'background 0.15s' }}>
-                {loading ? 'Creating…' : 'Create listing'}
+                {loading ? t('dashboard.listings.newModal.creating') : t('dashboard.listings.newModal.create')}
               </button>
             </div>
           </form>
@@ -236,7 +234,7 @@ export default function NewListingButton({ orgId, sites, listedUnitIds }: Props)
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
           <path d="M8 1v14M1 8h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
         </svg>
-        New listing
+        {t('dashboard.listings.newModal.newListing')}
       </button>
       {modal}
     </>

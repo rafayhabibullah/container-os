@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useT } from '@/lib/i18n';
 import ReservationActions from './ReservationActions';
 import ReservationDrawer from './ReservationDrawer';
 
@@ -26,26 +27,19 @@ interface Props {
   reservations: Reservation[];
 }
 
-const STATUS: Record<string, { dot: string; text: string; bg: string; border: string; label: string }> = {
-  pending:           { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a', label: 'Pending'           },
-  pending_signature: { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd', label: 'Pending signature' },
-  confirmed:         { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', label: 'Confirmed'         },
-  converted:         { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', label: 'Converted'         },
-  cancelled:         { dot: '#f87171', text: '#dc2626', bg: '#fef2f2', border: '#fecaca', label: 'Cancelled'         },
-  expired:           { dot: '#cbd5e1', text: '#94a3b8', bg: '#f8fafc', border: '#e2e8f0', label: 'Expired'           },
+const STATUS: Record<string, { dot: string; text: string; bg: string; border: string }> = {
+  pending:           { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a' },
+  pending_signature: { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd' },
+  confirmed:         { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+  converted:         { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+  cancelled:         { dot: '#f87171', text: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
+  expired:           { dot: '#cbd5e1', text: '#94a3b8', bg: '#f8fafc', border: '#e2e8f0' },
 };
 
-const FILTERS = [
-  { key: 'all',               label: 'All'               },
-  { key: 'pending',           label: 'Pending'           },
-  { key: 'pending_signature', label: 'Pending signature' },
-  { key: 'confirmed',         label: 'Confirmed'         },
-  { key: 'converted',         label: 'Converted'         },
-  { key: 'cancelled',         label: 'Cancelled'         },
-  { key: 'expired',           label: 'Expired'           },
-] as const;
+const FILTER_KEYS = ['all', 'pending', 'pending_signature', 'confirmed', 'converted', 'cancelled', 'expired'] as const;
 
 export default function ReservationsTable({ reservations }: Props) {
+  const t = useT();
   const [query,        setQuery]        = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selected,     setSelected]     = useState<Reservation | null>(null);
@@ -85,13 +79,13 @@ export default function ReservationsTable({ reservations }: Props) {
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 20px', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap' }}>
-            {FILTERS.map((f) => {
-              const active = statusFilter === f.key;
-              const count  = f.key === 'all' ? reservations.length : reservations.filter((r) => r.status === f.key).length;
+            {FILTER_KEYS.map((key) => {
+              const active = statusFilter === key;
+              const count  = key === 'all' ? reservations.length : reservations.filter((r) => r.status === key).length;
               return (
                 <button
-                  key={f.key}
-                  onClick={() => setStatusFilter(f.key)}
+                  key={key}
+                  onClick={() => setStatusFilter(key)}
                   className="reservation-filter-btn"
                   style={{
                     padding: '6px 12px', borderRadius: '6px', border: 'none',
@@ -102,7 +96,7 @@ export default function ReservationsTable({ reservations }: Props) {
                     display: 'flex', alignItems: 'center', gap: '5px',
                   }}
                 >
-                  {f.label}
+                  {t(`dashboard.reservations.filters.${key}`)}
                   <span style={{
                     background: active ? '#e2e8f0' : '#f8fafc',
                     color: active ? '#475569' : '#cbd5e1',
@@ -135,7 +129,7 @@ export default function ReservationsTable({ reservations }: Props) {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search reservations…"
+              placeholder={t('dashboard.reservations.searchPlaceholder')}
               style={{
                 flex: 1, background: 'transparent', border: 'none', outline: 'none',
                 color: '#0f172a', fontSize: '13px',
@@ -157,17 +151,26 @@ export default function ReservationsTable({ reservations }: Props) {
               </svg>
             </div>
             <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>
-              {reservations.length === 0 ? 'No reservations yet' : 'No results found'}
+              {reservations.length === 0 ? t('dashboard.reservations.emptyTitleNone') : t('dashboard.reservations.emptyTitleFiltered')}
             </p>
             <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: 0 }}>
-              {reservations.length === 0 ? 'Reservations will appear here once customers make bookings.' : 'Try adjusting your search or filter.'}
+              {reservations.length === 0 ? t('dashboard.reservations.emptyBodyNone') : t('dashboard.reservations.emptyBodyFiltered')}
             </p>
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                {['ID', 'Customer', 'Site', 'Unit', 'Move-in', 'Expires', 'Status', ''].map((h, i) => (
+                {[
+                  t('dashboard.reservations.columns.id'),
+                  t('dashboard.reservations.columns.customer'),
+                  t('dashboard.reservations.columns.site'),
+                  t('dashboard.reservations.columns.unit'),
+                  t('dashboard.reservations.columns.moveIn'),
+                  t('dashboard.reservations.columns.expires'),
+                  t('dashboard.reservations.columns.status'),
+                  '',
+                ].map((h, i) => (
                   <th key={i} style={{
                     textAlign: 'left', padding: '10px 16px',
                     fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -225,7 +228,7 @@ export default function ReservationsTable({ reservations }: Props) {
                         fontSize: '12px', fontWeight: 600, fontFamily: "'Plus Jakarta Sans', sans-serif",
                       }}>
                         <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: stat.dot, flexShrink: 0 }} />
-                        {stat.label}
+                        {t(`dashboard.reservations.status.${r.status}`)}
                       </span>
                     </td>
                     <td style={{ padding: '12px 16px', textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>

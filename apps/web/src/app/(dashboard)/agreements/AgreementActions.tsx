@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useT } from '@/lib/i18n';
 
 interface Agreement {
   id: string;
@@ -11,6 +12,7 @@ interface Agreement {
 
 export default function AgreementActions({ agreement }: { agreement: Agreement }) {
   const router = useRouter();
+  const t = useT();
   const [loading, setLoading] = useState(false);
 
   async function send() {
@@ -48,12 +50,12 @@ export default function AgreementActions({ agreement }: { agreement: Agreement }
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
       {agreement.status === 'draft' && (
         <button onClick={send} disabled={loading} style={{ ...baseBtn, background: '#f0f9ff', border: '1px solid #bae6fd', color: '#0369a1' }}>
-          Send
+          {t('dashboard.agreements.actions.send')}
         </button>
       )}
       {agreement.status !== 'terminated' && (
         <button onClick={terminate} disabled={loading} style={{ ...baseBtn, background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626' }}>
-          Terminate
+          {t('dashboard.agreements.actions.terminate')}
         </button>
       )}
     </div>

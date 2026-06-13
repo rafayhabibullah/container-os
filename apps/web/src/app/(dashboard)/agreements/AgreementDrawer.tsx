@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useT } from '@/lib/i18n';
 
 interface AgreementSummary {
   id: string;
@@ -43,12 +44,12 @@ interface AgreementDetails extends AgreementSummary {
   site: SiteDetail | null;
 }
 
-const STATUS_PILL: Record<string, { dot: string; text: string; bg: string; border: string; label: string }> = {
-  draft:             { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0', label: 'Draft'             },
-  pending_signature: { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a', label: 'Pending signature' },
-  signed:            { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd', label: 'Signed'            },
-  active:            { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', label: 'Active'            },
-  terminated:        { dot: '#f87171', text: '#dc2626', bg: '#fef2f2', border: '#fecaca', label: 'Terminated'        },
+const STATUS_PILL: Record<string, { dot: string; text: string; bg: string; border: string }> = {
+  draft:             { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0' },
+  pending_signature: { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a' },
+  signed:            { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd' },
+  active:            { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+  terminated:        { dot: '#f87171', text: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
 };
 
 function fmt(iso: string) {
@@ -91,6 +92,7 @@ function signatoryStyle(status: string) {
 
 export default function AgreementDrawer({ agreement, onClose }: { agreement: AgreementSummary; onClose: () => void }) {
   const router = useRouter();
+  const t = useT();
   const [loading, setLoading] = useState(false);
   const [details, setDetails] = useState<AgreementDetails | null>(null);
   const [fetching, setFetching] = useState(true);
@@ -170,7 +172,7 @@ export default function AgreementDrawer({ agreement, onClose }: { agreement: Agr
         {/* Header */}
         <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: '6px' }}>Agreement</div>
+            <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: '6px' }}>{t('dashboard.agreements.drawer.title')}</div>
             <div style={{ fontFamily: 'monospace', fontSize: '12px', color: '#94a3b8', marginBottom: '10px' }}>{agreement.id}</div>
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: '6px',
@@ -178,7 +180,7 @@ export default function AgreementDrawer({ agreement, onClose }: { agreement: Agr
               borderRadius: '20px', padding: '4px 12px', fontSize: '12px', fontWeight: 600,
             }}>
               <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: stat.dot, flexShrink: 0 }} />
-              {stat.label}
+              {t(`dashboard.agreements.status.${agreement.status}`)}
             </span>
           </div>
           <button
@@ -200,7 +202,7 @@ export default function AgreementDrawer({ agreement, onClose }: { agreement: Agr
 
           {/* Customer */}
           <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '14px 16px' }}>
-            <SectionHeader title="Customer" icon={
+            <SectionHeader title={t('dashboard.agreements.drawer.customer')} icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" stroke="#64748b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
             } />
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -225,18 +227,18 @@ export default function AgreementDrawer({ agreement, onClose }: { agreement: Agr
 
           {/* Details */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <Field label="Billing cycle" value={(details?.billingCycle ?? agreement.billingCycle).replace('_', ' ')} />
-            <Field label="Language" value={fetching ? <SkeletonLine width="40px" height={13} /> : (details?.language?.toUpperCase() ?? '—')} />
-            <Field label="Effective from" value={agreement.effectiveFrom ? fmt(agreement.effectiveFrom) : '—'} />
-            <Field label="Created" value={fmtTime(agreement.createdAt)} />
+            <Field label={t('dashboard.agreements.drawer.billingCycle')} value={(details?.billingCycle ?? agreement.billingCycle).replace('_', ' ')} />
+            <Field label={t('dashboard.agreements.drawer.language')} value={fetching ? <SkeletonLine width="40px" height={13} /> : (details?.language?.toUpperCase() ?? '—')} />
+            <Field label={t('dashboard.agreements.drawer.effectiveFrom')} value={agreement.effectiveFrom ? fmt(agreement.effectiveFrom) : '—'} />
+            <Field label={t('dashboard.agreements.drawer.created')} value={fmtTime(agreement.createdAt)} />
             {details?.reservationId && (
-              <Field label="Reservation" value={<span style={{ fontFamily: 'monospace', fontSize: '11px' }}>{details.reservationId.slice(0, 12)}…</span>} />
+              <Field label={t('dashboard.agreements.drawer.reservation')} value={<span style={{ fontFamily: 'monospace', fontSize: '11px' }}>{details.reservationId.slice(0, 12)}…</span>} />
             )}
           </div>
 
           {/* Unit */}
           <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 16px' }}>
-            <SectionHeader title="Unit" icon={
+            <SectionHeader title={t('dashboard.agreements.drawer.unit')} icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="20" height="14" rx="2" stroke="#64748b" strokeWidth="1.8"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" stroke="#64748b" strokeWidth="1.8" strokeLinecap="round"/></svg>
             } />
             {fetching ? (
@@ -245,17 +247,17 @@ export default function AgreementDrawer({ agreement, onClose }: { agreement: Agr
               </div>
             ) : details?.unit ? (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <Field label="Unit code" value={<span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '14px' }}>{details.unit.unitCode}</span>} />
-                <Field label="Kind" value={details.unit.kind.replace(/_/g, ' ')} />
-                <Field label="Drive-up" value={details.unit.driveUp ? 'Yes' : 'No'} />
+                <Field label={t('dashboard.agreements.drawer.unitCode')} value={<span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '14px' }}>{details.unit.unitCode}</span>} />
+                <Field label={t('dashboard.agreements.drawer.kind')} value={details.unit.kind.replace(/_/g, ' ')} />
+                <Field label={t('dashboard.agreements.drawer.driveUp')} value={details.unit.driveUp ? t('dashboard.agreements.drawer.yes') : t('dashboard.agreements.drawer.no')} />
                 {details.unitType && <>
-                  <Field label="Type" value={<span style={{ fontWeight: 700 }}>{details.unitType.name}</span>} />
-                  <Field label="Size" value={`${details.unitType.sizeSqm} m²${details.unitType.sizeCbm ? ` / ${details.unitType.sizeCbm} m³` : ''}`} />
-                  {details.unitType.doorType && <Field label="Door" value={details.unitType.doorType.replace(/_/g, ' ')} />}
+                  <Field label={t('dashboard.agreements.drawer.type')} value={<span style={{ fontWeight: 700 }}>{details.unitType.name}</span>} />
+                  <Field label={t('dashboard.agreements.drawer.size')} value={`${details.unitType.sizeSqm} m²${details.unitType.sizeCbm ? ` / ${details.unitType.sizeCbm} m³` : ''}`} />
+                  {details.unitType.doorType && <Field label={t('dashboard.agreements.drawer.door')} value={details.unitType.doorType.replace(/_/g, ' ')} />}
                 </>}
                 {details.unitType && details.unitType.features.length > 0 && (
                   <div style={{ gridColumn: '1 / -1' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8', display: 'block', marginBottom: '6px' }}>Features</span>
+                    <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#94a3b8', display: 'block', marginBottom: '6px' }}>{t('dashboard.agreements.drawer.features')}</span>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                       {details.unitType.features.map((f) => (
                         <span key={f} style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '4px', background: '#f1f5f9', border: '1px solid #e2e8f0', fontSize: '12px', fontWeight: 500, color: '#475569' }}>
@@ -273,7 +275,7 @@ export default function AgreementDrawer({ agreement, onClose }: { agreement: Agr
 
           {/* Site */}
           <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 16px' }}>
-            <SectionHeader title="Site" icon={
+            <SectionHeader title={t('dashboard.agreements.drawer.site')} icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-6.75-7-11a7 7 0 1 1 14 0c0 4.25-7 11-7 11z" stroke="#64748b" strokeWidth="1.8" strokeLinejoin="round"/><circle cx="12" cy="10" r="2.5" stroke="#64748b" strokeWidth="1.8"/></svg>
             } />
             {fetching ? (
@@ -282,8 +284,8 @@ export default function AgreementDrawer({ agreement, onClose }: { agreement: Agr
               </div>
             ) : details?.site ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <Field label="Name" value={<span style={{ fontWeight: 700 }}>{details.site.name}</span>} />
-                <Field label="Address" value={
+                <Field label={t('dashboard.agreements.drawer.name')} value={<span style={{ fontWeight: 700 }}>{details.site.name}</span>} />
+                <Field label={t('dashboard.agreements.drawer.address')} value={
                   <span>
                     {details.site.address.street}<br />
                     {details.site.address.postalCode} {details.site.address.city}, {details.site.address.country}
@@ -297,7 +299,7 @@ export default function AgreementDrawer({ agreement, onClose }: { agreement: Agr
 
           {/* Signatories */}
           <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 16px' }}>
-            <SectionHeader title="Signatories" icon={
+            <SectionHeader title={t('dashboard.agreements.drawer.signatories')} icon={
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" stroke="#64748b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
             } />
             {fetching ? (
@@ -306,9 +308,9 @@ export default function AgreementDrawer({ agreement, onClose }: { agreement: Agr
                 <SkeletonLine width="55%" />
               </div>
             ) : !details ? (
-              <span style={{ fontSize: '12px', color: '#f87171' }}>Could not load — check the API server is running.</span>
+              <span style={{ fontSize: '12px', color: '#f87171' }}>{t('dashboard.agreements.drawer.loadError')}</span>
             ) : details.signatories.length === 0 ? (
-              <span style={{ fontSize: '13px', color: '#94a3b8' }}>No signatories assigned yet.</span>
+              <span style={{ fontSize: '13px', color: '#94a3b8' }}>{t('dashboard.agreements.drawer.noSignatories')}</span>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {details.signatories.map((s) => {
@@ -334,7 +336,7 @@ export default function AgreementDrawer({ agreement, onClose }: { agreement: Agr
           {/* Amendments */}
           {!fetching && details && details.amendments.length > 0 && (
             <div style={{ border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 16px' }}>
-              <SectionHeader title="Amendments" icon={
+              <SectionHeader title={t('dashboard.agreements.drawer.amendments')} icon={
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="#64748b" strokeWidth="1.8" strokeLinecap="round"/></svg>
               } />
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -355,11 +357,11 @@ export default function AgreementDrawer({ agreement, onClose }: { agreement: Agr
           <div style={{ padding: '16px 24px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '8px' }}>
             {agreement.status === 'draft' && (
               <button onClick={sendForSignature} disabled={loading} style={{ ...btnBase, background: '#f0f9ff', color: '#0369a1', border: '1px solid #bae6fd' }}>
-                Send for signature
+                {t('dashboard.agreements.actions.sendForSignature')}
               </button>
             )}
             <button onClick={terminate} disabled={loading} style={{ ...btnBase, background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
-              Terminate
+              {t('dashboard.agreements.actions.terminate')}
             </button>
           </div>
         )}

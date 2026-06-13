@@ -713,6 +713,276 @@
         "operator": "operator",
         "tenant": "tenant"
       }
+    },
+    "reservations": {
+      "title": "Reservations",
+      "totalBadge": "{{count}} total",
+      "pendingBadge": "{{count}} pending",
+      "filters": {
+        "all": "All",
+        "pending": "Pending",
+        "pending_signature": "Pending signature",
+        "confirmed": "Confirmed",
+        "converted": "Converted",
+        "cancelled": "Cancelled",
+        "expired": "Expired"
+      },
+      "status": {
+        "pending": "Pending",
+        "pending_signature": "Pending signature",
+        "confirmed": "Confirmed",
+        "converted": "Converted",
+        "cancelled": "Cancelled",
+        "expired": "Expired"
+      },
+      "searchPlaceholder": "Search reservations…",
+      "emptyTitleNone": "No reservations yet",
+      "emptyTitleFiltered": "No results found",
+      "emptyBodyNone": "Reservations will appear here once customers make bookings.",
+      "emptyBodyFiltered": "Try adjusting your search or filter.",
+      "columns": {
+        "id": "ID",
+        "customer": "Customer",
+        "site": "Site",
+        "unit": "Unit",
+        "moveIn": "Move-in",
+        "expires": "Expires",
+        "status": "Status"
+      },
+      "actions": {
+        "confirm": "Confirm",
+        "createAgreement": "Create agreement",
+        "cancel": "Cancel"
+      },
+      "drawer": {
+        "title": "Reservation",
+        "via": "via {{source}}",
+        "customer": "Customer",
+        "moveInDate": "Move-in date",
+        "expires": "Expires",
+        "created": "Created",
+        "unit": "Unit",
+        "unitType": "Unit type",
+        "site": "Site",
+        "unitCode": "Unit code",
+        "kind": "Kind",
+        "status": "Status",
+        "driveUp": "Drive-up",
+        "condition": "Condition",
+        "name": "Name",
+        "size": "Size",
+        "doorType": "Door type",
+        "features": "Features",
+        "address": "Address",
+        "currency": "Currency",
+        "timezone": "Timezone",
+        "loadError": "Could not load — check the API server is running.",
+        "yes": "Yes",
+        "no": "No"
+      }
+    },
+    "agreements": {
+      "title": "Agreements",
+      "tabs": {
+        "agreements": "Agreements",
+        "documents": "Documents"
+      },
+      "filters": {
+        "all": "All",
+        "draft": "Draft",
+        "pending_signature": "Pending signature",
+        "signed": "Signed",
+        "active": "Active",
+        "terminated": "Terminated"
+      },
+      "status": {
+        "draft": "Draft",
+        "pending_signature": "Pending signature",
+        "signed": "Signed",
+        "active": "Active",
+        "terminated": "Terminated"
+      },
+      "searchPlaceholder": "Search agreements…",
+      "searchDocumentsPlaceholder": "Search documents…",
+      "emptyTitleNone": "No agreements yet",
+      "emptyTitleFiltered": "No results found",
+      "emptyBodyNone": "Agreements will appear here once created.",
+      "emptyBodyFiltered": "Try adjusting your search or filter.",
+      "emptyDocumentsTitleNone": "No documents stored yet",
+      "emptyDocumentsTitleFiltered": "No results found",
+      "emptyDocumentsBodyNone": "Documents will appear here once created.",
+      "emptyDocumentsBodyFiltered": "Try adjusting your search.",
+      "columns": {
+        "id": "ID",
+        "customer": "Customer",
+        "site": "Site",
+        "unit": "Unit",
+        "billing": "Billing",
+        "effectiveFrom": "Effective from",
+        "status": "Status",
+        "kind": "Kind",
+        "subject": "Subject",
+        "locale": "Locale",
+        "date": "Date"
+      },
+      "actions": {
+        "send": "Send",
+        "terminate": "Terminate",
+        "sendForSignature": "Send for signature"
+      },
+      "drawer": {
+        "title": "Agreement",
+        "customer": "Customer",
+        "billingCycle": "Billing cycle",
+        "language": "Language",
+        "effectiveFrom": "Effective from",
+        "created": "Created",
+        "reservation": "Reservation",
+        "unit": "Unit",
+        "unitCode": "Unit code",
+        "kind": "Kind",
+        "driveUp": "Drive-up",
+        "type": "Type",
+        "size": "Size",
+        "door": "Door",
+        "features": "Features",
+        "site": "Site",
+        "name": "Name",
+        "address": "Address",
+        "signatories": "Signatories",
+        "amendments": "Amendments",
+        "noSignatories": "No signatories assigned yet.",
+        "loadError": "Could not load — check the API server is running.",
+        "yes": "Yes",
+        "no": "No"
+      },
+      "detail": {
+        "backLink": "← Agreements",
+        "title": "Agreement",
+        "details": "Details",
+        "billingCycle": "Billing cycle",
+        "language": "Language",
+        "effectiveFrom": "Effective from",
+        "created": "Created",
+        "pricingSnapshot": "Pricing snapshot",
+        "signatories": "Signatories",
+        "amendments": "Amendments",
+        "noSignatories": "No signatories assigned yet.",
+        "actions": "Actions"
+      },
+      "detailActions": {
+        "sendForSignature": "Send for signature",
+        "requestTermination": "Request termination",
+        "terminationTitle": "Termination request",
+        "requestedEndDate": "Requested end date",
+        "operatorNote": "Operator note (optional)",
+        "cancel": "Cancel",
+        "submit": "Submit"
+      }
+    },
+    "listings": {
+      "title": "Listings",
+      "badges": {
+        "published": "{{count}} published",
+        "draft": "{{count}} draft",
+        "draft_plural": "{{count}} draft",
+        "paused": "{{count}} paused",
+        "fullyBooked": "{{count}} fully booked",
+        "archived": "{{count}} archived",
+        "none": "No listings yet"
+      },
+      "filters": {
+        "all": "All",
+        "published": "Published",
+        "draft": "Draft",
+        "paused": "Paused",
+        "fully_booked": "Fully booked",
+        "archived": "Archived"
+      },
+      "status": {
+        "draft": "Draft",
+        "published": "Published",
+        "paused": "Paused",
+        "fully_booked": "Fully booked",
+        "archived": "Archived"
+      },
+      "bookingMode": {
+        "approval_required": "Approval",
+        "instant_booking": "Instant",
+        "request_price": "Quote"
+      },
+      "bookingModeFull": {
+        "approval_required": "Approval required",
+        "instant_booking": "Instant booking",
+        "request_price": "Request price"
+      },
+      "searchPlaceholder": "Search listings…",
+      "emptyTitleNone": "No listings yet",
+      "emptyTitleFiltered": "No results found",
+      "emptyBodyNone": "Create your first listing to publish units to the marketplace.",
+      "emptyBodyFiltered": "Try adjusting your search or filter.",
+      "priceHidden": "Hidden",
+      "columns": {
+        "title": "Title",
+        "site": "Site",
+        "unit": "Unit",
+        "mode": "Mode",
+        "price": "Price",
+        "status": "Status"
+      },
+      "actions": {
+        "edit": "Edit",
+        "publish": "Publish",
+        "pause": "Pause",
+        "archive": "Archive",
+        "failed": "Failed"
+      },
+      "editModal": {
+        "title": "Edit listing",
+        "subtitle": "Update title, description, mode, or price",
+        "site": "SITE",
+        "selectSite": "Select a site…",
+        "unit": "UNIT",
+        "loadingUnits": "Loading units…",
+        "selectSiteFirst": "Select a site first…",
+        "noAvailableUnits": "No available units",
+        "selectUnit": "Select a unit…",
+        "listingTitle": "LISTING TITLE",
+        "description": "DESCRIPTION",
+        "optional": "(optional)",
+        "bookingMode": "BOOKING MODE",
+        "pricePerMonth": "PRICE / MONTH (€)",
+        "opt": "(opt)",
+        "showPricePublicly": "Show price publicly",
+        "cancel": "Cancel",
+        "saveChanges": "Save changes",
+        "saving": "Saving…"
+      },
+      "newModal": {
+        "title": "New listing",
+        "subtitle": "Publish a unit to the marketplace",
+        "site": "SITE",
+        "selectSite": "Select a site…",
+        "unit": "UNIT",
+        "loadingUnits": "Loading units…",
+        "selectSiteFirst": "Select a site first…",
+        "noAvailableUnits": "No available units",
+        "selectUnit": "Select a unit…",
+        "listingTitle": "LISTING TITLE",
+        "listingTitlePlaceholder": "e.g. 20ft Container — Drive-up access",
+        "description": "DESCRIPTION",
+        "optional": "(optional)",
+        "descriptionPlaceholder": "Additional details visible to customers…",
+        "bookingMode": "BOOKING MODE",
+        "pricePerMonth": "PRICE / MONTH (€)",
+        "opt": "(opt)",
+        "pricePlaceholder": "e.g. 119.00",
+        "showPricePublicly": "Show price publicly",
+        "cancel": "Cancel",
+        "create": "Create listing",
+        "creating": "Creating…",
+        "newListing": "New listing"
+      }
     }
   }
 }

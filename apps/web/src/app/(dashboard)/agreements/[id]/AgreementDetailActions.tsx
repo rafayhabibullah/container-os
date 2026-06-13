@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useT } from '@/lib/i18n';
 
 interface Agreement {
   id: string;
@@ -33,6 +34,7 @@ const inputStyle: React.CSSProperties = {
 
 export default function AgreementDetailActions({ agreement }: { agreement: Agreement }) {
   const router = useRouter();
+  const t = useT();
   const [loading, setLoading] = useState(false);
   const [showTerminate, setShowTerminate] = useState(false);
   const [requestedDate, setRequestedDate] = useState('');
@@ -72,7 +74,7 @@ export default function AgreementDetailActions({ agreement }: { agreement: Agree
           disabled={loading}
           style={{ background: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '10px 18px', fontWeight: 700, fontSize: '13px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", opacity: loading ? 0.5 : 1 }}
         >
-          Send for signature
+          {t('dashboard.agreements.detailActions.sendForSignature')}
         </button>
       )}
 
@@ -81,7 +83,7 @@ export default function AgreementDetailActions({ agreement }: { agreement: Agree
           onClick={() => setShowTerminate(true)}
           style={{ border: '1px solid #fecaca', color: '#dc2626', background: '#fef2f2', borderRadius: '8px', padding: '10px 18px', fontWeight: 600, fontSize: '13px', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
-          Request termination
+          {t('dashboard.agreements.detailActions.requestTermination')}
         </button>
       )}
 
@@ -91,11 +93,11 @@ export default function AgreementDetailActions({ agreement }: { agreement: Agree
           style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}
         >
           <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Termination request
+            {t('dashboard.agreements.detailActions.terminationTitle')}
           </p>
 
           <div>
-            <label style={labelStyle}>Requested end date</label>
+            <label style={labelStyle}>{t('dashboard.agreements.detailActions.requestedEndDate')}</label>
             <input
               type="date"
               value={requestedDate}
@@ -106,7 +108,7 @@ export default function AgreementDetailActions({ agreement }: { agreement: Agree
           </div>
 
           <div>
-            <label style={labelStyle}>Operator note (optional)</label>
+            <label style={labelStyle}>{t('dashboard.agreements.detailActions.operatorNote')}</label>
             <textarea
               value={operatorNote}
               onChange={(e) => setOperatorNote(e.target.value)}
@@ -121,14 +123,14 @@ export default function AgreementDetailActions({ agreement }: { agreement: Agree
               onClick={() => setShowTerminate(false)}
               style={{ flex: 1, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 16px', color: '#64748b', fontWeight: 600, fontSize: '13px', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
-              Cancel
+              {t('dashboard.agreements.detailActions.cancel')}
             </button>
             <button
               type="submit"
               disabled={loading}
               style={{ flex: 1, background: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '10px 16px', fontWeight: 700, fontSize: '13px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", opacity: loading ? 0.5 : 1 }}
             >
-              Submit
+              {t('dashboard.agreements.detailActions.submit')}
             </button>
           </div>
         </form>

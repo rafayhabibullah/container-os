@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useT } from '@/lib/i18n';
 
 interface Reservation {
   id: string;
@@ -10,6 +11,7 @@ interface Reservation {
 
 export default function ReservationActions({ reservation }: { reservation: Reservation }) {
   const router = useRouter();
+  const t = useT();
   const [loading, setLoading] = useState(false);
 
   async function updateStatus(status: string) {
@@ -67,7 +69,7 @@ export default function ReservationActions({ reservation }: { reservation: Reser
             color: '#15803d',
           }}
         >
-          Confirm
+          {t('dashboard.reservations.actions.confirm')}
         </button>
       )}
       {reservation.status === 'confirmed' && (
@@ -81,7 +83,7 @@ export default function ReservationActions({ reservation }: { reservation: Reser
             color: '#6d28d9',
           }}
         >
-          Create agreement
+          {t('dashboard.reservations.actions.createAgreement')}
         </button>
       )}
       {(reservation.status === 'pending' ||
@@ -97,7 +99,7 @@ export default function ReservationActions({ reservation }: { reservation: Reser
             color: '#dc2626',
           }}
         >
-          Cancel
+          {t('dashboard.reservations.actions.cancel')}
         </button>
       )}
     </div>

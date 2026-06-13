@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
+import { getT } from '@/lib/get-locale';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import AgreementDetailActions from './AgreementDetailActions';
@@ -31,12 +32,12 @@ const STATUS_PILL: Record<string, { dot: string; color: string; bg: string; bord
   terminated:        { dot: '#f87171', color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
 };
 
-function StatusPill({ status }: { status: string }) {
+function StatusPill({ status, label }: { status: string; label: string }) {
   const s = STATUS_PILL[status] ?? STATUS_PILL.draft;
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: s.bg, color: s.color, border: `1px solid ${s.border}`, borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: s.dot, display: 'inline-block', flexShrink: 0 }} />
-      {status.replace('_', ' ')}
+      {label}
     </span>
   );
 }
@@ -67,6 +68,7 @@ const sectionLabelStyle: React.CSSProperties = {
 
 export default async function AgreementDetailPage({ params }: { params: { id: string } }) {
   const user = await requireAuth();
+  const t = getT();
   const agreement = await serverFetch<Agreement>(
     `/v1/organisations/${user.organisationId}/agreements/${params.id}`,
   ).catch(() => null);
@@ -79,28 +81,28 @@ export default async function AgreementDetailPage({ params }: { params: { id: st
       <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
 
-          <Link href="/agreements" style={{ display: 'inline-block', fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', marginBottom: '20px' }}>← Agreements</Link>
+          <Link href="/agreements" style={{ display: 'inline-block', fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', marginBottom: '20px' }}>{t('dashboard.agreements.detail.backLink')}</Link>
 
           {/* Page title row */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
             <div>
-              <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>Agreement</h1>
+              <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>{t('dashboard.agreements.detail.title')}</h1>
               <p style={{ fontSize: '12px', color: '#94a3b8', fontFamily: 'ui-monospace, monospace', margin: 0 }}>{agreement.id}</p>
             </div>
-            <StatusPill status={agreement.status} />
+            <StatusPill status={agreement.status} label={t(`dashboard.agreements.status.${agreement.status}`)} />
           </div>
 
           {/* Details + Pricing snapshot grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
             {/* Details */}
             <div style={{ ...cardStyle, padding: '20px' }}>
-              <p style={sectionLabelStyle}>Details</p>
+              <p style={sectionLabelStyle}>{t('dashboard.agreements.detail.details')}</p>
               <dl style={{ margin: 0 }}>
                 {[
-                  ['Billing cycle', agreement.billingCycle.replace('_', ' ')],
-                  ['Language', agreement.language.toUpperCase()],
-                  ['Effective from', agreement.effectiveFrom ? new Date(agreement.effectiveFrom).toLocaleDateString('de-DE') : '—'],
-                  ['Created', new Date(agreement.createdAt).toLocaleDateString('de-DE')],
+                  [t('dashboard.agreements.detail.billingCycle'), agreement.billingCycle.replace('_', ' ')],
+                  [t('dashboard.agreements.detail.language'), agreement.language.toUpperCase()],
+                  [t('dashboard.agreements.detail.effectiveFrom'), agreement.effectiveFrom ? new Date(agreement.effectiveFrom).toLocaleDateString('de-DE') : '—'],
+                  [t('dashboard.agreements.detail.created'), new Date(agreement.createdAt).toLocaleDateString('de-DE')],
                 ].map(([label, value]) => (
                   <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f8fafc' }}>
                     <dt style={{ fontSize: '12px', color: '#94a3b8' }}>{label}</dt>
@@ -112,7 +114,7 @@ export default async function AgreementDetailPage({ params }: { params: { id: st
 
             {/* Pricing snapshot */}
             <div style={{ ...cardStyle, padding: '20px' }}>
-              <p style={sectionLabelStyle}>Pricing snapshot</p>
+              <p style={sectionLabelStyle}>{t('dashboard.agreements.detail.pricingSnapshot')}</p>
               <pre style={{ fontSize: '12px', color: '#475569', overflowX: 'auto', margin: 0, fontFamily: 'ui-monospace, monospace' }}>
                 {JSON.stringify(agreement.pricingSnapshot, null, 2)}
               </pre>
@@ -121,9 +123,9 @@ export default async function AgreementDetailPage({ params }: { params: { id: st
 
           {/* Signatories */}
           <div style={{ ...cardStyle, padding: '20px', marginBottom: '16px' }}>
-            <p style={sectionLabelStyle}>Signatories</p>
+            <p style={sectionLabelStyle}>{t('dashboard.agreements.detail.signatories')}</p>
             {agreement.signatories.length === 0 ? (
-              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>No signatories assigned yet.</p>
+              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>{t('dashboard.agreements.detail.noSignatories')}</p>
             ) : (
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {agreement.signatories.map((s) => {
@@ -145,7 +147,7 @@ export default async function AgreementDetailPage({ params }: { params: { id: st
           {/* Amendments */}
           {agreement.amendments.length > 0 && (
             <div style={{ ...cardStyle, padding: '20px', marginBottom: '16px' }}>
-              <p style={sectionLabelStyle}>Amendments</p>
+              <p style={sectionLabelStyle}>{t('dashboard.agreements.detail.amendments')}</p>
               <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {agreement.amendments.map((a) => (
                   <li key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -159,7 +161,7 @@ export default async function AgreementDetailPage({ params }: { params: { id: st
 
           {/* Actions */}
           <div style={{ ...cardStyle, padding: '20px' }}>
-            <p style={sectionLabelStyle}>Actions</p>
+            <p style={sectionLabelStyle}>{t('dashboard.agreements.detail.actions')}</p>
             <AgreementDetailActions agreement={agreement} />
           </div>
 

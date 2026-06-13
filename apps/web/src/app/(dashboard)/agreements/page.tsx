@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
+import { getT } from '@/lib/get-locale';
 import { Suspense } from 'react';
 import AgreementsTable from './AgreementsTable';
 
@@ -30,6 +31,7 @@ interface DocumentRow {
 
 export default async function AgreementsPage() {
   const user = await requireAuth();
+  const t = getT();
 
   const [agreements, documents] = await Promise.all([
     serverFetch<Agreement[]>(`/v1/organisations/${user.organisationId}/agreements`).catch(() => [] as Agreement[]),
@@ -43,7 +45,7 @@ export default async function AgreementsPage() {
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
 
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 28px', letterSpacing: '-0.02em' }}>
-            Agreements
+            {t('dashboard.agreements.title')}
           </h1>
 
           <Suspense>

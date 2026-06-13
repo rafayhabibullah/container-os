@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useT } from '@/lib/i18n';
 import { ListingActions } from './ListingActions';
 
 interface ListingRow {
@@ -29,30 +30,18 @@ interface Props {
   sites: Site[];
 }
 
-const STAT: Record<string, { dot: string; text: string; bg: string; border: string; label: string }> = {
-  draft:        { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0', label: 'Draft'        },
-  published:    { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', label: 'Published'    },
-  paused:       { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a', label: 'Paused'       },
-  fully_booked: { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd', label: 'Fully booked' },
-  archived:     { dot: '#cbd5e1', text: '#94a3b8', bg: '#f8fafc', border: '#e2e8f0', label: 'Archived'     },
+const STAT: Record<string, { dot: string; text: string; bg: string; border: string }> = {
+  draft:        { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0' },
+  published:    { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+  paused:       { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a' },
+  fully_booked: { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd' },
+  archived:     { dot: '#cbd5e1', text: '#94a3b8', bg: '#f8fafc', border: '#e2e8f0' },
 };
 
-const BOOKING_MODE_LABEL: Record<string, string> = {
-  approval_required: 'Approval',
-  instant_booking:   'Instant',
-  request_price:     'Quote',
-};
-
-const FILTERS = [
-  { key: 'all',          label: 'All'          },
-  { key: 'published',    label: 'Published'    },
-  { key: 'draft',        label: 'Draft'        },
-  { key: 'paused',       label: 'Paused'       },
-  { key: 'fully_booked', label: 'Fully booked' },
-  { key: 'archived',     label: 'Archived'     },
-] as const;
+const FILTER_KEYS = ['all', 'published', 'draft', 'paused', 'fully_booked', 'archived'] as const;
 
 export default function ListingsTable({ listings, orgId, sites }: Props) {
+  const t = useT();
   const [query,        setQuery]        = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
@@ -90,13 +79,13 @@ export default function ListingsTable({ listings, orgId, sites }: Props) {
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 20px', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', gap: '2px' }}>
-            {FILTERS.map((f) => {
-              const active = statusFilter === f.key;
-              const count  = f.key === 'all' ? listings.length : listings.filter((l) => l.status === f.key).length;
+            {FILTER_KEYS.map((key) => {
+              const active = statusFilter === key;
+              const count  = key === 'all' ? listings.length : listings.filter((l) => l.status === key).length;
               return (
                 <button
-                  key={f.key}
-                  onClick={() => setStatusFilter(f.key)}
+                  key={key}
+                  onClick={() => setStatusFilter(key)}
                   className="listing-filter-btn"
                   style={{
                     padding: '6px 12px', borderRadius: '6px', border: 'none',
@@ -107,7 +96,7 @@ export default function ListingsTable({ listings, orgId, sites }: Props) {
                     display: 'flex', alignItems: 'center', gap: '5px',
                   }}
                 >
-                  {f.label}
+                  {t(`dashboard.listings.filters.${key}`)}
                   <span style={{
                     background: active ? '#e2e8f0' : '#f8fafc',
                     color: active ? '#475569' : '#cbd5e1',
@@ -140,7 +129,7 @@ export default function ListingsTable({ listings, orgId, sites }: Props) {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search listings…"
+              placeholder={t('dashboard.listings.searchPlaceholder')}
               style={{
                 flex: 1, background: 'transparent', border: 'none', outline: 'none',
                 color: '#0f172a', fontSize: '13px',
@@ -162,17 +151,25 @@ export default function ListingsTable({ listings, orgId, sites }: Props) {
               </svg>
             </div>
             <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>
-              {listings.length === 0 ? 'No listings yet' : 'No results found'}
+              {listings.length === 0 ? t('dashboard.listings.emptyTitleNone') : t('dashboard.listings.emptyTitleFiltered')}
             </p>
             <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: 0 }}>
-              {listings.length === 0 ? 'Create your first listing to publish units to the marketplace.' : 'Try adjusting your search or filter.'}
+              {listings.length === 0 ? t('dashboard.listings.emptyBodyNone') : t('dashboard.listings.emptyBodyFiltered')}
             </p>
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                {['Title', 'Site', 'Unit', 'Mode', 'Price', 'Status', ''].map((h, i) => (
+                {[
+                  t('dashboard.listings.columns.title'),
+                  t('dashboard.listings.columns.site'),
+                  t('dashboard.listings.columns.unit'),
+                  t('dashboard.listings.columns.mode'),
+                  t('dashboard.listings.columns.price'),
+                  t('dashboard.listings.columns.status'),
+                  '',
+                ].map((h, i) => (
                   <th key={i} style={{
                     textAlign: 'left', padding: '10px 16px',
                     fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -230,7 +227,7 @@ export default function ListingsTable({ listings, orgId, sites }: Props) {
                     {/* Booking mode */}
                     <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
                       <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#64748b' }}>
-                        {BOOKING_MODE_LABEL[listing.bookingMode] ?? listing.bookingMode}
+                        {t(`dashboard.listings.bookingMode.${listing.bookingMode}`)}
                       </span>
                     </td>
 
@@ -241,7 +238,7 @@ export default function ListingsTable({ listings, orgId, sites }: Props) {
                           {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(listing.publicPriceMinor / 100)}
                         </span>
                       ) : (
-                        <span style={{ color: '#cbd5e1', fontSize: '13px' }}>Hidden</span>
+                        <span style={{ color: '#cbd5e1', fontSize: '13px' }}>{t('dashboard.listings.priceHidden')}</span>
                       )}
                     </td>
 
@@ -256,7 +253,7 @@ export default function ListingsTable({ listings, orgId, sites }: Props) {
                         fontFamily: "'Plus Jakarta Sans', sans-serif",
                       }}>
                         <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: stat.dot, display: 'inline-block' }} />
-                        {stat.label}
+                        {t(`dashboard.listings.status.${listing.status}`)}
                       </span>
                     </td>
 

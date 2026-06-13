@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
+import { getT } from '@/lib/get-locale';
 import ReservationsTable from './ReservationsTable';
 
 interface Reservation {
@@ -22,6 +23,7 @@ interface Reservation {
 
 export default async function ReservationsPage() {
   const user = await requireAuth();
+  const t = getT();
   const reservations = await serverFetch<Reservation[]>(
     `/v1/organisations/${user.organisationId}/reservations`,
   ).catch(() => [] as Reservation[]);
@@ -41,16 +43,16 @@ export default async function ReservationsPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', gap: '20px', flexWrap: 'wrap' }}>
             <div>
               <h1 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 10px', letterSpacing: '-0.02em' }}>
-                Reservations
+                {t('dashboard.reservations.title')}
               </h1>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
-                  {reservations.length} total
+                  {t('dashboard.reservations.totalBadge', { count: String(reservations.length) })}
                 </span>
                 {pending > 0 && (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600 }}>
                     <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />
-                    {pending} pending
+                    {t('dashboard.reservations.pendingBadge', { count: String(pending) })}
                   </span>
                 )}
               </div>

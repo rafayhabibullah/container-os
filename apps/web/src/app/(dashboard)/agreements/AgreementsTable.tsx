@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useT } from '@/lib/i18n';
 import AgreementDrawer from './AgreementDrawer';
 import AgreementActions from './AgreementActions';
 
@@ -35,22 +36,15 @@ interface Props {
   documents: DocumentRow[];
 }
 
-const STATUS: Record<string, { dot: string; text: string; bg: string; border: string; label: string }> = {
-  draft:             { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0', label: 'Draft'             },
-  pending_signature: { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a', label: 'Pending signature' },
-  signed:            { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd', label: 'Signed'            },
-  active:            { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0', label: 'Active'            },
-  terminated:        { dot: '#f87171', text: '#dc2626', bg: '#fef2f2', border: '#fecaca', label: 'Terminated'        },
+const STATUS: Record<string, { dot: string; text: string; bg: string; border: string }> = {
+  draft:             { dot: '#94a3b8', text: '#475569', bg: '#f8fafc', border: '#e2e8f0' },
+  pending_signature: { dot: '#f59e0b', text: '#92400e', bg: '#fffbeb', border: '#fde68a' },
+  signed:            { dot: '#0ea5e9', text: '#0369a1', bg: '#f0f9ff', border: '#bae6fd' },
+  active:            { dot: '#16a34a', text: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+  terminated:        { dot: '#f87171', text: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
 };
 
-const AGR_FILTERS = [
-  { key: 'all',               label: 'All'               },
-  { key: 'draft',             label: 'Draft'             },
-  { key: 'pending_signature', label: 'Pending signature' },
-  { key: 'signed',            label: 'Signed'            },
-  { key: 'active',            label: 'Active'            },
-  { key: 'terminated',        label: 'Terminated'        },
-] as const;
+const AGR_FILTER_KEYS = ['all', 'draft', 'pending_signature', 'signed', 'active', 'terminated'] as const;
 
 const KIND_PILL: Record<string, { dot: string; color: string; bg: string; border: string }> = {
   contract:    { dot: '#16a34a', color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
@@ -68,6 +62,7 @@ const thStyle: React.CSSProperties = {
 };
 
 export default function AgreementsTable({ agreements, documents }: Props) {
+  const t = useT();
   const searchParams = useSearchParams();
   const tab = searchParams.get('tab') ?? 'agreements';
   const router = useRouter();
@@ -97,8 +92,8 @@ export default function AgreementsTable({ agreements, documents }: Props) {
   }, [documents, query]);
 
   const tabs = [
-    { id: 'agreements', label: 'Agreements', count: agreements.length },
-    { id: 'documents',  label: 'Documents',  count: documents.length  },
+    { id: 'agreements', label: t('dashboard.agreements.tabs.agreements'), count: agreements.length },
+    { id: 'documents',  label: t('dashboard.agreements.tabs.documents'),  count: documents.length  },
   ];
 
   return (
@@ -147,13 +142,13 @@ export default function AgreementsTable({ agreements, documents }: Props) {
           {/* Toolbar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px 20px', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap' }}>
-              {AGR_FILTERS.map((f) => {
-                const active = statusFilter === f.key;
-                const count  = f.key === 'all' ? agreements.length : agreements.filter((a) => a.status === f.key).length;
+              {AGR_FILTER_KEYS.map((key) => {
+                const active = statusFilter === key;
+                const count  = key === 'all' ? agreements.length : agreements.filter((a) => a.status === key).length;
                 return (
                   <button
-                    key={f.key}
-                    onClick={() => setStatusFilter(f.key)}
+                    key={key}
+                    onClick={() => setStatusFilter(key)}
                     className="agr-filter-btn"
                     style={{
                       padding: '6px 12px', borderRadius: '6px', border: 'none',
@@ -164,7 +159,7 @@ export default function AgreementsTable({ agreements, documents }: Props) {
                       display: 'flex', alignItems: 'center', gap: '5px',
                     }}
                   >
-                    {f.label}
+                    {t(`dashboard.agreements.filters.${key}`)}
                     <span style={{
                       background: active ? '#e2e8f0' : '#f8fafc',
                       color: active ? '#475569' : '#cbd5e1',
@@ -197,7 +192,7 @@ export default function AgreementsTable({ agreements, documents }: Props) {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search agreements…"
+                placeholder={t('dashboard.agreements.searchPlaceholder')}
                 style={{
                   flex: 1, background: 'transparent', border: 'none', outline: 'none',
                   color: '#0f172a', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -218,17 +213,26 @@ export default function AgreementsTable({ agreements, documents }: Props) {
                 </svg>
               </div>
               <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>
-                {agreements.length === 0 ? 'No agreements yet' : 'No results found'}
+                {agreements.length === 0 ? t('dashboard.agreements.emptyTitleNone') : t('dashboard.agreements.emptyTitleFiltered')}
               </p>
               <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: 0 }}>
-                {agreements.length === 0 ? 'Agreements will appear here once created.' : 'Try adjusting your search or filter.'}
+                {agreements.length === 0 ? t('dashboard.agreements.emptyBodyNone') : t('dashboard.agreements.emptyBodyFiltered')}
               </p>
             </div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  {['ID', 'Customer', 'Site', 'Unit', 'Billing', 'Effective from', 'Status', ''].map((h, i) => (
+                  {[
+                    t('dashboard.agreements.columns.id'),
+                    t('dashboard.agreements.columns.customer'),
+                    t('dashboard.agreements.columns.site'),
+                    t('dashboard.agreements.columns.unit'),
+                    t('dashboard.agreements.columns.billing'),
+                    t('dashboard.agreements.columns.effectiveFrom'),
+                    t('dashboard.agreements.columns.status'),
+                    '',
+                  ].map((h, i) => (
                     <th key={i} style={thStyle}>{h}</th>
                   ))}
                 </tr>
@@ -273,7 +277,7 @@ export default function AgreementsTable({ agreements, documents }: Props) {
                           fontFamily: "'Plus Jakarta Sans', sans-serif",
                         }}>
                           <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: stat.dot, flexShrink: 0 }} />
-                          {stat.label}
+                          {t(`dashboard.agreements.status.${a.status}`)}
                         </span>
                       </td>
                       <td style={{ padding: '12px 16px', textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
@@ -314,7 +318,7 @@ export default function AgreementsTable({ agreements, documents }: Props) {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search documents…"
+                placeholder={t('dashboard.agreements.searchDocumentsPlaceholder')}
                 style={{
                   flex: 1, background: 'transparent', border: 'none', outline: 'none',
                   color: '#0f172a', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -335,17 +339,22 @@ export default function AgreementsTable({ agreements, documents }: Props) {
                 </svg>
               </div>
               <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>
-                {documents.length === 0 ? 'No documents stored yet' : 'No results found'}
+                {documents.length === 0 ? t('dashboard.agreements.emptyDocumentsTitleNone') : t('dashboard.agreements.emptyDocumentsTitleFiltered')}
               </p>
               <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '13px', color: '#94a3b8', margin: 0 }}>
-                {documents.length === 0 ? 'Documents will appear here once created.' : 'Try adjusting your search.'}
+                {documents.length === 0 ? t('dashboard.agreements.emptyDocumentsBodyNone') : t('dashboard.agreements.emptyDocumentsBodyFiltered')}
               </p>
             </div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  {['Kind', 'Subject', 'Locale', 'Date'].map((h) => (
+                  {[
+                    t('dashboard.agreements.columns.kind'),
+                    t('dashboard.agreements.columns.subject'),
+                    t('dashboard.agreements.columns.locale'),
+                    t('dashboard.agreements.columns.date'),
+                  ].map((h) => (
                     <th key={h} style={thStyle}>{h}</th>
                   ))}
                 </tr>
