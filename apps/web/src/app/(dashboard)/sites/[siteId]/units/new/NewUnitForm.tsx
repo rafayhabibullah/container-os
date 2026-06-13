@@ -3,6 +3,7 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useT } from '@/lib/i18n';
 
 interface UnitType { id: string; name: string; sizeSqm: number; }
 
@@ -30,6 +31,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 export default function NewUnitForm({ siteId, unitTypes }: { siteId: string; unitTypes: UnitType[] }) {
+  const t = useT();
   const router = useRouter();
   const [error, setError]   = useState('');
   const [loading, setLoading] = useState(false);
@@ -51,11 +53,11 @@ export default function NewUnitForm({ siteId, unitTypes }: { siteId: string; uni
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? 'Failed to create unit');
+      if (!res.ok) throw new Error(data.message ?? t('dashboard.sites.newUnitForm.errorCreate'));
       router.push(`/sites/${siteId}/units`);
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed');
+      setError(err instanceof Error ? err.message : t('dashboard.sites.newUnitForm.errorGeneric'));
     } finally {
       setLoading(false);
     }
@@ -64,28 +66,28 @@ export default function NewUnitForm({ siteId, unitTypes }: { siteId: string; uni
   return (
     <form onSubmit={handleSubmit} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div>
-        <label style={labelStyle}>UNIT CODE</label>
-        <input name="unitCode" type="text" required placeholder="A-101" style={inputStyle} />
+        <label style={labelStyle}>{t('dashboard.sites.newUnitForm.labelUnitCode')}</label>
+        <input name="unitCode" type="text" required placeholder={t('dashboard.sites.newUnitForm.placeholderUnitCode')} style={inputStyle} />
       </div>
       <div>
-        <label style={labelStyle}>UNIT TYPE</label>
+        <label style={labelStyle}>{t('dashboard.sites.newUnitForm.labelUnitType')}</label>
         <select name="unitTypeId" required style={inputStyle}>
-          <option value="">Select a unit type…</option>
+          <option value="">{t('dashboard.sites.newUnitForm.selectPlaceholder')}</option>
           {unitTypes.map((ut) => (
             <option key={ut.id} value={ut.id}>{ut.name} ({ut.sizeSqm}m²)</option>
           ))}
         </select>
       </div>
       <div>
-        <label style={labelStyle}>KIND</label>
+        <label style={labelStyle}>{t('dashboard.sites.newUnitForm.labelKind')}</label>
         <select name="kind" style={inputStyle}>
-          <option value="self_storage">Self Storage</option>
-          <option value="container">Container</option>
+          <option value="self_storage">{t('dashboard.sites.newUnitForm.kindSelfStorage')}</option>
+          <option value="container">{t('dashboard.sites.newUnitForm.kindContainer')}</option>
         </select>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <input name="driveUp" type="checkbox" id="driveUp" style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
-        <label htmlFor="driveUp" style={{ fontSize: '14px', color: '#475569', fontFamily: "'Plus Jakarta Sans', sans-serif", cursor: 'pointer' }}>Drive-up access</label>
+        <label htmlFor="driveUp" style={{ fontSize: '14px', color: '#475569', fontFamily: "'Plus Jakarta Sans', sans-serif", cursor: 'pointer' }}>{t('dashboard.sites.newUnitForm.driveUpAccess')}</label>
       </div>
 
       {error && (
@@ -100,10 +102,10 @@ export default function NewUnitForm({ siteId, unitTypes }: { siteId: string; uni
           disabled={loading}
           style={{ background: loading ? '#e2e8f0' : '#0f172a', color: loading ? '#94a3b8' : '#ffffff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontWeight: 700, fontSize: '13px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
-          {loading ? 'Creating…' : 'Create unit'}
+          {loading ? t('dashboard.sites.newUnitForm.creating') : t('dashboard.sites.newUnitForm.createUnit')}
         </button>
         <Link href={`/sites/${siteId}/units`} style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', padding: '10px 16px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-          Cancel
+          {t('dashboard.sites.newUnitForm.cancel')}
         </Link>
       </div>
     </form>

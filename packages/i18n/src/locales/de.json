@@ -615,7 +615,18 @@
         "errorCancelScheduled": "Geplante Änderung konnte nicht abgebrochen werden",
         "errorFetchSource": "Daten der Quelle konnten nicht geladen werden",
         "errorNoPublishedSource": "Der Quellstandort hat keine veröffentlichte Preisliste",
-        "errorNoMatch": "Keine Übereinstimmung für: {{names}} — Preise manuell festlegen"
+        "errorNoMatch": "Keine Übereinstimmung für: {{names}} — Preise manuell festlegen",
+        "newPriceBook": "+ Neue Preisliste",
+        "bookNamePlaceholder": "Name der Preisliste",
+        "create": "Erstellen",
+        "publish": "Veröffentlichen",
+        "archive": "Archivieren",
+        "remove": "Entfernen",
+        "addRateRule": "+ Preisregel hinzufügen",
+        "addRule": "Regel hinzufügen",
+        "unitTypeSelectPlaceholder": "Einheitentyp…",
+        "pricePlaceholder": "Preis (€)",
+        "errorGeneric": "Fehlgeschlagen"
       },
       "unitDetail": {
         "backToUnits": "← Einheiten",

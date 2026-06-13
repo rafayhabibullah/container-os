@@ -615,7 +615,18 @@
         "errorCancelScheduled": "Failed to cancel scheduled change",
         "errorFetchSource": "Failed to fetch source data",
         "errorNoPublishedSource": "Source site has no published price book",
-        "errorNoMatch": "No match for: {{names}} — set prices manually"
+        "errorNoMatch": "No match for: {{names}} — set prices manually",
+        "newPriceBook": "+ New price book",
+        "bookNamePlaceholder": "Book name",
+        "create": "Create",
+        "publish": "Publish",
+        "archive": "Archive",
+        "remove": "Remove",
+        "addRateRule": "+ Add rate rule",
+        "addRule": "Add rule",
+        "unitTypeSelectPlaceholder": "Unit type…",
+        "pricePlaceholder": "Price (€)",
+        "errorGeneric": "Failed"
       },
       "unitDetail": {
         "backToUnits": "← Units",

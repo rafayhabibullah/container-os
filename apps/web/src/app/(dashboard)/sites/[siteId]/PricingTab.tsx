@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useT } from '@/lib/i18n';
 import type { UnitType } from './UnitTypesTab';
 
 interface RateRule { id: string; unitTypeId: string; amountMinor: number; billingCycle: string; }
@@ -52,6 +53,7 @@ function buildInitialRates(unitTypes: UnitType[], publishedBook: PriceBook | und
 }
 
 export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, canEdit }: Props) {
+  const t = useT();
   const router = useRouter();
   const publishedBook = priceBooks.find(pb => pb.status === 'published');
   const scheduledBook = priceBooks.find(pb => pb.status === 'draft' && new Date(pb.effectiveFrom) > new Date());
@@ -81,7 +83,7 @@ export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, 
       body: JSON.stringify({ name, effectiveFrom }),
     });
     const bookJson = await bookRes.json();
-    if (!bookRes.ok) throw new Error(bookJson.message ?? 'Failed to create price book');
+    if (!bookRes.ok) throw new Error(bookJson.message ?? t('dashboard.sites.pricing.errorCreateBook'));
     const bookId: string = bookJson.id;
 
     // 2. Add rate rules
@@ -104,7 +106,7 @@ export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, 
     // 3. Publish immediately if requested
     if (publish) {
       const pubRes = await fetch(`/api/sites/${siteId}/price-books/${bookId}/publish`, { method: 'POST' });
-      if (!pubRes.ok) { const j = await pubRes.json(); throw new Error(j.message ?? 'Failed to publish'); }
+      if (!pubRes.ok) { const j = await pubRes.json(); throw new Error(j.message ?? t('dashboard.sites.pricing.errorPublish')); }
     }
   }
 
@@ -116,19 +118,19 @@ export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, 
       setEditing(false);
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : 'Failed');
+      setSaveError(err instanceof Error ? err.message : t('dashboard.sites.pricing.errorFailed'));
     } finally { setSaving(false); }
   }
 
   async function handleSchedule() {
-    if (!schedDate) { setSaveError('Please pick an effective date'); return; }
+    if (!schedDate) { setSaveError(t('dashboard.sites.pricing.errorPickDate')); return; }
     setSaving(true); setSaveError('');
     try {
       await createBookWithRules(`Scheduled update ${schedDate}`, schedDate, schedRates, false);
       setScheduling(false);
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : 'Failed');
+      setSaveError(err instanceof Error ? err.message : t('dashboard.sites.pricing.errorFailed'));
     } finally { setSaving(false); }
   }
 
@@ -137,10 +139,10 @@ export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, 
     setCancelLoading(true);
     try {
       const res = await fetch(`/api/sites/${siteId}/price-books/${scheduledBook.id}/archive`, { method: 'POST' });
-      if (!res.ok) { const j = await res.json(); setSaveError(j.message ?? 'Failed to cancel scheduled change'); return; }
+      if (!res.ok) { const j = await res.json(); setSaveError(j.message ?? t('dashboard.sites.pricing.errorCancelScheduled')); return; }
       router.refresh();
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : 'Failed');
+      setSaveError(err instanceof Error ? err.message : t('dashboard.sites.pricing.errorFailed'));
     } finally { setCancelLoading(false); }
   }
 
@@ -151,12 +153,12 @@ export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, 
         fetch(`/api/sites/${sourceSiteId}/price-books`),
         fetch(`/api/sites/${sourceSiteId}/unit-types`),
       ]);
-      if (!pbRes.ok || !utRes.ok) throw new Error('Failed to fetch source data');
+      if (!pbRes.ok || !utRes.ok) throw new Error(t('dashboard.sites.pricing.errorFetchSource'));
       const sourceBooks: PriceBook[] = await pbRes.json();
       const sourceTypes: UnitType[]  = await utRes.json();
 
       const sourcePublished = sourceBooks.find(pb => pb.status === 'published');
-      if (!sourcePublished) throw new Error('Source site has no published price book');
+      if (!sourcePublished) throw new Error(t('dashboard.sites.pricing.errorNoPublishedSource'));
 
       const sourceTypeById = new Map(sourceTypes.map(t => [t.id, t.name]));
       const currentTypeByName = new Map(unitTypes.map(t => [t.name.toLowerCase(), t.id]));
@@ -182,10 +184,10 @@ export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, 
       setEditing(true);
       setCopyOpen(false);
       if (unmatched.length > 0) {
-        setCopyError(`No match for: ${unmatched.join(', ')} — set prices manually`);
+        setCopyError(t('dashboard.sites.pricing.errorNoMatch', { names: unmatched.join(', ') }));
       }
     } catch (err: unknown) {
-      setCopyError(err instanceof Error ? err.message : 'Failed');
+      setCopyError(err instanceof Error ? err.message : t('dashboard.sites.pricing.errorFailed'));
     } finally { setCopyLoading(false); }
   }
 
@@ -197,11 +199,11 @@ export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, 
       {scheduledBook && !scheduling && (
         <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '8px', padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '13px', color: '#92400e', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Rate change scheduled for {new Date(scheduledBook.effectiveFrom).toLocaleDateString('de-DE')}
+            {t('dashboard.sites.pricing.scheduledNotice', { date: new Date(scheduledBook.effectiveFrom).toLocaleDateString('de-DE') })}
           </span>
           <button onClick={handleCancelScheduled} disabled={cancelLoading}
             style={{ background: 'none', border: 'none', fontSize: '12px', fontWeight: 600, color: '#92400e', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            {cancelLoading ? '…' : 'Cancel'}
+            {cancelLoading ? t('dashboard.sites.pricing.cancelling') : t('dashboard.sites.pricing.cancel')}
           </button>
         </div>
       )}
@@ -209,13 +211,13 @@ export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: '13px', color: '#94a3b8', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-          {publishedBook ? `Active since ${new Date(publishedBook.effectiveFrom).toLocaleDateString('de-DE')}` : 'No published rates yet'}
+          {publishedBook ? t('dashboard.sites.pricing.activeSince', { date: new Date(publishedBook.effectiveFrom).toLocaleDateString('de-DE') }) : t('dashboard.sites.pricing.noPublishedRates')}
         </span>
         {canEdit && !editing && !scheduling && (
           <div style={{ display: 'flex', gap: '8px', position: 'relative' }}>
             {otherSites.length > 0 && (
               <div style={{ position: 'relative' }}>
-                <button onClick={() => setCopyOpen(o => !o)} style={btnSecondary}>Copy from…</button>
+                <button onClick={() => setCopyOpen(o => !o)} style={btnSecondary}>{t('dashboard.sites.pricing.copyFrom')}</button>
                 {copyOpen && (
                   <div style={{ position: 'absolute', right: 0, top: '100%', marginTop: '4px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', boxShadow: '0 4px 16px rgba(15,23,42,0.10)', zIndex: 10, minWidth: '180px', overflow: 'hidden' }}>
                     {otherSites.map(s => (
@@ -230,7 +232,7 @@ export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, 
               </div>
             )}
             <button onClick={() => { setEditing(true); setRates(buildInitialRates(unitTypes, publishedBook)); setSaveError(''); }} style={btnPrimary}>
-              Edit prices
+              {t('dashboard.sites.pricing.editPrices')}
             </button>
           </div>
         )}
@@ -244,15 +246,15 @@ export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, 
       {/* Rate table */}
       {unitTypes.length === 0 ? (
         <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '48px 24px', textAlign: 'center' }}>
-          <p style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>No unit types defined</p>
-          <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Add unit types first to set prices.</p>
+          <p style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{t('dashboard.sites.pricing.emptyTitle')}</p>
+          <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{t('dashboard.sites.pricing.emptyBody')}</p>
         </div>
       ) : (
         <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                {['Unit type', 'Monthly rate (€)', 'Billing cycle'].map((h, i) => (
+                {[t('dashboard.sites.pricing.columnUnitType'), t('dashboard.sites.pricing.columnMonthlyRate'), t('dashboard.sites.pricing.columnBillingCycle')].map((h, i) => (
                   <th key={i} style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{h}</th>
                 ))}
               </tr>
@@ -286,12 +288,12 @@ export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, 
                           onChange={e => setRates(prev => ({ ...prev, [ut.id]: { ...prev[ut.id], billingCycle: e.target.value } }))}
                           style={{ ...inp, width: '140px' }}
                         >
-                          <option value="monthly">Monthly</option>
-                          <option value="fixed_term">Fixed term</option>
+                          <option value="monthly">{t('dashboard.sites.pricing.billingMonthly')}</option>
+                          <option value="fixed_term">{t('dashboard.sites.pricing.billingFixedTerm')}</option>
                         </select>
                       ) : (
                         <span style={{ fontSize: '13px', color: '#64748b', fontFamily: "'Plus Jakarta Sans', sans-serif", textTransform: 'capitalize' }}>
-                          {rate?.billingCycle?.replace('_', ' ') ?? '—'}
+                          {rate?.billingCycle === 'monthly' ? t('dashboard.sites.pricing.billingMonthly') : rate?.billingCycle === 'fixed_term' ? t('dashboard.sites.pricing.billingFixedTerm') : '—'}
                         </span>
                       )}
                     </td>
@@ -304,9 +306,9 @@ export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, 
           {editing && (
             <div style={{ padding: '12px 16px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '8px', alignItems: 'center' }}>
               <button onClick={handleSaveNow} disabled={saving} style={{ ...btnPrimary, opacity: saving ? 0.6 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}>
-                {saving ? 'Saving…' : 'Save & publish now'}
+                {saving ? t('dashboard.sites.pricing.saving') : t('dashboard.sites.pricing.savePublishNow')}
               </button>
-              <button onClick={() => setEditing(false)} style={btnGhost}>Cancel</button>
+              <button onClick={() => setEditing(false)} style={btnGhost}>{t('dashboard.sites.pricing.cancel')}</button>
               {saveError && <span style={{ fontSize: '12px', color: '#dc2626', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{saveError}</span>}
             </div>
           )}
@@ -319,7 +321,7 @@ export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, 
           {scheduling ? (
             <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
               <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Effective date</span>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{t('dashboard.sites.pricing.effectiveDate')}</span>
                 <input type="date" value={schedDate} min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
                   onChange={e => setSchedDate(e.target.value)} style={{ ...inp, width: '160px' }} />
               </div>
@@ -339,8 +341,8 @@ export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, 
                           <select value={r?.billingCycle ?? 'monthly'}
                             onChange={e => setSchedRates(prev => ({ ...prev, [ut.id]: { ...prev[ut.id], billingCycle: e.target.value } }))}
                             style={{ ...inp, width: '140px' }}>
-                            <option value="monthly">Monthly</option>
-                            <option value="fixed_term">Fixed term</option>
+                            <option value="monthly">{t('dashboard.sites.pricing.billingMonthly')}</option>
+                            <option value="fixed_term">{t('dashboard.sites.pricing.billingFixedTerm')}</option>
                           </select>
                         </td>
                       </tr>
@@ -350,16 +352,16 @@ export default function PricingTab({ siteId, unitTypes, priceBooks, otherSites, 
               </table>
               <div style={{ padding: '12px 16px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <button onClick={handleSchedule} disabled={saving || !schedDate} style={{ ...btnPrimary, opacity: (saving || !schedDate) ? 0.6 : 1, cursor: (saving || !schedDate) ? 'not-allowed' : 'pointer' }}>
-                  {saving ? 'Scheduling…' : 'Schedule rate change'}
+                  {saving ? t('dashboard.sites.pricing.scheduling') : t('dashboard.sites.pricing.scheduleRateChange')}
                 </button>
-                <button onClick={() => setScheduling(false)} style={btnGhost}>Cancel</button>
+                <button onClick={() => setScheduling(false)} style={btnGhost}>{t('dashboard.sites.pricing.cancel')}</button>
                 {saveError && <span style={{ fontSize: '12px', color: '#dc2626', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{saveError}</span>}
               </div>
             </div>
           ) : (
             <button onClick={() => { setScheduling(true); setSchedRates(buildInitialRates(unitTypes, publishedBook)); setSaveError(''); }}
               style={{ background: 'none', border: 'none', fontSize: '13px', fontWeight: 600, color: '#64748b', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", padding: 0 }}>
-              Schedule a rate change →
+              {t('dashboard.sites.pricing.scheduleRateChangeLink')}
             </button>
           )}
         </div>
