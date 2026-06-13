@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useT } from '@/lib/i18n';
 
 interface DelinquencyPolicy {
   id?: string;
@@ -37,6 +38,7 @@ const labelStyle: React.CSSProperties = {
 export default function DelinquencyPolicyPage() {
   const params = useParams<{ siteId: string }>();
   const siteId = params.siteId;
+  const t = useT();
 
   const [, setPolicy]          = useState<DelinquencyPolicy | null>(null);
   const [overdueDays, setOverdueDays]         = useState(14);
@@ -71,14 +73,14 @@ export default function DelinquencyPolicyPage() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setError(body.message ?? `Save failed: ${res.status}`);
+        setError(body.message ?? t('dashboard.sites.delinquency.saveFailed', { status: String(res.status) }));
         return;
       }
       const updated: DelinquencyPolicy = await res.json();
       setPolicy(updated);
       setSaved(true);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : t('dashboard.sites.delinquency.unknownError'));
     } finally {
       setSaving(false);
     }
@@ -94,19 +96,19 @@ export default function DelinquencyPolicyPage() {
         <div style={{ maxWidth: '640px', margin: '0 auto' }}>
 
           <Link href={`/sites/${siteId}`} style={{ display: 'inline-block', fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', marginBottom: '20px' }}>
-            ← Site settings
+            {t('dashboard.sites.delinquency.backToSiteSettings')}
           </Link>
 
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px', letterSpacing: '-0.02em', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Delinquency policy
+            {t('dashboard.sites.delinquency.title')}
           </h1>
           <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 28px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-            Configure when invoices are marked overdue and whether lockout is enforced.
+            {t('dashboard.sites.delinquency.subtitle')}
           </p>
 
           <form onSubmit={handleSubmit} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <label style={labelStyle}>OVERDUE THRESHOLD (DAYS AFTER DUE DATE)</label>
+              <label style={labelStyle}>{t('dashboard.sites.delinquency.overdueThreshold')}</label>
               <input
                 type="number"
                 min={1}
@@ -127,7 +129,7 @@ export default function DelinquencyPolicyPage() {
                 style={{ width: '16px', height: '16px', cursor: 'pointer' }}
               />
               <label htmlFor="lockout" style={{ fontSize: '14px', color: '#475569', fontFamily: "'Plus Jakarta Sans', sans-serif", cursor: 'pointer' }}>
-                Enable access lockout for overdue tenants
+                {t('dashboard.sites.delinquency.enableLockout')}
               </label>
             </div>
 
@@ -137,14 +139,14 @@ export default function DelinquencyPolicyPage() {
                 disabled={saving}
                 style={{ background: saving ? '#e2e8f0' : '#0f172a', color: saving ? '#94a3b8' : '#ffffff', border: 'none', borderRadius: '8px', padding: '10px 20px', fontWeight: 700, fontSize: '13px', cursor: saving ? 'not-allowed' : 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", width: '100%' }}
               >
-                {saving ? 'Saving…' : 'Save policy'}
+                {saving ? t('dashboard.sites.delinquency.saving') : t('dashboard.sites.delinquency.savePolicy')}
               </button>
             </div>
           </form>
 
           {saved && (
             <div style={{ marginTop: '16px', background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#15803d', borderRadius: '10px', padding: '12px 16px', fontSize: '13px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              Policy saved successfully.
+              {t('dashboard.sites.delinquency.saved')}
             </div>
           )}
           {error && (

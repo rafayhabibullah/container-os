@@ -662,6 +662,18 @@
         "cancel": "Abbrechen",
         "errorCreate": "Einheit konnte nicht erstellt werden",
         "errorGeneric": "Fehlgeschlagen"
+      },
+      "delinquency": {
+        "backToSiteSettings": "← Standorteinstellungen",
+        "title": "Mahnwesen-Richtlinie",
+        "subtitle": "Konfiguriere, wann Rechnungen als überfällig markiert werden und ob eine Zugangssperre erfolgt.",
+        "overdueThreshold": "ÜBERFÄLLIGKEITSSCHWELLE (TAGE NACH FÄLLIGKEITSDATUM)",
+        "enableLockout": "Zugangssperre für überfällige Mieter aktivieren",
+        "savePolicy": "Richtlinie speichern",
+        "saving": "Wird gespeichert…",
+        "saveFailed": "Speichern fehlgeschlagen: {{status}}",
+        "saved": "Richtlinie erfolgreich gespeichert.",
+        "unknownError": "Unbekannter Fehler"
       }
     },
     "overview": {
@@ -1487,6 +1499,142 @@
         "growth": "Growth",
         "pro": "Pro",
         "professional": "Professional"
+      }
+    },
+    "settings": {
+      "title": "Organisationseinstellungen",
+      "plan": "Plan",
+      "status": "Status",
+      "webhooks": {
+        "backToSettings": "← Einstellungen",
+        "title": "Webhooks",
+        "addEndpoint": "Endpunkt hinzufügen",
+        "empty": "Keine Webhook-Endpunkte konfiguriert.",
+        "table": {
+          "url": "URL",
+          "events": "Ereignisse"
+        },
+        "form": {
+          "endpointUrl": "Endpunkt-URL",
+          "events": "Ereignisse (kommagetrennt)",
+          "secret": "Secret",
+          "add": "Hinzufügen",
+          "adding": "Wird hinzugefügt…",
+          "delete": "Löschen",
+          "deleting": "…",
+          "confirmDelete": "Diesen Webhook löschen?",
+          "failed": "Fehlgeschlagen"
+        }
+      },
+      "apiKeys": {
+        "backToSettings": "← Einstellungen",
+        "title": "API-Schlüssel",
+        "createClient": "API-Client erstellen",
+        "scopes": "Berechtigungen: {{scopes}}",
+        "scopesNone": "keine",
+        "expires": "Läuft ab {{date}}",
+        "lastUsed": "Zuletzt verwendet: {{date}}",
+        "never": "nie",
+        "noActiveKeys": "Keine aktiven Schlüssel.",
+        "noClients": "Noch keine API-Clients.",
+        "form": {
+          "clientName": "Client-Name",
+          "create": "Schlüssel erstellen",
+          "creating": "Wird erstellt…",
+          "revoke": "Widerrufen",
+          "revoking": "…",
+          "confirmRevoke": "Diesen Schlüssel widerrufen? Dies kann nicht rückgängig gemacht werden.",
+          "failed": "Fehlgeschlagen",
+          "copyKey": "Kopiere deinen API-Schlüssel — er wird nicht erneut angezeigt:",
+          "iCopied": "Ich habe den Schlüssel kopiert"
+        }
+      },
+      "form": {
+        "legalName": "Rechtlicher Name",
+        "legalNameHint": "Kontaktiere den Support, um deinen rechtlichen Namen zu ändern.",
+        "tradingName": "Handelsname",
+        "billingEmail": "Rechnungs-E-Mail",
+        "supportEmail": "Support-E-Mail",
+        "phone": "Telefon",
+        "website": "Webseite",
+        "vatId": "USt-IdNr.",
+        "taxNumber": "Steuernummer",
+        "save": "Einstellungen speichern",
+        "saving": "Wird gespeichert…",
+        "saved": "Einstellungen gespeichert.",
+        "saveFailed": "Speichern fehlgeschlagen",
+        "saveFailedGeneric": "Speichern fehlgeschlagen"
+      }
+    },
+    "reports": {
+      "title": "Berichte",
+      "subtitle": "Überblick über die Leistung deiner Organisation",
+      "avgOccupancy": "Ø Auslastung",
+      "revenueThisMonth": "Umsatz (dieser Monat)",
+      "occupancyBySite": "Auslastung nach Standort",
+      "table": {
+        "site": "Standort",
+        "occupancy": "Auslastung",
+        "units": "Einheiten"
+      },
+      "empty": {
+        "title": "Noch keine Daten",
+        "hint": "Auslastungsdaten werden hier angezeigt, sobald Standorte aktiv sind."
+      }
+    },
+    "audit": {
+      "title": "Audit-Log",
+      "events": "{{count}} Ereignis",
+      "events_plural": "{{count}} Ereignisse",
+      "table": {
+        "action": "Aktion",
+        "subject": "Subjekt",
+        "actor": "Akteur",
+        "time": "Zeit",
+        "system": "System"
+      },
+      "empty": "Noch keine Audit-Ereignisse.",
+      "prev": "← Zurück",
+      "next": "Weiter →"
+    },
+    "team": {
+      "title": "Team",
+      "members": "{{count}} Mitglied",
+      "members_plural": "{{count}} Mitglieder",
+      "membersTable": {
+        "title": "Mitglieder",
+        "name": "Name",
+        "email": "E-Mail",
+        "role": "Rolle",
+        "remove": "Entfernen",
+        "confirmRemove": "Dieses Mitglied aus der Organisation entfernen?",
+        "removeFailed": "Mitglied konnte nicht entfernt werden",
+        "failed": "Fehlgeschlagen"
+      },
+      "invite": {
+        "title": "Teammitglied einladen",
+        "email": "E-Mail",
+        "role": "Rolle",
+        "roleOwner": "Inhaber",
+        "roleOperator": "Operator",
+        "send": "Einladung senden",
+        "sending": "Wird gesendet…",
+        "failed": "Einladung konnte nicht gesendet werden"
+      },
+      "pendingInvitations": {
+        "title": "Ausstehende Einladungen",
+        "email": "E-Mail",
+        "role": "Rolle",
+        "expires": "Läuft ab",
+        "revoke": "Widerrufen",
+        "confirmRevoke": "Diese Einladung widerrufen?",
+        "revokeFailed": "Einladung konnte nicht widerrufen werden",
+        "failed": "Fehlgeschlagen"
+      },
+      "roles": {
+        "owner": "Inhaber",
+        "operator": "Operator",
+        "tenant": "Mieter"
       }
     }
   }

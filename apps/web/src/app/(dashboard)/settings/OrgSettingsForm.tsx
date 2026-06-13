@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useT } from '@/lib/i18n';
 
 interface Organisation {
   id: string;
@@ -46,6 +47,7 @@ const labelStyle: React.CSSProperties = {
 
 export default function OrgSettingsForm({ org }: { org: Organisation }) {
   const router = useRouter();
+  const t = useT();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -69,11 +71,11 @@ export default function OrgSettingsForm({ org }: { org: Organisation }) {
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? 'Failed to save settings');
+      if (!res.ok) throw new Error(data.message ?? t('dashboard.settings.form.saveFailed'));
       setSuccess(true);
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to save');
+      setError(err instanceof Error ? err.message : t('dashboard.settings.form.saveFailedGeneric'));
     } finally {
       setLoading(false);
     }
@@ -94,45 +96,45 @@ export default function OrgSettingsForm({ org }: { org: Organisation }) {
       }}
     >
       <div>
-        <label style={labelStyle}>Legal name</label>
+        <label style={labelStyle}>{t('dashboard.settings.form.legalName')}</label>
         <input value={org.legalName} disabled style={disabledInputStyle} readOnly />
         <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px', marginBottom: 0 }}>
-          Contact support to change your legal name.
+          {t('dashboard.settings.form.legalNameHint')}
         </p>
       </div>
 
       <div>
-        <label style={labelStyle}>Trading name</label>
+        <label style={labelStyle}>{t('dashboard.settings.form.tradingName')}</label>
         <input name="tradingName" type="text" defaultValue={org.tradingName ?? ''} style={inputStyle} />
       </div>
 
       <div>
-        <label style={labelStyle}>Billing email</label>
+        <label style={labelStyle}>{t('dashboard.settings.form.billingEmail')}</label>
         <input name="billingEmail" type="email" defaultValue={org.billingEmail} style={inputStyle} />
       </div>
 
       <div>
-        <label style={labelStyle}>Support email</label>
+        <label style={labelStyle}>{t('dashboard.settings.form.supportEmail')}</label>
         <input name="supportEmail" type="email" defaultValue={org.supportEmail ?? ''} style={inputStyle} />
       </div>
 
       <div>
-        <label style={labelStyle}>Phone</label>
+        <label style={labelStyle}>{t('dashboard.settings.form.phone')}</label>
         <input name="phone" type="text" defaultValue={org.phone ?? ''} style={inputStyle} />
       </div>
 
       <div>
-        <label style={labelStyle}>Website</label>
+        <label style={labelStyle}>{t('dashboard.settings.form.website')}</label>
         <input name="website" type="text" defaultValue={org.website ?? ''} style={inputStyle} />
       </div>
 
       <div>
-        <label style={labelStyle}>VAT ID</label>
+        <label style={labelStyle}>{t('dashboard.settings.form.vatId')}</label>
         <input name="vatId" type="text" defaultValue={org.vatId ?? ''} style={inputStyle} />
       </div>
 
       <div>
-        <label style={labelStyle}>Tax number</label>
+        <label style={labelStyle}>{t('dashboard.settings.form.taxNumber')}</label>
         <input name="taxNumber" type="text" defaultValue={org.taxNumber ?? ''} style={inputStyle} />
       </div>
 
@@ -143,7 +145,7 @@ export default function OrgSettingsForm({ org }: { org: Organisation }) {
       )}
       {success && (
         <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#15803d', borderRadius: '6px', padding: '9px 12px', fontSize: '13px' }}>
-          Settings saved.
+          {t('dashboard.settings.form.saved')}
         </div>
       )}
 
@@ -164,7 +166,7 @@ export default function OrgSettingsForm({ org }: { org: Organisation }) {
             opacity: loading ? 0.6 : 1,
           }}
         >
-          {loading ? 'Saving…' : 'Save settings'}
+          {loading ? t('dashboard.settings.form.saving') : t('dashboard.settings.form.save')}
         </button>
       </div>
     </form>

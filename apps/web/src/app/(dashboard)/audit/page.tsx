@@ -1,6 +1,7 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
 import Link from 'next/link';
+import { getT } from '@/lib/get-locale';
 
 interface AuditEvent {
   id: string; action: string; subjectType: string; subjectId: string;
@@ -13,6 +14,7 @@ export default async function AuditPage({ searchParams }: { searchParams: { page
   const events = await serverFetch<AuditEvent[]>(
     `/v1/organisations/${user.organisationId}/audit?page=${page}`,
   ).catch(() => []);
+  const t = await getT();
 
   return (
     <>
@@ -23,9 +25,9 @@ export default async function AuditPage({ searchParams }: { searchParams: { page
 
           {/* Page header */}
           <div style={{ marginBottom: '28px' }}>
-            <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>Audit Log</h1>
+            <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>{t('dashboard.audit.title')}</h1>
             <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>
-              {events.length} event{events.length !== 1 ? 's' : ''}
+              {t(events.length === 1 ? 'dashboard.audit.events' : 'dashboard.audit.events_plural', { count: String(events.length) })}
             </p>
           </div>
 
@@ -34,10 +36,10 @@ export default async function AuditPage({ searchParams }: { searchParams: { page
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Action</th>
-                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Subject</th>
-                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Actor</th>
-                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Time</th>
+                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{t('dashboard.audit.table.action')}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{t('dashboard.audit.table.subject')}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{t('dashboard.audit.table.actor')}</th>
+                  <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', whiteSpace: 'nowrap', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{t('dashboard.audit.table.time')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -52,7 +54,7 @@ export default async function AuditPage({ searchParams }: { searchParams: { page
                       {e.subjectType}:{e.subjectId.slice(0, 8)}
                     </td>
                     <td style={{ padding: '12px 16px', fontSize: '12px', color: '#94a3b8', fontFamily: 'ui-monospace, monospace' }}>
-                      {e.actorId?.slice(0, 8) ?? 'system'}
+                      {e.actorId?.slice(0, 8) ?? t('dashboard.audit.table.system')}
                     </td>
                     <td style={{ padding: '12px 16px', fontSize: '12px', color: '#94a3b8' }}>
                       {new Date(e.createdAt).toLocaleString()}
@@ -62,7 +64,7 @@ export default async function AuditPage({ searchParams }: { searchParams: { page
                 {events.length === 0 && (
                   <tr>
                     <td colSpan={4} style={{ padding: '32px 16px', textAlign: 'center', fontSize: '14px', color: '#94a3b8' }}>
-                      No audit events yet.
+                      {t('dashboard.audit.empty')}
                     </td>
                   </tr>
                 )}
@@ -71,14 +73,14 @@ export default async function AuditPage({ searchParams }: { searchParams: { page
 
             {/* Pagination footer */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderTop: '1px solid #f1f5f9' }}>
-              <span style={{ fontSize: '12px', color: '#94a3b8' }}>{events.length} events</span>
+              <span style={{ fontSize: '12px', color: '#94a3b8' }}>{t('dashboard.audit.events_plural', { count: String(events.length) })}</span>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {parseInt(page) > 1 && (
                   <Link
                     href={`?page=${parseInt(page) - 1}`}
                     style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', padding: '6px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}
                   >
-                    ← Prev
+                    {t('dashboard.audit.prev')}
                   </Link>
                 )}
                 {events.length === 50 && (
@@ -86,7 +88,7 @@ export default async function AuditPage({ searchParams }: { searchParams: { page
                     href={`?page=${parseInt(page) + 1}`}
                     style={{ fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', padding: '6px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px' }}
                   >
-                    Next →
+                    {t('dashboard.audit.next')}
                   </Link>
                 )}
               </div>

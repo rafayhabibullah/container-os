@@ -1,6 +1,7 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
 import TeamActions from './TeamActions';
+import { getT } from '@/lib/get-locale';
 
 interface Member {
   id: string;
@@ -49,6 +50,8 @@ export default async function TeamPage() {
   const invitations = user.role === 'owner'
     ? await serverFetch<Invitation[]>(`/v1/organisations/${orgId}/invitations`).catch(() => [])
     : [];
+  const t = await getT();
+  const roleLabel = (role: string) => t(`dashboard.team.roles.${role}`) || role;
 
   return (
     <>
@@ -57,23 +60,23 @@ export default async function TeamPage() {
       <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
           <div style={{ marginBottom: '28px' }}>
-            <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>Team</h1>
+            <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>{t('dashboard.team.title')}</h1>
             <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>
-              {members.length} member{members.length !== 1 ? 's' : ''}
+              {t(members.length === 1 ? 'dashboard.team.members' : 'dashboard.team.members_plural', { count: String(members.length) })}
             </p>
           </div>
 
           {/* Members table */}
           <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', marginBottom: '20px' }}>
             <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9' }}>
-              <h2 style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Members</h2>
+              <h2 style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', margin: 0 }}>{t('dashboard.team.membersTable.title')}</h2>
             </div>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  <th style={thStyle}>Name</th>
-                  <th style={thStyle}>Email</th>
-                  <th style={thStyle}>Role</th>
+                  <th style={thStyle}>{t('dashboard.team.membersTable.name')}</th>
+                  <th style={thStyle}>{t('dashboard.team.membersTable.email')}</th>
+                  <th style={thStyle}>{t('dashboard.team.membersTable.role')}</th>
                   {user.role === 'owner' && <th style={{ ...thStyle, textAlign: 'right' }}></th>}
                 </tr>
               </thead>
@@ -84,13 +87,13 @@ export default async function TeamPage() {
                     <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{m.user.email}</td>
                     <td style={{ padding: '12px 16px' }}>
                       <span style={ROLE_PILL[m.role] ?? { ...pillBase, background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0' }}>
-                        {m.role}
+                        {roleLabel(m.role)}
                       </span>
                     </td>
                     {user.role === 'owner' && (
                       <td style={{ padding: '12px 16px', textAlign: 'right' }}>
                         {!(m.role === 'owner' && ownerCount === 1) && (
-                          <TeamActions type="remove-member" id={m.id} label="Remove" />
+                          <TeamActions type="remove-member" id={m.id} label={t('dashboard.team.membersTable.remove')} />
                         )}
                       </td>
                     )}
@@ -103,7 +106,7 @@ export default async function TeamPage() {
           {/* Invite form (owner only) */}
           {user.role === 'owner' && (
             <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '24px', marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>Invite a team member</h2>
+              <h2 style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>{t('dashboard.team.invite.title')}</h2>
               <TeamActions type="invite-form" id="" label="" />
             </div>
           )}
@@ -112,14 +115,14 @@ export default async function TeamPage() {
           {invitations.length > 0 && (
             <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
               <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9' }}>
-                <h2 style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Pending invitations</h2>
+                <h2 style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', margin: 0 }}>{t('dashboard.team.pendingInvitations.title')}</h2>
               </div>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
-                    <th style={thStyle}>Email</th>
-                    <th style={thStyle}>Role</th>
-                    <th style={thStyle}>Expires</th>
+                    <th style={thStyle}>{t('dashboard.team.pendingInvitations.email')}</th>
+                    <th style={thStyle}>{t('dashboard.team.pendingInvitations.role')}</th>
+                    <th style={thStyle}>{t('dashboard.team.pendingInvitations.expires')}</th>
                     <th style={{ ...thStyle, textAlign: 'right' }}></th>
                   </tr>
                 </thead>
@@ -129,14 +132,14 @@ export default async function TeamPage() {
                       <td style={{ padding: '12px 16px', fontSize: '13px', color: '#0f172a' }}>{inv.email}</td>
                       <td style={{ padding: '12px 16px' }}>
                         <span style={ROLE_PILL[inv.role] ?? { ...pillBase, background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0' }}>
-                          {inv.role}
+                          {roleLabel(inv.role)}
                         </span>
                       </td>
                       <td style={{ padding: '12px 16px', fontSize: '12px', color: '#64748b' }}>
                         {new Date(inv.expiresAt).toLocaleDateString('de-DE', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </td>
                       <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                        <TeamActions type="revoke-invitation" id={inv.id} label="Revoke" />
+                        <TeamActions type="revoke-invitation" id={inv.id} label={t('dashboard.team.pendingInvitations.revoke')} />
                       </td>
                     </tr>
                   ))}

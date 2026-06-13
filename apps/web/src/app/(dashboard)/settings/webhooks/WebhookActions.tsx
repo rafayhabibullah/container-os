@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useT } from '@/lib/i18n';
 
 interface Props { type: 'create' | 'delete'; webhookId?: string; }
 
@@ -28,6 +29,7 @@ const labelStyle: React.CSSProperties = {
 
 export default function WebhookActions({ type, webhookId }: Props) {
   const router = useRouter();
+  const t = useT();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -41,10 +43,10 @@ export default function WebhookActions({ type, webhookId }: Props) {
         body: body ? JSON.stringify(body) : undefined,
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.message ?? 'Failed');
+      if (!res.ok) throw new Error(data.message ?? t('dashboard.settings.webhooks.form.failed'));
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed');
+      setError(err instanceof Error ? err.message : t('dashboard.settings.webhooks.form.failed'));
     } finally {
       setLoading(false);
     }
@@ -53,11 +55,11 @@ export default function WebhookActions({ type, webhookId }: Props) {
   if (type === 'delete') {
     return (
       <button
-        onClick={() => { if (confirm('Delete this webhook?')) doAction(`/api/settings/webhooks/${webhookId}`, 'DELETE'); }}
+        onClick={() => { if (confirm(t('dashboard.settings.webhooks.form.confirmDelete'))) doAction(`/api/settings/webhooks/${webhookId}`, 'DELETE'); }}
         disabled={loading}
         style={{ background: 'none', border: 'none', color: '#dc2626', fontSize: '13px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1 }}
       >
-        {loading ? '…' : 'Delete'}
+        {loading ? t('dashboard.settings.webhooks.form.deleting') : t('dashboard.settings.webhooks.form.delete')}
       </button>
     );
   }
@@ -77,15 +79,15 @@ export default function WebhookActions({ type, webhookId }: Props) {
       style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}
     >
       <div>
-        <label style={labelStyle}>Endpoint URL</label>
+        <label style={labelStyle}>{t('dashboard.settings.webhooks.form.endpointUrl')}</label>
         <input name="url" type="url" required placeholder="https://yourapp.com/webhooks" style={{ ...inputStyle, width: '256px' }} />
       </div>
       <div>
-        <label style={labelStyle}>Events (comma-separated)</label>
+        <label style={labelStyle}>{t('dashboard.settings.webhooks.form.events')}</label>
         <input name="subscriptions" required placeholder="invoice.paid, agreement.signed" style={{ ...inputStyle, width: '208px' }} />
       </div>
       <div>
-        <label style={labelStyle}>Secret</label>
+        <label style={labelStyle}>{t('dashboard.settings.webhooks.form.secret')}</label>
         <input name="secret" type="password" required placeholder="webhook_secret" style={{ ...inputStyle, width: '144px' }} />
       </div>
       <button
@@ -104,7 +106,7 @@ export default function WebhookActions({ type, webhookId }: Props) {
           opacity: loading ? 0.6 : 1,
         }}
       >
-        {loading ? 'Adding…' : 'Add endpoint'}
+        {loading ? t('dashboard.settings.webhooks.form.adding') : t('dashboard.settings.webhooks.form.add')}
       </button>
       {error && (
         <p style={{ color: '#dc2626', fontSize: '13px', margin: '4px 0 0', width: '100%' }}>{error}</p>

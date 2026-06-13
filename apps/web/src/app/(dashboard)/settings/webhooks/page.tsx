@@ -3,6 +3,7 @@ import { serverFetch } from '@/lib/server-api';
 import { redirect } from 'next/navigation';
 import WebhookActions from './WebhookActions';
 import Link from 'next/link';
+import { getT } from '@/lib/get-locale';
 
 interface Webhook { id: string; url: string; subscriptions: string[]; status: string; }
 
@@ -11,6 +12,7 @@ export default async function WebhooksPage() {
   if (user.role !== 'owner') redirect('/dashboard');
 
   const webhooks = await serverFetch<Webhook[]>(`/v1/organisations/${user.organisationId}/webhooks`).catch(() => []);
+  const t = await getT();
 
   return (
     <>
@@ -23,29 +25,29 @@ export default async function WebhooksPage() {
               href="/settings"
               style={{ display: 'inline-block', fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', marginBottom: '20px' }}
             >
-              &larr; Settings
+              {t('dashboard.settings.webhooks.backToSettings')}
             </Link>
             <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
-              Webhooks
+              {t('dashboard.settings.webhooks.title')}
             </h1>
           </div>
 
           <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '24px', marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>Add endpoint</h2>
+            <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>{t('dashboard.settings.webhooks.addEndpoint')}</h2>
             <WebhookActions type="create" />
           </div>
 
           <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
             {webhooks.length === 0 ? (
               <p style={{ fontSize: '14px', color: '#94a3b8', textAlign: 'center', padding: '48px 24px', margin: 0 }}>
-                No webhook endpoints configured.
+                {t('dashboard.settings.webhooks.empty')}
               </p>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                   <tr>
-                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>URL</th>
-                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Events</th>
+                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{t('dashboard.settings.webhooks.table.url')}</th>
+                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{t('dashboard.settings.webhooks.table.events')}</th>
                     <th style={{ padding: '10px 16px' }}></th>
                   </tr>
                 </thead>

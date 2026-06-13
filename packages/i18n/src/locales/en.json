@@ -662,6 +662,18 @@
         "cancel": "Cancel",
         "errorCreate": "Failed to create unit",
         "errorGeneric": "Failed"
+      },
+      "delinquency": {
+        "backToSiteSettings": "← Site settings",
+        "title": "Delinquency policy",
+        "subtitle": "Configure when invoices are marked overdue and whether lockout is enforced.",
+        "overdueThreshold": "OVERDUE THRESHOLD (DAYS AFTER DUE DATE)",
+        "enableLockout": "Enable access lockout for overdue tenants",
+        "savePolicy": "Save policy",
+        "saving": "Saving…",
+        "saveFailed": "Save failed: {{status}}",
+        "saved": "Policy saved successfully.",
+        "unknownError": "Unknown error"
       }
     },
     "overview": {
@@ -1487,6 +1499,142 @@
         "growth": "Growth",
         "pro": "Pro",
         "professional": "Professional"
+      }
+    },
+    "settings": {
+      "title": "Organisation settings",
+      "plan": "Plan",
+      "status": "Status",
+      "webhooks": {
+        "backToSettings": "← Settings",
+        "title": "Webhooks",
+        "addEndpoint": "Add endpoint",
+        "empty": "No webhook endpoints configured.",
+        "table": {
+          "url": "URL",
+          "events": "Events"
+        },
+        "form": {
+          "endpointUrl": "Endpoint URL",
+          "events": "Events (comma-separated)",
+          "secret": "Secret",
+          "add": "Add endpoint",
+          "adding": "Adding…",
+          "delete": "Delete",
+          "deleting": "…",
+          "confirmDelete": "Delete this webhook?",
+          "failed": "Failed"
+        }
+      },
+      "apiKeys": {
+        "backToSettings": "← Settings",
+        "title": "API Keys",
+        "createClient": "Create API client",
+        "scopes": "Scopes: {{scopes}}",
+        "scopesNone": "none",
+        "expires": "Expires {{date}}",
+        "lastUsed": "Last used: {{date}}",
+        "never": "never",
+        "noActiveKeys": "No active keys.",
+        "noClients": "No API clients yet.",
+        "form": {
+          "clientName": "Client name",
+          "create": "Create key",
+          "creating": "Creating…",
+          "revoke": "Revoke",
+          "revoking": "…",
+          "confirmRevoke": "Revoke this key? This cannot be undone.",
+          "failed": "Failed",
+          "copyKey": "Copy your API key — it will not be shown again:",
+          "iCopied": "I have copied the key"
+        }
+      },
+      "form": {
+        "legalName": "Legal name",
+        "legalNameHint": "Contact support to change your legal name.",
+        "tradingName": "Trading name",
+        "billingEmail": "Billing email",
+        "supportEmail": "Support email",
+        "phone": "Phone",
+        "website": "Website",
+        "vatId": "VAT ID",
+        "taxNumber": "Tax number",
+        "save": "Save settings",
+        "saving": "Saving…",
+        "saved": "Settings saved.",
+        "saveFailed": "Failed to save settings",
+        "saveFailedGeneric": "Failed to save"
+      }
+    },
+    "reports": {
+      "title": "Reports",
+      "subtitle": "Overview of your organisation's performance",
+      "avgOccupancy": "Avg Occupancy",
+      "revenueThisMonth": "Revenue (this month)",
+      "occupancyBySite": "Occupancy by site",
+      "table": {
+        "site": "Site",
+        "occupancy": "Occupancy",
+        "units": "Units"
+      },
+      "empty": {
+        "title": "No data yet",
+        "hint": "Occupancy data will appear here once sites are active."
+      }
+    },
+    "audit": {
+      "title": "Audit Log",
+      "events": "{{count}} event",
+      "events_plural": "{{count}} events",
+      "table": {
+        "action": "Action",
+        "subject": "Subject",
+        "actor": "Actor",
+        "time": "Time",
+        "system": "system"
+      },
+      "empty": "No audit events yet.",
+      "prev": "← Prev",
+      "next": "Next →"
+    },
+    "team": {
+      "title": "Team",
+      "members": "{{count}} member",
+      "members_plural": "{{count}} members",
+      "membersTable": {
+        "title": "Members",
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "remove": "Remove",
+        "confirmRemove": "Remove this member from the organisation?",
+        "removeFailed": "Failed to remove member",
+        "failed": "Failed"
+      },
+      "invite": {
+        "title": "Invite a team member",
+        "email": "Email",
+        "role": "Role",
+        "roleOwner": "Owner",
+        "roleOperator": "Operator",
+        "send": "Send invite",
+        "sending": "Sending…",
+        "failed": "Failed to send invitation"
+      },
+      "pendingInvitations": {
+        "title": "Pending invitations",
+        "email": "Email",
+        "role": "Role",
+        "expires": "Expires",
+        "revoke": "Revoke",
+        "confirmRevoke": "Revoke this invitation?",
+        "revokeFailed": "Failed to revoke invitation",
+        "failed": "Failed"
+      },
+      "roles": {
+        "owner": "Owner",
+        "operator": "Operator",
+        "tenant": "Tenant"
       }
     }
   }

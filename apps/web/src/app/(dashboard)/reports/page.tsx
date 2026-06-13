@@ -1,5 +1,6 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
+import { getT } from '@/lib/get-locale';
 
 interface OccupancyItem { siteId: string; siteName: string; occupancyPct: number; totalUnits: number; occupiedUnits: number; }
 interface RevenueItem { siteId: string; totalMinor: number; currency: string; }
@@ -36,6 +37,7 @@ export default async function ReportsPage() {
   const avgOccupancy = occupancy.length > 0
     ? Math.round(occupancy.reduce((sum, o) => sum + o.occupancyPct, 0) / occupancy.length)
     : 0;
+  const t = await getT();
 
   return (
     <>
@@ -44,23 +46,23 @@ export default async function ReportsPage() {
       <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
-            Reports
+            {t('dashboard.reports.title')}
           </h1>
           <p style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '28px' }}>
-            Overview of your organisation's performance
+            {t('dashboard.reports.subtitle')}
           </p>
 
           {/* Stat cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '32px' }}>
             <div style={{ ...cardStyle, padding: '20px 24px' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 8px' }}>
-                Avg Occupancy
+                {t('dashboard.reports.avgOccupancy')}
               </p>
               <p style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a', margin: 0 }}>{avgOccupancy}%</p>
             </div>
             <div style={{ ...cardStyle, padding: '20px 24px' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 8px' }}>
-                Revenue (this month)
+                {t('dashboard.reports.revenueThisMonth')}
               </p>
               <p style={{ fontSize: '32px', fontWeight: 800, color: '#0f172a', margin: 0 }}>€{(totalRevenue / 100).toFixed(2)}</p>
             </div>
@@ -69,14 +71,14 @@ export default async function ReportsPage() {
           {/* Occupancy by site table */}
           <div style={cardStyle}>
             <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9' }}>
-              <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: 0 }}>Occupancy by site</h2>
+              <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: 0 }}>{t('dashboard.reports.occupancyBySite')}</h2>
             </div>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <th style={thStyle}>Site</th>
-                  <th style={thStyle}>Occupancy</th>
-                  <th style={thStyle}>Units</th>
+                  <th style={thStyle}>{t('dashboard.reports.table.site')}</th>
+                  <th style={thStyle}>{t('dashboard.reports.table.occupancy')}</th>
+                  <th style={thStyle}>{t('dashboard.reports.table.units')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -99,8 +101,8 @@ export default async function ReportsPage() {
                 {occupancy.length === 0 && (
                   <tr>
                     <td colSpan={3} style={{ padding: '64px 24px', textAlign: 'center' }}>
-                      <p style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>No data yet</p>
-                      <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>Occupancy data will appear here once sites are active.</p>
+                      <p style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a', margin: '0 0 4px' }}>{t('dashboard.reports.empty.title')}</p>
+                      <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>{t('dashboard.reports.empty.hint')}</p>
                     </td>
                   </tr>
                 )}

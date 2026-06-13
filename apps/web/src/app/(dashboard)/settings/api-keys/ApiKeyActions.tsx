@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useT } from '@/lib/i18n';
 
 interface Props { type: 'create' | 'revoke'; apiKeyId?: string; }
 
@@ -29,6 +30,7 @@ const labelStyle: React.CSSProperties = {
 
 export default function ApiKeyActions({ type, apiKeyId }: Props) {
   const router = useRouter();
+  const t = useT();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [newKey, setNewKey] = useState<string | null>(null);
@@ -37,14 +39,14 @@ export default function ApiKeyActions({ type, apiKeyId }: Props) {
     return (
       <button
         onClick={async () => {
-          if (!confirm('Revoke this key? This cannot be undone.')) return;
+          if (!confirm(t('dashboard.settings.apiKeys.form.confirmRevoke'))) return;
           setLoading(true);
           try {
             const res = await fetch(`/api/settings/api-keys/${apiKeyId}`, { method: 'DELETE' });
             if (!res.ok) { const d = await res.json(); throw new Error(d.message); }
             router.refresh();
           } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'Failed');
+            setError(err instanceof Error ? err.message : t('dashboard.settings.apiKeys.form.failed'));
           } finally {
             setLoading(false);
           }
@@ -52,7 +54,7 @@ export default function ApiKeyActions({ type, apiKeyId }: Props) {
         disabled={loading}
         style={{ background: 'none', border: 'none', color: '#dc2626', fontSize: '13px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1 }}
       >
-        {loading ? '…' : 'Revoke'}
+        {loading ? t('dashboard.settings.apiKeys.form.revoking') : t('dashboard.settings.apiKeys.form.revoke')}
       </button>
     );
   }
@@ -61,7 +63,7 @@ export default function ApiKeyActions({ type, apiKeyId }: Props) {
     return (
       <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '16px' }}>
         <p style={{ fontSize: '13px', fontWeight: 600, color: '#92400e', margin: '0 0 10px' }}>
-          Copy your API key — it will not be shown again:
+          {t('dashboard.settings.apiKeys.form.copyKey')}
         </p>
         <code style={{ display: 'block', background: '#ffffff', border: '1px solid #fde68a', borderRadius: '6px', padding: '10px 12px', fontSize: '12px', fontFamily: 'monospace', wordBreak: 'break-all', color: '#0f172a' }}>
           {newKey}
@@ -70,7 +72,7 @@ export default function ApiKeyActions({ type, apiKeyId }: Props) {
           onClick={() => { setNewKey(null); router.refresh(); }}
           style={{ marginTop: '12px', background: 'none', border: 'none', color: '#92400e', fontSize: '13px', cursor: 'pointer', textDecoration: 'underline', padding: 0, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
-          I have copied the key
+          {t('dashboard.settings.apiKeys.form.iCopied')}
         </button>
       </div>
     );
@@ -90,11 +92,11 @@ export default function ApiKeyActions({ type, apiKeyId }: Props) {
             body: JSON.stringify({ name: form.get('name'), scopes: [] }),
           });
           const data = await res.json();
-          if (!res.ok) throw new Error(data.message ?? 'Failed');
+          if (!res.ok) throw new Error(data.message ?? t('dashboard.settings.apiKeys.form.failed'));
           setNewKey(data.rawKey);
           (e.target as HTMLFormElement).reset();
         } catch (err: unknown) {
-          setError(err instanceof Error ? err.message : 'Failed');
+          setError(err instanceof Error ? err.message : t('dashboard.settings.apiKeys.form.failed'));
         } finally {
           setLoading(false);
         }
@@ -102,7 +104,7 @@ export default function ApiKeyActions({ type, apiKeyId }: Props) {
       style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}
     >
       <div>
-        <label style={labelStyle}>Client name</label>
+        <label style={labelStyle}>{t('dashboard.settings.apiKeys.form.clientName')}</label>
         <input name="name" type="text" required placeholder="Mobile App" style={inputStyle} />
       </div>
       <button
@@ -121,7 +123,7 @@ export default function ApiKeyActions({ type, apiKeyId }: Props) {
           opacity: loading ? 0.6 : 1,
         }}
       >
-        {loading ? 'Creating…' : 'Create key'}
+        {loading ? t('dashboard.settings.apiKeys.form.creating') : t('dashboard.settings.apiKeys.form.create')}
       </button>
       {error && (
         <p style={{ color: '#dc2626', fontSize: '13px', margin: 0 }}>{error}</p>

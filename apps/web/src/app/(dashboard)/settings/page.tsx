@@ -2,6 +2,7 @@ import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
 import { redirect } from 'next/navigation';
 import OrgSettingsForm from './OrgSettingsForm';
+import { getT } from '@/lib/get-locale';
 
 interface Organisation {
   id: string;
@@ -23,6 +24,7 @@ export default async function SettingsPage() {
   if (user.role !== 'owner') redirect('/dashboard');
 
   const org = await serverFetch<Organisation>(`/v1/organisations/${user.organisationId}`);
+  const t = await getT();
 
   return (
     <>
@@ -31,12 +33,12 @@ export default async function SettingsPage() {
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
           <div style={{ marginBottom: '24px' }}>
             <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
-              Organisation settings
+              {t('dashboard.settings.title')}
             </h1>
             <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>
-              Plan: <span style={{ fontWeight: 600, color: '#475569', textTransform: 'capitalize' }}>{org.plan}</span>
+              {t('dashboard.settings.plan')}: <span style={{ fontWeight: 600, color: '#475569', textTransform: 'capitalize' }}>{org.plan}</span>
               {' · '}
-              Status: <span style={{ fontWeight: 600, color: '#475569', textTransform: 'capitalize' }}>{org.status}</span>
+              {t('dashboard.settings.status')}: <span style={{ fontWeight: 600, color: '#475569', textTransform: 'capitalize' }}>{org.status}</span>
             </p>
           </div>
           <OrgSettingsForm org={org} />

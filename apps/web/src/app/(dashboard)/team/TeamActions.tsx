@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useT } from '@/lib/i18n';
 
 interface Props {
   type: 'remove-member' | 'revoke-invitation' | 'invite-form';
@@ -32,38 +33,39 @@ const labelStyle: React.CSSProperties = {
 
 export default function TeamActions({ type, id, label }: Props) {
   const router = useRouter();
+  const t = useT();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleRemoveMember() {
-    if (!confirm('Remove this member from the organisation?')) return;
+    if (!confirm(t('dashboard.team.membersTable.confirmRemove'))) return;
     setLoading(true);
     try {
       const res = await fetch(`/api/members/${id}`, { method: 'DELETE' });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message ?? 'Failed to remove member');
+        throw new Error(data.message ?? t('dashboard.team.membersTable.removeFailed'));
       }
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed');
+      setError(err instanceof Error ? err.message : t('dashboard.team.membersTable.failed'));
     } finally {
       setLoading(false);
     }
   }
 
   async function handleRevokeInvitation() {
-    if (!confirm('Revoke this invitation?')) return;
+    if (!confirm(t('dashboard.team.pendingInvitations.confirmRevoke'))) return;
     setLoading(true);
     try {
       const res = await fetch(`/api/invitations/${id}`, { method: 'DELETE' });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message ?? 'Failed to revoke invitation');
+        throw new Error(data.message ?? t('dashboard.team.pendingInvitations.revokeFailed'));
       }
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed');
+      setError(err instanceof Error ? err.message : t('dashboard.team.pendingInvitations.failed'));
     } finally {
       setLoading(false);
     }
@@ -81,11 +83,11 @@ export default function TeamActions({ type, id, label }: Props) {
         body: JSON.stringify({ email: form.get('email'), role: form.get('role') }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? 'Failed to send invitation');
+      if (!res.ok) throw new Error(data.message ?? t('dashboard.team.invite.failed'));
       (e.target as HTMLFormElement).reset();
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to send invitation');
+      setError(err instanceof Error ? err.message : t('dashboard.team.invite.failed'));
     } finally {
       setLoading(false);
     }
@@ -118,17 +120,17 @@ export default function TeamActions({ type, id, label }: Props) {
   return (
     <form onSubmit={handleInvite} style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
       <div>
-        <label style={labelStyle}>Email</label>
+        <label style={labelStyle}>{t('dashboard.team.invite.email')}</label>
         <input name="email" type="email" required placeholder="colleague@company.de" style={{ ...inputStyle, width: '240px' }} />
       </div>
       <div>
-        <label style={labelStyle}>Role</label>
+        <label style={labelStyle}>{t('dashboard.team.invite.role')}</label>
         <select
           name="role"
           style={{ ...inputStyle, width: 'auto' }}
         >
-          <option value="owner">Owner</option>
-          <option value="operator">Operator</option>
+          <option value="owner">{t('dashboard.team.invite.roleOwner')}</option>
+          <option value="operator">{t('dashboard.team.invite.roleOperator')}</option>
         </select>
       </div>
       <button
@@ -147,7 +149,7 @@ export default function TeamActions({ type, id, label }: Props) {
           opacity: loading ? 0.6 : 1,
         }}
       >
-        {loading ? 'Sending…' : 'Send invite'}
+        {loading ? t('dashboard.team.invite.sending') : t('dashboard.team.invite.send')}
       </button>
       {error && (
         <p style={{ color: '#dc2626', fontSize: '13px', margin: '4px 0 0', width: '100%' }}>{error}</p>
