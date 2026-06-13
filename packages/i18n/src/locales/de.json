@@ -1501,6 +1501,13 @@
         "growth": "Growth",
         "pro": "Pro",
         "professional": "Professional"
+      },
+      "usage": {
+        "title": "Plannutzung",
+        "sites": "Standorte",
+        "units": "Einheiten",
+        "of": "von",
+        "unlimited": "Unbegrenzt"
       }
     },
     "settings": {

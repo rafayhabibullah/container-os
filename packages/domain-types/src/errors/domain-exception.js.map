@@ -1,1 +1,0 @@
-{"version":3,"file":"domain-exception.js","sourceRoot":"","sources":["domain-exception.ts"],"names":[],"mappings":";;;AAEA,MAAa,eAAgB,SAAQ,KAAK;IAEtB;IAEA;IAHlB,YACkB,IAAe,EAC/B,OAAe,EACC,OAAiC;QAEjD,KAAK,CAAC,OAAO,CAAC,CAAC;QAJC,SAAI,GAAJ,IAAI,CAAW;QAEf,YAAO,GAAP,OAAO,CAA0B;QAGjD,IAAI,CAAC,IAAI,GAAG,iBAAiB,CAAC;IAChC,CAAC;CACF;AATD,0CASC"}

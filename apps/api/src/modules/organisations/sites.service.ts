@@ -3,10 +3,14 @@ import { PrismaClient } from '@prisma/client';
 import slugify from 'slugify';
 import { CreateSiteDto } from './dto/create-site.dto';
 import { UpdateSiteDto } from './dto/update-site.dto';
+import { PlanEnforcementService } from './plan-enforcement.service';
 
 @Injectable()
 export class SiteService {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(
+    private readonly prisma: PrismaClient,
+    private readonly planEnforcement: PlanEnforcementService,
+  ) {}
 
   async listSites(orgId: string) {
     return this.prisma.site.findMany({
@@ -17,6 +21,7 @@ export class SiteService {
 
   async createSite(orgId: string, dto: CreateSiteDto, memberRole: string) {
     if (memberRole !== 'owner') throw new ForbiddenException('OWNER_REQUIRED');
+    await this.planEnforcement.assertCanCreateSite(orgId);
     const slug = slugify(dto.name, { lower: true, strict: true });
     try {
       return await this.prisma.site.create({
@@ -76,6 +81,7 @@ export class SiteService {
 
   async createUnit(orgId: string, siteId: string, data: { unitCode: string; unitTypeId: string; kind: string; driveUp: boolean }) {
     await this.getSite(orgId, siteId);
+    await this.planEnforcement.assertCanCreateUnit(orgId);
     try {
       return await this.prisma.unit.create({
         data: { siteId, ...data } as any,

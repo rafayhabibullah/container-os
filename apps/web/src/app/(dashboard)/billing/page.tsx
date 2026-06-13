@@ -8,6 +8,12 @@ interface OrgProfile {
   plan: string;
 }
 
+interface PlanUsage {
+  plan: string;
+  sites: { used: number; limit: number };
+  units: { used: number; limit: number };
+}
+
 const PLAN_DETAILS: Record<string, { key: string; price: string; sites: number; units: number }> = {
   starter:      { key: 'starter',      price: '€49/mo',  sites: 1, units: 50  },
   growth:       { key: 'growth',       price: '€99/mo',  sites: 2, units: 150 },
@@ -19,6 +25,7 @@ export default async function BillingPage() {
   const user = await requireAuth();
   const t = getT();
   const org = await serverFetch<OrgProfile>(`/v1/organisations/${user.organisationId}`).catch(() => null);
+  const usage = await serverFetch<PlanUsage>(`/v1/organisations/${user.organisationId}/usage`).catch(() => null);
 
   const plan    = org?.plan ?? 'starter';
   const details = PLAN_DETAILS[plan] ?? PLAN_DETAILS.starter;
@@ -80,6 +87,30 @@ export default async function BillingPage() {
               ))}
             </div>
           </div>
+
+          {/* Plan usage */}
+          {usage && (
+            <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '24px', marginBottom: '20px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 16px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                {t('dashboard.billing.usage.title')}
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+                {[
+                  { label: t('dashboard.billing.usage.sites'), data: usage.sites },
+                  { label: t('dashboard.billing.usage.units'), data: usage.units },
+                ].map(({ label, data }) => (
+                  <div key={label}>
+                    <p style={{ fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '0 0 6px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      {label}
+                    </p>
+                    <p style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: 0, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                      {data.used} {t('dashboard.billing.usage.of')} {Number.isFinite(data.limit) ? data.limit : t('dashboard.billing.usage.unlimited')}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Available plans */}
           <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>

@@ -16,6 +16,7 @@ export const ErrorCodes = {
   TRANSFER_TARGET_UNAVAILABLE: 'TRANSFER_TARGET_UNAVAILABLE',
   INSPECTION_REQUIRED: 'INSPECTION_REQUIRED',
   LEGAL_HOLD_ACTIVE: 'LEGAL_HOLD_ACTIVE',
+  PLAN_LIMIT_EXCEEDED: 'PLAN_LIMIT_EXCEEDED',
 } as const;
 
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];

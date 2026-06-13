@@ -14,11 +14,16 @@ const mockPrisma = {
 const baseAddress = { street: 'Hauptstr. 1', city: 'Berlin', postalCode: '10115', country: 'DE' };
 const createDto = { name: 'Berlin Site', address: baseAddress, timezone: 'Europe/Berlin', currency: 'EUR' };
 
+const mockPlanEnforcement = {
+  assertCanCreateSite: vi.fn(),
+  assertCanCreateUnit: vi.fn(),
+};
+
 describe('SiteService', () => {
   let service: SiteService;
 
   beforeEach(() => {
-    service = new SiteService(mockPrisma as any);
+    service = new SiteService(mockPrisma as any, mockPlanEnforcement as any);
     vi.clearAllMocks();
   });
 

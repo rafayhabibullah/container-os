@@ -8,6 +8,7 @@ import { SiteService } from './sites.service';
 import { TeamService } from './team.service';
 import { UnitTypeService } from './unit-type.service';
 import { PricingManagementService } from './pricing-management.service';
+import { PlanEnforcementService } from './plan-enforcement.service';
 import { UpdateOrganisationDto } from './dto/update-organisation.dto';
 import { CreateSiteDto } from './dto/create-site.dto';
 import { UpdateSiteDto } from './dto/update-site.dto';
@@ -34,6 +35,7 @@ export class OrganisationController {
     private readonly team: TeamService,
     private readonly unitTypes: UnitTypeService,
     private readonly pricing: PricingManagementService,
+    private readonly planEnforcement: PlanEnforcementService,
   ) {}
 
   @Get()
@@ -50,6 +52,12 @@ export class OrganisationController {
     @CurrentMember() member: MemberContext,
   ) {
     return this.organisations.updateOrganisation(orgId, dto, member.role);
+  }
+
+  @Get('usage')
+  @ApiOperation({ summary: 'Get plan usage (sites/units used vs plan limits)' })
+  getUsage(@Param('organisationId') orgId: string) {
+    return this.planEnforcement.getUsage(orgId);
   }
 
   @Get('customers')
