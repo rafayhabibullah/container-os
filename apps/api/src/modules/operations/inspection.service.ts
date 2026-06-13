@@ -1,6 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { DomainException, ErrorCodes } from '@sitelager/domain-types';
+import { OperationsService } from './operations.service';
+import { DocumentsService } from '../documents/documents.service';
 
 interface ChecklistItem { code: string; label: string; result: 'pass' | 'fail' | 'na'; note?: string; }
 
@@ -24,7 +26,49 @@ interface CompleteInspectionInput {
 
 @Injectable()
 export class InspectionService {
-  constructor(private prisma: PrismaClient) {}
+  constructor(
+    private prisma: PrismaClient,
+    @Inject(forwardRef(() => OperationsService)) private operations: OperationsService,
+    private documents: DocumentsService,
+  ) {}
+
+  private async createTasksForFailedItems(params: { runId: string; siteId: string; unitId?: string; checklist: ChecklistItem[] }) {
+    const failed = params.checklist.filter((item) => item.result === 'fail');
+    for (const item of failed) {
+      await this.operations.createTask({
+        siteId: params.siteId,
+        unitId: params.unitId,
+        title: `Inspection issue: ${item.label || item.code}`,
+        priority: 'normal',
+        subjectRef: `InspectionRun:${params.runId}:${item.code}`,
+      });
+    }
+  }
+
+  private buildInspectionReport(params: { runId: string; kind: string; result: string; checklist: ChecklistItem[]; completedAt: Date }): Buffer {
+    const lines = [
+      `Inspection Report`,
+      `Run ID: ${params.runId}`,
+      `Kind: ${params.kind}`,
+      `Overall result: ${params.result}`,
+      `Completed at: ${params.completedAt.toISOString()}`,
+      ``,
+      `Checklist:`,
+      ...params.checklist.map((item) => `- [${item.result.toUpperCase()}] ${item.label || item.code}${item.note ? ` (${item.note})` : ''}`),
+    ];
+    return Buffer.from(lines.join('\n'), 'utf-8');
+  }
+
+  private async generateInspectionReport(params: { runId: string; kind: string; result: string; checklist: ChecklistItem[]; completedAt: Date }) {
+    const buffer = this.buildInspectionReport(params);
+    return this.documents.storeGeneratedDocument({
+      subjectType: 'InspectionRun',
+      subjectId: params.runId,
+      kind: 'inspection_report',
+      buffer,
+      fileName: `inspection-report-${params.runId}.txt`,
+    });
+  }
 
   async createInspectionRun(input: CreateInspectionInput) {
     const { unitId, siteId, kind, checklist, photoIds = [], notes, contractId, depositDeduction } = input;
@@ -51,6 +95,9 @@ export class InspectionService {
       const newStatus = overallResult === 'pass' ? 'available' : 'maintenance';
       await this.prisma.unit.update({ where: { id: unitId }, data: { status: newStatus as any } });
     }
+
+    await this.createTasksForFailedItems({ runId: run.id, siteId, unitId, checklist });
+    await this.generateInspectionReport({ runId: run.id, kind, result: overallResult, checklist, completedAt: run.completedAt ?? new Date() });
 
     return { inspectionId: run.id, result: overallResult };
   }
@@ -80,6 +127,10 @@ export class InspectionService {
       const newStatus = overallResult === 'pass' ? 'available' : 'maintenance';
       await this.prisma.unit.update({ where: { id: existing.unitId }, data: { status: newStatus as any } });
     }
+
+    const unit = await this.prisma.unit.findUnique({ where: { id: existing.unitId } });
+    await this.createTasksForFailedItems({ runId: run.id, siteId: unit?.siteId ?? '', unitId: existing.unitId, checklist });
+    await this.generateInspectionReport({ runId: run.id, kind: existing.kind, result: overallResult, checklist, completedAt: run.completedAt ?? new Date() });
 
     return { inspectionId: run.id, result: overallResult };
   }

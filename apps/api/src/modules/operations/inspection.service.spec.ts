@@ -5,12 +5,18 @@ import { DomainException } from '@sitelager/domain-types';
 const mockPrisma = {
   inspectionTemplate: { findFirst: vi.fn() },
   inspectionRun: { create: vi.fn(), findFirst: vi.fn(), findUniqueOrThrow: vi.fn(), update: vi.fn() },
-  unit: { update: vi.fn() },
+  unit: { update: vi.fn(), findUnique: vi.fn() },
 };
-const service = new InspectionService(mockPrisma as any);
+const mockOperations = { createTask: vi.fn() };
+const mockDocuments = { storeGeneratedDocument: vi.fn() };
+const service = new InspectionService(mockPrisma as any, mockOperations as any, mockDocuments as any);
 
 describe('InspectionService', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPrisma.unit.findUnique.mockResolvedValue({ id: 'u1', siteId: 's1' });
+    mockDocuments.storeGeneratedDocument.mockResolvedValue({ id: 'doc_01' });
+  });
 
   it('creates inspection run with pass result', async () => {
     mockPrisma.inspectionTemplate.findFirst.mockResolvedValue({ id: 'tmpl_01', kind: 'move_in', checklist: [{ code: 'dry' }, { code: 'door_seal' }] });
@@ -86,6 +92,66 @@ describe('InspectionService', () => {
       await expect(
         service.completeInspectionRun('ins_06', { checklist: [{ code: 'DOOR', label: 'Door', result: 'pass' }] })
       ).rejects.toThrow('already completed');
+    });
+
+    it('creates a task for each failed checklist item with correct subjectRef', async () => {
+      mockPrisma.inspectionRun.findUniqueOrThrow.mockResolvedValue({ id: 'ins_07', unitId: 'u1', kind: 'routine' });
+      mockPrisma.inspectionRun.update.mockResolvedValue({ id: 'ins_07', result: 'fail', completedAt: new Date() });
+      await service.completeInspectionRun('ins_07', {
+        checklist: [
+          { code: 'DOOR', label: 'Door', result: 'fail' },
+          { code: 'LOCK', label: 'Lock', result: 'pass' },
+          { code: 'ROOF', label: 'Roof', result: 'fail' },
+        ],
+      });
+      expect(mockOperations.createTask).toHaveBeenCalledTimes(2);
+      expect(mockOperations.createTask).toHaveBeenCalledWith(expect.objectContaining({
+        siteId: 's1',
+        unitId: 'u1',
+        title: 'Inspection issue: Door',
+        priority: 'normal',
+        subjectRef: 'InspectionRun:ins_07:DOOR',
+      }));
+      expect(mockOperations.createTask).toHaveBeenCalledWith(expect.objectContaining({
+        subjectRef: 'InspectionRun:ins_07:ROOF',
+      }));
+    });
+
+    it('generates an inspection report document on completion', async () => {
+      mockPrisma.inspectionRun.findUniqueOrThrow.mockResolvedValue({ id: 'ins_08', unitId: 'u1', kind: 'routine' });
+      mockPrisma.inspectionRun.update.mockResolvedValue({ id: 'ins_08', result: 'pass', completedAt: new Date() });
+      await service.completeInspectionRun('ins_08', {
+        checklist: [{ code: 'DOOR', label: 'Door', result: 'pass' }],
+      });
+      expect(mockDocuments.storeGeneratedDocument).toHaveBeenCalledWith(expect.objectContaining({
+        subjectType: 'InspectionRun',
+        subjectId: 'ins_08',
+        kind: 'inspection_report',
+        buffer: expect.any(Buffer),
+      }));
+    });
+  });
+
+  describe('createInspectionRun', () => {
+    it('creates a task for failed checklist items and generates a report', async () => {
+      mockPrisma.inspectionTemplate.findFirst.mockResolvedValue({ id: 'tmpl_01' });
+      mockPrisma.inspectionRun.create.mockResolvedValue({ id: 'ins_09', result: 'fail', completedAt: new Date() });
+      await service.createInspectionRun({
+        unitId: 'u1',
+        siteId: 's1',
+        kind: 'move_in',
+        checklist: [{ code: 'DRY', label: 'Dry', result: 'fail' }],
+      });
+      expect(mockOperations.createTask).toHaveBeenCalledWith(expect.objectContaining({
+        siteId: 's1',
+        unitId: 'u1',
+        subjectRef: 'InspectionRun:ins_09:DRY',
+      }));
+      expect(mockDocuments.storeGeneratedDocument).toHaveBeenCalledWith(expect.objectContaining({
+        subjectType: 'InspectionRun',
+        subjectId: 'ins_09',
+        kind: 'inspection_report',
+      }));
     });
   });
 });
