@@ -12,7 +12,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
   app.use(helmet());
-  app.use(json({ limit: '10mb' }));
+  app.use(json({ limit: '20mb' }));
 
   app.useGlobalFilters(
     new HttpExceptionFilter(),
