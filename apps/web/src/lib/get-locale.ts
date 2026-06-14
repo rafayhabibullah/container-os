@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { t as translate, type Locale } from '@sitelager/i18n';
-import { LOCALE_COOKIE } from './i18n';
+import { LOCALE_COOKIE } from './locale-cookie';
 
 export function getLocale(): Locale {
   const cookie = cookies().get(LOCALE_COOKIE)?.value;

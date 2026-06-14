@@ -3,8 +3,7 @@
 import { createContext, useCallback, useContext, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { t as translate, type Locale } from '@sitelager/i18n';
-
-const LOCALE_COOKIE = 'sl_locale';
+import { LOCALE_COOKIE } from './locale-cookie';
 
 const LocaleContext = createContext<{
   locale: Locale;
