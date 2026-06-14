@@ -1,6 +1,7 @@
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
 import { getT } from '@/lib/get-locale';
+import { PlanSwitchButton } from './plan-switch-button';
 
 interface OrgProfile {
   id: string;
@@ -15,10 +16,9 @@ interface PlanUsage {
 }
 
 const PLAN_DETAILS: Record<string, { key: string; price: string; sites: number; units: number }> = {
-  starter:      { key: 'starter',      price: '€49/mo',  sites: 1, units: 50  },
-  growth:       { key: 'growth',       price: '€99/mo',  sites: 2, units: 150 },
-  pro:          { key: 'pro',          price: '€199/mo', sites: 5, units: 500 },
-  professional: { key: 'professional', price: '€199/mo', sites: 5, units: 500 },
+  starter:      { key: 'starter',      price: '€49/mo',  sites: 1,        units: 50  },
+  professional: { key: 'professional', price: '€199/mo', sites: 5,        units: 500 },
+  enterprise:   { key: 'enterprise',   price: 'Custom',  sites: Infinity, units: Infinity },
 };
 
 export default async function BillingPage() {
@@ -67,15 +67,15 @@ export default async function BillingPage() {
                 </div>
                 <p style={{ fontSize: '15px', fontWeight: 600, color: '#475569', margin: 0, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{details.price}</p>
               </div>
-              <button style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              <a href="#available-plans" style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", textDecoration: 'none' }}>
                 {t('dashboard.billing.upgradePlan')}
-              </button>
+              </a>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #f1f5f9' }}>
               {[
-                { label: t('dashboard.billing.sitesIncluded'),         value: String(details.sites), color: '#0f172a' },
-                { label: t('dashboard.billing.unitsIncluded'),         value: String(details.units), color: '#0f172a' },
+                { label: t('dashboard.billing.sitesIncluded'),         value: Number.isFinite(details.sites) ? String(details.sites) : t('dashboard.billing.usage.unlimited'), color: '#0f172a' },
+                { label: t('dashboard.billing.unitsIncluded'),         value: Number.isFinite(details.units) ? String(details.units) : t('dashboard.billing.usage.unlimited'), color: '#0f172a' },
                 { label: t('dashboard.billing.marketplaceCommission'), value: '0%',                  color: '#15803d' },
               ].map(({ label, value, color }) => (
                 <div key={label}>
@@ -113,13 +113,13 @@ export default async function BillingPage() {
           )}
 
           {/* Available plans */}
-          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
+          <div id="available-plans" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
             <div style={{ padding: '14px 20px', borderBottom: '1px solid #f1f5f9' }}>
               <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{t('dashboard.billing.availablePlans')}</span>
             </div>
             <div>
-              {Object.entries(PLAN_DETAILS).filter(([key]) => key !== 'professional').map(([key, p], i, arr) => {
-                const isCurrent = key === plan || (key === 'pro' && plan === 'professional');
+              {Object.entries(PLAN_DETAILS).map(([key, p], i, arr) => {
+                const isCurrent = key === plan;
                 return (
                   <div
                     key={key}
@@ -135,7 +135,9 @@ export default async function BillingPage() {
                     <div>
                       <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{t(`dashboard.billing.plans.${p.key}`)}</span>
                       <span style={{ fontSize: '13px', color: '#94a3b8', marginLeft: '10px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                        {t(p.sites === 1 ? 'dashboard.billing.sites' : 'dashboard.billing.sites_plural', { count: String(p.sites) })} · {t('dashboard.billing.units', { count: String(p.units) })}
+                        {Number.isFinite(p.sites)
+                          ? `${t(p.sites === 1 ? 'dashboard.billing.sites' : 'dashboard.billing.sites_plural', { count: String(p.sites) })} · ${t('dashboard.billing.units', { count: String(p.units) })}`
+                          : t('dashboard.billing.usage.unlimited')}
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -146,9 +148,11 @@ export default async function BillingPage() {
                           {t('dashboard.billing.current')}
                         </span>
                       ) : (
-                        <button style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '5px 11px', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                          {t('dashboard.billing.switch')}
-                        </button>
+                        <PlanSwitchButton
+                          plan={key}
+                          planLabel={t(`dashboard.billing.plans.${p.key}`)}
+                          style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '5px 11px', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                        />
                       )}
                     </div>
                   </div>

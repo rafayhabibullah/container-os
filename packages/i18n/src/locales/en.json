@@ -1537,8 +1537,13 @@
         "starter": "Starter",
         "growth": "Growth",
         "pro": "Pro",
-        "professional": "Professional"
+        "professional": "Professional",
+        "enterprise": "Enterprise"
       },
+      "switchConfirm": "Switch plan to {{plan}}?",
+      "switchSuccess": "Plan changed successfully.",
+      "switchFailed": "Failed to change plan.",
+      "switching": "Switching…",
       "usage": {
         "title": "Plan usage",
         "sites": "Sites",

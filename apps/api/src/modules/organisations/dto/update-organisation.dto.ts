@@ -1,11 +1,17 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import { OrgPlan } from '@sitelager/domain-types';
 
 export class UpdateOrganisationDto {
   @ApiPropertyOptional({ example: 'Alpha Storage' })
   @IsOptional()
   @IsString()
   tradingName?: string;
+
+  @ApiPropertyOptional({ enum: OrgPlan, example: 'professional' })
+  @IsOptional()
+  @IsEnum(OrgPlan)
+  plan?: OrgPlan;
 
   @ApiPropertyOptional({ example: 'billing@company.de' })
   @IsOptional()
