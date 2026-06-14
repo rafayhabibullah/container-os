@@ -17,3 +17,10 @@ export class ReportQueryDto {
   @IsString()
   siteId?: string;
 }
+
+export function resolveDateRange(from?: string, to?: string): { from: Date; to: Date } {
+  const now = new Date();
+  const start = from ? new Date(from) : new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = to ? new Date(to) : new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  return { from: start, to: end };
+}

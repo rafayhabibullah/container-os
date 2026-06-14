@@ -1621,12 +1621,60 @@
       "table": {
         "site": "Site",
         "occupancy": "Occupancy",
-        "units": "Units"
+        "units": "Units",
+        "month": "Month",
+        "amount": "Amount",
+        "method": "Method",
+        "customer": "Customer",
+        "bucket0_30": "0-30 days",
+        "bucket31_60": "31-60 days",
+        "bucket61_90": "61-90 days",
+        "bucket90plus": "90+ days",
+        "total": "Total",
+        "status": "Status",
+        "scheme": "Scheme",
+        "count": "Count",
+        "result": "Result",
+        "passed": "Passed",
+        "failed": "Failed",
+        "failedItems": "Failed items",
+        "tasksCreated": "Tasks created",
+        "priority": "Priority",
+        "type": "Type",
+        "severity": "Severity",
+        "source": "Source",
+        "total_": "Total",
+        "converted": "Converted",
+        "rate": "Conversion rate",
+        "tenant": "Tenant",
+        "unit": "Unit",
+        "terminatedAt": "Terminated at",
+        "reason": "Reason",
+        "provider": "Provider"
       },
       "empty": {
         "title": "No data yet",
         "hint": "Occupancy data will appear here once sites are active."
-      }
+      },
+      "tabs": {
+        "overview": "Overview",
+        "financial": "Financial",
+        "operations": "Operations",
+        "growth": "Growth"
+      },
+      "dateRange": {
+        "from": "From",
+        "to": "To",
+        "apply": "Apply"
+      },
+      "revenueByMonth": "Revenue by month",
+      "revenueByMethod": "Revenue by payment method",
+      "delinquency": "Outstanding invoices",
+      "mandateStatus": "SEPA mandates",
+      "inspections": "Inspections",
+      "operations": "Tasks & incidents",
+      "leadConversion": "Lead conversion",
+      "churn": "Cancellations"
     },
     "audit": {
       "title": "Audit Log",

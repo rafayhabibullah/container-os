@@ -1621,12 +1621,60 @@
       "table": {
         "site": "Standort",
         "occupancy": "Auslastung",
-        "units": "Einheiten"
+        "units": "Einheiten",
+        "month": "Monat",
+        "amount": "Betrag",
+        "method": "Zahlungsart",
+        "customer": "Kunde",
+        "bucket0_30": "0-30 Tage",
+        "bucket31_60": "31-60 Tage",
+        "bucket61_90": "61-90 Tage",
+        "bucket90plus": "90+ Tage",
+        "total": "Gesamt",
+        "status": "Status",
+        "scheme": "Schema",
+        "count": "Anzahl",
+        "result": "Ergebnis",
+        "passed": "Bestanden",
+        "failed": "Fehlgeschlagen",
+        "failedItems": "Fehlgeschlagene Punkte",
+        "tasksCreated": "Erstellte Aufgaben",
+        "priority": "Priorität",
+        "type": "Typ",
+        "severity": "Schweregrad",
+        "source": "Quelle",
+        "total_": "Gesamt",
+        "converted": "Konvertiert",
+        "rate": "Konversionsrate",
+        "tenant": "Mieter",
+        "unit": "Einheit",
+        "terminatedAt": "Gekündigt am",
+        "reason": "Grund",
+        "provider": "Anbieter"
       },
       "empty": {
         "title": "Noch keine Daten",
         "hint": "Auslastungsdaten werden hier angezeigt, sobald Standorte aktiv sind."
-      }
+      },
+      "tabs": {
+        "overview": "Übersicht",
+        "financial": "Finanzen",
+        "operations": "Betrieb",
+        "growth": "Wachstum"
+      },
+      "dateRange": {
+        "from": "Von",
+        "to": "Bis",
+        "apply": "Anwenden"
+      },
+      "revenueByMonth": "Umsatz nach Monat",
+      "revenueByMethod": "Umsatz nach Zahlungsart",
+      "delinquency": "Offene Forderungen",
+      "mandateStatus": "SEPA-Mandate",
+      "inspections": "Inspektionen",
+      "operations": "Aufgaben & Vorfälle",
+      "leadConversion": "Lead-Konversion",
+      "churn": "Kündigungen"
     },
     "audit": {
       "title": "Audit-Log",
