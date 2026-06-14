@@ -17,6 +17,7 @@ export const ErrorCodes = {
   INSPECTION_REQUIRED: 'INSPECTION_REQUIRED',
   LEGAL_HOLD_ACTIVE: 'LEGAL_HOLD_ACTIVE',
   PLAN_LIMIT_EXCEEDED: 'PLAN_LIMIT_EXCEEDED',
+  MANDATE_REFERENCE_INVALID: 'MANDATE_REFERENCE_INVALID',
 } as const;
 
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];

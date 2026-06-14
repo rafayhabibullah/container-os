@@ -16,9 +16,9 @@ export class MandateOrgController {
   createMandate(
     @Param('organisationId') _orgId: string,
     @Param('customerId') customerId: string,
-    @Body() body: { scheme: string; ibanLast4?: string; stripeSetupId?: string },
+    @Body() body: { scheme: string; ibanLast4?: string; stripeSetupId?: string; reference?: string; creditorId?: string },
   ) {
-    return this.mandate.createMandate(customerId, body.scheme, body.ibanLast4, 'operator', body.stripeSetupId);
+    return this.mandate.createMandate(customerId, body.scheme, body.ibanLast4, 'operator', body.stripeSetupId, body.reference, body.creditorId);
   }
 
   @Get('customers/:customerId/mandates')
@@ -28,5 +28,14 @@ export class MandateOrgController {
     @Param('customerId') customerId: string,
   ) {
     return this.mandate.listMandates(customerId);
+  }
+
+  @Post('sepa/direct-debit-batch')
+  @ApiOperation({ summary: 'Generate a pain.008 SEPA direct debit batch XML for the given mandates' })
+  createDirectDebitBatch(
+    @Param('organisationId') organisationId: string,
+    @Body() body: { mandateIds: string[]; collectionDate: string },
+  ) {
+    return this.mandate.createDirectDebitBatch(organisationId, body.mandateIds, new Date(body.collectionDate));
   }
 }

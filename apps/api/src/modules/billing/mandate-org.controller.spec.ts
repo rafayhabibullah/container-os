@@ -14,7 +14,7 @@ describe('MandateOrgController', () => {
       scheme: 'sepa_core',
       ibanLast4: '4321',
     });
-    expect(mockMandate.createMandate).toHaveBeenCalledWith('cust_01', 'sepa_core', '4321', 'operator', undefined);
+    expect(mockMandate.createMandate).toHaveBeenCalledWith('cust_01', 'sepa_core', '4321', 'operator', undefined, undefined, undefined);
     expect(result).toHaveProperty('id');
   });
 

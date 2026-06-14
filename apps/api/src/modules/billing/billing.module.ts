@@ -10,10 +10,11 @@ import { DelinquencyOrgController } from './delinquency-org.controller';
 import { AuthModule } from '../auth/auth.module';
 import { AuditModule } from '../audit/audit.module';
 import { MollieModule } from '../payments/mollie.module';
+import { DocumentsModule } from '../documents/documents.module';
 import { PrismaClient } from '@prisma/client';
 
 @Module({
-  imports: [AuthModule, AuditModule, MollieModule],
+  imports: [AuthModule, AuditModule, MollieModule, DocumentsModule],
   controllers: [BillingController, BillingOrgController, MandateOrgController, DelinquencyOrgController],
   providers: [
     BillingService,
