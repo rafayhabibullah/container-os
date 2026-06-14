@@ -3,12 +3,19 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getT, getLocale } from '@/lib/get-locale';
 import { getCurrentUser, getCurrentTenantUser } from '@/lib/auth';
+import { ImageCarousel } from './ImageCarousel';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api';
 
 interface SiteAddress { street: string; city: string; postalCode: string; country: string; }
 interface Site { id: string; name: string; slug: string; address: SiteAddress; }
 interface AvailabilityItem {
   unitTypeId: string; unitTypeName: string; sizeSqm: number;
   availableCount: number; earliestAvailable: string | null;
+}
+interface ListingWithImages {
+  images: string[];
+  site: { slug: string };
 }
 
 export default async function StorageSiteDetailPage({ params }: { params: { slug: string } }) {
@@ -24,6 +31,11 @@ export default async function StorageSiteDetailPage({ params }: { params: { slug
   const availability = await serverFetch<AvailabilityItem[]>(
     `/public/v1/sites/${params.slug}/availability`,
   ).catch(() => []);
+
+  const listings = await fetch(`${API_URL}/public/v1/listings?limit=200`, { cache: 'no-store' })
+    .then(async (r) => { const d = await r.json(); return Array.isArray(d) ? (d as ListingWithImages[]) : []; })
+    .catch(() => [] as ListingWithImages[]);
+  const images = listings.filter((l) => l.site.slug === params.slug).flatMap((l) => l.images);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -43,6 +55,7 @@ export default async function StorageSiteDetailPage({ params }: { params: { slug
 
       <div className="max-w-6xl mx-auto px-6 py-8">
         <Link href="/storage" className="text-sm text-slate-500 hover:text-slate-700 mb-4 block">{t('storage.detail.allSites')}</Link>
+        <ImageCarousel images={images} alt={site.name} />
         <h1 className="text-lg font-bold text-slate-900 mb-0.5">{site.name}</h1>
         <p className="text-sm text-slate-500 mb-6">
           {site.address.street}, {site.address.postalCode} {site.address.city}

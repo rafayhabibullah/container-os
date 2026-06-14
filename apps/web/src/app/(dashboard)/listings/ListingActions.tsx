@@ -128,23 +128,25 @@ export function ListingActions({ listingId, orgId, status, title, description, b
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files ?? []);
     e.target.value = '';
-    if (!file) return;
+    if (files.length === 0) return;
     setImageError('');
     setImageUploading(true);
     try {
-      const dataUrl: string = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-      const base64 = dataUrl.split(',')[1];
-      await clientFetch(`/v1/organisations/${orgId}/listings/${listingId}/images`, {
-        method: 'POST',
-        body: JSON.stringify({ data: base64, contentType: file.type }),
-      });
+      for (const file of files) {
+        const dataUrl: string = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        const base64 = dataUrl.split(',')[1];
+        await clientFetch(`/v1/organisations/${orgId}/listings/${listingId}/images`, {
+          method: 'POST',
+          body: JSON.stringify({ data: base64, contentType: file.type }),
+        });
+      }
       router.refresh();
     } catch (err: unknown) {
       setImageError(err instanceof Error ? err.message : t('dashboard.listings.actions.failed'));
@@ -164,6 +166,27 @@ export function ListingActions({ listingId, orgId, status, title, description, b
     } catch (err: unknown) {
       setImageError(err instanceof Error ? err.message : t('dashboard.listings.actions.failed'));
     }
+  }
+
+  async function handleImageReorder(images: string[]) {
+    setImageError('');
+    try {
+      await clientFetch(`/v1/organisations/${orgId}/listings/${listingId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ images }),
+      });
+      router.refresh();
+    } catch (err: unknown) {
+      setImageError(err instanceof Error ? err.message : t('dashboard.listings.actions.failed'));
+    }
+  }
+
+  function moveImage(index: number, dir: -1 | 1) {
+    const target = index + dir;
+    if (target < 0 || target >= images.length) return;
+    const next = [...images];
+    [next[index], next[target]] = [next[target], next[index]];
+    handleImageReorder(next);
   }
 
   const btnStyle: React.CSSProperties = {
@@ -292,8 +315,8 @@ export function ListingActions({ listingId, orgId, status, title, description, b
             <div>
               <label style={labelStyle}>{t('dashboard.listings.editModal.images')}</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
-                {images.map((url) => (
-                  <div key={url} style={{ position: 'relative', width: '64px', height: '64px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                {images.map((url, idx) => (
+                  <div key={url} style={{ position: 'relative', width: '64px', height: '64px', borderRadius: '8px', overflow: 'hidden', border: idx === 0 ? '2px solid #0f172a' : '1px solid #e2e8f0' }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <button
@@ -303,6 +326,24 @@ export function ListingActions({ listingId, orgId, status, title, description, b
                     >
                       ✕
                     </button>
+                    <div style={{ position: 'absolute', bottom: '2px', left: '2px', right: '2px', display: 'flex', justifyContent: 'space-between' }}>
+                      <button
+                        type="button"
+                        onClick={() => moveImage(idx, -1)}
+                        disabled={idx === 0}
+                        style={{ width: '16px', height: '16px', borderRadius: '4px', border: 'none', background: 'rgba(15,23,42,0.7)', color: '#fff', fontSize: '10px', cursor: idx === 0 ? 'default' : 'pointer', opacity: idx === 0 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, padding: 0 }}
+                      >
+                        ‹
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveImage(idx, 1)}
+                        disabled={idx === images.length - 1}
+                        style={{ width: '16px', height: '16px', borderRadius: '4px', border: 'none', background: 'rgba(15,23,42,0.7)', color: '#fff', fontSize: '10px', cursor: idx === images.length - 1 ? 'default' : 'pointer', opacity: idx === images.length - 1 ? 0.3 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, padding: 0 }}
+                      >
+                        ›
+                      </button>
+                    </div>
                   </div>
                 ))}
                 <label
@@ -313,7 +354,7 @@ export function ListingActions({ listingId, orgId, status, title, description, b
                   }}
                 >
                   {imageUploading ? '…' : '+'}
-                  <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleImageUpload} disabled={imageUploading} style={{ display: 'none' }} />
+                  <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple onChange={handleImageUpload} disabled={imageUploading} style={{ display: 'none' }} />
                 </label>
               </div>
               {imageError && <p style={{ fontSize: '12px', color: '#dc2626', margin: '0 0 8px' }}>{imageError}</p>}
