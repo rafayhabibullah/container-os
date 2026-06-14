@@ -749,8 +749,10 @@
       },
       "priority": {
         "critical": "critical",
+        "urgent": "urgent",
         "high": "high",
         "medium": "medium",
+        "normal": "normal",
         "low": "low"
       },
       "severity": {
@@ -1505,8 +1507,9 @@
         "status": "Status",
         "date": "Date",
         "creditNotes": "Credit notes",
-        "payNow": "Pay now (Mollie)",
-        "voidInvoice": "Void invoice"
+        "voidInvoice": "Void invoice",
+        "voidConfirm": "Void this invoice and create a credit note?",
+        "voidError": "Failed to void invoice. Please try again."
       },
       "export": {
         "backToInvoices": "← Invoices",

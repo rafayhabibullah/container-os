@@ -749,8 +749,10 @@
       },
       "priority": {
         "critical": "kritisch",
+        "urgent": "dringend",
         "high": "hoch",
         "medium": "mittel",
+        "normal": "normal",
         "low": "niedrig"
       },
       "severity": {
@@ -1505,8 +1507,9 @@
         "status": "Status",
         "date": "Datum",
         "creditNotes": "Gutschriften",
-        "payNow": "Jetzt bezahlen (Mollie)",
-        "voidInvoice": "Rechnung stornieren"
+        "voidInvoice": "Rechnung stornieren",
+        "voidConfirm": "Diese Rechnung stornieren und eine Gutschrift erstellen?",
+        "voidError": "Rechnung konnte nicht storniert werden. Bitte versuchen Sie es erneut."
       },
       "export": {
         "backToInvoices": "← Rechnungen",

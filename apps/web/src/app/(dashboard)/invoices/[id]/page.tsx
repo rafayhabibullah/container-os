@@ -2,6 +2,7 @@ import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
 import { getT } from '@/lib/get-locale';
 import Link from 'next/link';
+import { VoidInvoiceButton } from './void-invoice-button';
 
 interface InvoiceLine {
   id: string;
@@ -95,7 +96,6 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
     `/v1/organisations/${user.organisationId}/invoices/${params.id}`,
   );
 
-  const canPay = ['pending', 'sent', 'overdue'].includes(invoice.status);
   const canVoid = user.role === 'owner' && ['pending', 'sent', 'overdue'].includes(invoice.status);
 
   const cardStyle: React.CSSProperties = {
@@ -248,10 +248,15 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
           )}
 
           {/* Actions */}
-          {(canPay || canVoid) && (
+          {canVoid && (
             <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-              {canPay && <PayNowButton orgId={user.organisationId} invoiceId={invoice.id} t={t} />}
-              {canVoid && <VoidInvoiceButton orgId={user.organisationId} invoiceId={invoice.id} t={t} />}
+              <VoidInvoiceButton
+                orgId={user.organisationId}
+                invoiceId={invoice.id}
+                label={t('dashboard.invoices.detail.voidInvoice')}
+                confirmText={t('dashboard.invoices.detail.voidConfirm')}
+                errorText={t('dashboard.invoices.detail.voidError')}
+              />
             </div>
           )}
         </div>
@@ -260,34 +265,3 @@ export default async function InvoiceDetailPage({ params }: { params: { id: stri
   );
 }
 
-// ─── Island action components ─────────────────────────────────────────────────
-
-function PayNowButton({ orgId, invoiceId, t }: { orgId: string; invoiceId: string; t: ReturnType<typeof getT> }) {
-  return (
-    <form action="/api/billing/pay-invoice" method="POST">
-      <input type="hidden" name="organisationId" value={orgId} />
-      <input type="hidden" name="invoiceId" value={invoiceId} />
-      <button
-        type="submit"
-        style={{ background: '#0f172a', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '10px 18px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}
-      >
-        {t('dashboard.invoices.detail.payNow')}
-      </button>
-    </form>
-  );
-}
-
-function VoidInvoiceButton({ orgId, invoiceId, t }: { orgId: string; invoiceId: string; t: ReturnType<typeof getT> }) {
-  return (
-    <form action="/api/billing/void-invoice" method="POST">
-      <input type="hidden" name="organisationId" value={orgId} />
-      <input type="hidden" name="invoiceId" value={invoiceId} />
-      <button
-        type="submit"
-        style={{ border: '1px solid #fecaca', color: '#dc2626', background: '#fef2f2', borderRadius: '8px', padding: '10px 18px', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}
-      >
-        {t('dashboard.invoices.detail.voidInvoice')}
-      </button>
-    </form>
-  );
-}

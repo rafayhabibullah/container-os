@@ -78,9 +78,11 @@ const BOOKING_STATUS: Record<string, { dot: string; color: string; bg: string; b
 };
 
 const PRIORITY_PILL: Record<string, { color: string; bg: string; border: string }> = {
+  urgent:   { color: '#991b1b', bg: '#fef2f2', border: '#fecaca' },
   critical: { color: '#991b1b', bg: '#fef2f2', border: '#fecaca' },
   high:     { color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
   medium:   { color: '#1e40af', bg: '#eff6ff', border: '#bfdbfe' },
+  normal:   { color: '#1e40af', bg: '#eff6ff', border: '#bfdbfe' },
   low:      { color: '#475569', bg: '#f8fafc', border: '#e2e8f0' },
 };
 
