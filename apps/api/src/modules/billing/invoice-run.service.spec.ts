@@ -32,6 +32,29 @@ describe('InvoiceRunService', () => {
     expect(mockPrisma.invoice.upsert).not.toHaveBeenCalled();
   });
 
+  it('scopes agreements to organisation when organisationId is provided', async () => {
+    mockPrisma.agreement.findMany.mockResolvedValue([]);
+    await service.runForDate(new Date('2026-06-01T01:00:00Z'), 'org_01');
+    expect(mockPrisma.agreement.findMany).toHaveBeenCalledWith({
+      where: {
+        status: 'active',
+        billingCycle: 'monthly',
+        site: { organisationId: 'org_01' },
+      },
+    });
+  });
+
+  it('does not scope by organisation when organisationId is omitted', async () => {
+    mockPrisma.agreement.findMany.mockResolvedValue([]);
+    await service.runForDate(new Date('2026-06-01T01:00:00Z'));
+    expect(mockPrisma.agreement.findMany).toHaveBeenCalledWith({
+      where: {
+        status: 'active',
+        billingCycle: 'monthly',
+      },
+    });
+  });
+
   it('calculates monthly period correctly', () => {
     const period = service.calculateMonthlyPeriod(new Date('2026-06-15'));
     expect(period.start.getMonth()).toBe(5);

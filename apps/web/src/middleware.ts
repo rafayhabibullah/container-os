@@ -3,7 +3,6 @@ import type { NextRequest } from 'next/server';
 
 const PUBLIC_PREFIX_PATHS = [
   '/login', '/register', '/accept-invite',
-  '/my-storage/login',
   '/my-storage/register',
   '/api/auth', '/api/checkout', '/api/tenant', '/api/rpc',
   '/storage',
@@ -37,8 +36,9 @@ export function middleware(request: NextRequest) {
     const isValid = tenantToken && (decoded.exp ?? 0) * 1000 > Date.now();
 
     if (!isValid && !isPublic) {
-      return NextResponse.redirect(new URL('/my-storage/login', request.url));
+      return NextResponse.redirect(new URL('/login', request.url));
     }
+
     return NextResponse.next();
   }
 
@@ -52,6 +52,16 @@ export function middleware(request: NextRequest) {
 
   if (isValid && decoded.type !== 'tenant' && (pathname === '/login' || pathname === '/register')) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  if (pathname === '/login' || pathname === '/register') {
+    const tenantToken = request.cookies.get('sl_tenant_access')?.value;
+    const tenantDecoded = tenantToken ? decodeJwt(tenantToken) : {};
+    const isTenantValid = tenantToken && (tenantDecoded.exp ?? 0) * 1000 > Date.now();
+
+    if (isTenantValid && tenantDecoded.type === 'tenant') {
+      return NextResponse.redirect(new URL('/my-storage', request.url));
+    }
   }
 
   return NextResponse.next();

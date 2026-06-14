@@ -141,7 +141,7 @@ export default function TenantRegisterPage() {
 
         <p className="text-center text-sm text-slate-400 mt-6">
           {t('myStorage.register.alreadyHaveAccount')}{' '}
-          <Link href="/my-storage/login" className="text-blue-600 hover:text-blue-700 font-medium">
+          <Link href="/login" className="text-blue-600 hover:text-blue-700 font-medium">
             {t('myStorage.register.signIn')}
           </Link>
         </p>

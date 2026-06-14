@@ -1,4 +1,17 @@
 {
+  "auth": {
+    "login": {
+      "title": "Willkommen zurück",
+      "subtitle": "Melden Sie sich bei Ihrem Konto an",
+      "emailLabel": "E-Mail",
+      "passwordLabel": "Passwort",
+      "signIn": "Anmelden",
+      "signingIn": "Anmeldung läuft…",
+      "noAccount": "Sie haben noch kein Konto?",
+      "register": "Registrieren",
+      "errorLoginFailed": "Anmeldung fehlgeschlagen"
+    }
+  },
   "common": {
     "yes": "Ja",
     "no": "Nein",
@@ -1446,6 +1459,10 @@
       "count_plural": "{{count}} Rechnungen",
       "exportDatev": "DATEV exportieren",
       "runInvoices": "Rechnungen ausführen",
+      "runResult": {
+        "summary": "{{created}} Rechnung(en) erstellt, {{skipped}} bereits aktuell",
+        "error": "Der Rechnungslauf ist fehlgeschlagen. Bitte erneut versuchen."
+      },
       "searchPlaceholder": "Suchen…",
       "empty": {
         "title": "Noch keine Rechnungen",

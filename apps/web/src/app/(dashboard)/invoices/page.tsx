@@ -2,6 +2,7 @@ import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
 import { getT } from '@/lib/get-locale';
 import Link from 'next/link';
+import { RunResultBanner } from './run-result-banner';
 
 interface InvoiceRow {
   id: string;
@@ -70,10 +71,30 @@ function StatusPill({ status, t }: { status: string; t: ReturnType<typeof getT> 
 export default async function InvoicesPage({
   searchParams,
 }: {
-  searchParams?: { siteId?: string; status?: string };
+  searchParams?: {
+    siteId?: string;
+    status?: string;
+    runCreated?: string;
+    runSkipped?: string;
+    runErrors?: string;
+    runError?: string;
+  };
 }) {
   const user = await requireAuth();
   const t = getT();
+
+  let runResultMessage: { message: string; isError: boolean } | null = null;
+  if (searchParams?.runError) {
+    runResultMessage = { message: t('dashboard.invoices.runResult.error'), isError: true };
+  } else if (searchParams?.runCreated !== undefined || searchParams?.runSkipped !== undefined) {
+    runResultMessage = {
+      message: t('dashboard.invoices.runResult.summary', {
+        created: String(searchParams?.runCreated ?? '0'),
+        skipped: String(searchParams?.runSkipped ?? '0'),
+      }),
+      isError: false,
+    };
+  }
 
   const params = new URLSearchParams();
   if (searchParams?.siteId) params.set('siteId', searchParams.siteId);
@@ -121,6 +142,10 @@ export default async function InvoicesPage({
               </div>
             )}
           </div>
+
+          {runResultMessage && (
+            <RunResultBanner message={runResultMessage.message} isError={runResultMessage.isError} />
+          )}
 
           {/* Search bar */}
           <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>

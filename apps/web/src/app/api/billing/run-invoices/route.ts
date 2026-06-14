@@ -9,6 +9,15 @@ export async function POST(req: NextRequest) {
   const orgId = ctx.payload.organisationId;
   const res = await proxyToBackend(`/v1/organisations/${orgId}/invoices/run`, 'POST', ctx.token);
 
-  if (res.status >= 400) return res;
-  return NextResponse.redirect(new URL('/invoices', req.url));
+  if (res.status >= 400) {
+    return NextResponse.redirect(new URL('/invoices?runError=1', req.url));
+  }
+
+  const data = await res.json().catch(() => ({ created: 0, skipped: 0, errors: 0 }));
+  const params = new URLSearchParams({
+    runCreated: String(data.created ?? 0),
+    runSkipped: String(data.skipped ?? 0),
+    runErrors: String(data.errors ?? 0),
+  });
+  return NextResponse.redirect(new URL(`/invoices?${params.toString()}`, req.url));
 }

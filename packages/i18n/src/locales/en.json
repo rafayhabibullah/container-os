@@ -1,4 +1,17 @@
 {
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your account",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "signIn": "Sign in",
+      "signingIn": "Signing in…",
+      "noAccount": "Don't have an account?",
+      "register": "Register",
+      "errorLoginFailed": "Login failed"
+    }
+  },
   "common": {
     "yes": "Yes",
     "no": "No",
@@ -1446,6 +1459,10 @@
       "count_plural": "{{count}} invoices",
       "exportDatev": "Export DATEV",
       "runInvoices": "Run invoices",
+      "runResult": {
+        "summary": "{{created}} invoice(s) created, {{skipped}} already up to date",
+        "error": "The invoice run failed. Please try again."
+      },
       "searchPlaceholder": "Search…",
       "empty": {
         "title": "No invoices yet",

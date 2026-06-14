@@ -48,11 +48,11 @@ export class BillingOrgController {
   @Post('invoices/run')
   @ApiOperation({ summary: 'Trigger invoice run for a site (owner only)' })
   async runInvoices(
-    @Param('organisationId') _orgId: string,
+    @Param('organisationId') orgId: string,
     @CurrentMember() member: MemberContext,
   ) {
     if (member.role !== 'owner') throw new ForbiddenException('Only owners can trigger invoice runs');
-    return this.invoiceRun.runForDate(new Date());
+    return this.invoiceRun.runForDate(new Date(), orgId);
   }
 
   @Post('invoices/:invoiceId/void')

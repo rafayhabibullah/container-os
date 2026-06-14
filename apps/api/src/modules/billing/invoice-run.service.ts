@@ -14,8 +14,14 @@ export class InvoiceRunService {
     return { start, end };
   }
 
-  async runForDate(date: Date): Promise<{ created: number; skipped: number; errors: number }> {
-    const agreements = await this.prisma.agreement.findMany({ where: { status: 'active', billingCycle: 'monthly' } });
+  async runForDate(date: Date, organisationId?: string): Promise<{ created: number; skipped: number; errors: number }> {
+    const agreements = await this.prisma.agreement.findMany({
+      where: {
+        status: 'active',
+        billingCycle: 'monthly',
+        ...(organisationId ? { site: { organisationId } } : {}),
+      },
+    });
     let created = 0, skipped = 0, errors = 0;
 
     for (const agreement of agreements) {

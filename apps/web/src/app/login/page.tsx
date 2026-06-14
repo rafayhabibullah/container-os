@@ -3,9 +3,11 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useT } from '@/lib/i18n';
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useT();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -24,14 +26,11 @@ export default function LoginPage() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? 'Login failed');
-      if (data.userType === 'tenant') {
-        throw new Error('This portal is for operators and owners. Please contact your facility for tenant access.');
-      }
-      router.push('/dashboard');
+      if (!res.ok) throw new Error(data.message ?? t('auth.login.errorLoginFailed'));
+      router.push(data.userType === 'tenant' ? '/my-storage' : '/dashboard');
       router.refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err.message : t('auth.login.errorLoginFailed'));
     } finally {
       setLoading(false);
     }
@@ -45,8 +44,8 @@ export default function LoginPage() {
           <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center mb-4">
             <span className="text-white font-bold text-base">S</span>
           </div>
-          <h1 className="text-xl font-bold text-slate-900">Welcome back</h1>
-          <p className="text-sm text-slate-400 mt-1">Sign in to your operator account</p>
+          <h1 className="text-xl font-bold text-slate-900">{t('auth.login.title')}</h1>
+          <p className="text-sm text-slate-400 mt-1">{t('auth.login.subtitle')}</p>
         </div>
 
         {/* Card */}
@@ -57,7 +56,7 @@ export default function LoginPage() {
                 htmlFor="email"
                 className="block text-sm font-medium text-slate-700 mb-1.5"
               >
-                Email
+                {t('auth.login.emailLabel')}
               </label>
               <input
                 id="email"
@@ -75,7 +74,7 @@ export default function LoginPage() {
                 htmlFor="password"
                 className="block text-sm font-medium text-slate-700 mb-1.5"
               >
-                Password
+                {t('auth.login.passwordLabel')}
               </label>
               <input
                 id="password"
@@ -100,18 +99,18 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg disabled:opacity-50 transition-colors text-sm"
             >
-              {loading ? 'Signing in…' : 'Sign in'}
+              {loading ? t('auth.login.signingIn') : t('auth.login.signIn')}
             </button>
           </form>
         </div>
 
         <p className="text-center text-sm text-slate-400 mt-6">
-          Don&apos;t have an account?{' '}
+          {t('auth.login.noAccount')}{' '}
           <Link
             href="/register"
             className="text-blue-600 hover:text-blue-700 font-medium"
           >
-            Register
+            {t('auth.login.register')}
           </Link>
         </p>
       </div>
