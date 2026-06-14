@@ -34,7 +34,9 @@
       "profileTitle": "Profil",
       "profileSubtitle": "Name und Kontaktdaten aktualisieren",
       "supportTitle": "Support",
-      "supportSubtitle": "Problem melden"
+      "supportSubtitle": "Problem melden",
+      "notificationsTitle": "Benachrichtigungen",
+      "notificationsSubtitle": "Verwalten Sie, wie wir Sie kontaktieren"
     },
     "dashboard": {
       "overdueSingular": "Sie haben 1 überfällige Rechnung",
@@ -206,7 +208,25 @@
       "signing": "Wird unterschrieben…",
       "errorSign": "Vertrag konnte nicht unterschrieben werden"
     },
-    "printButton": "Drucken / PDF herunterladen"
+    "printButton": "Drucken / PDF herunterladen",
+    "notifications": {
+      "title": "Benachrichtigungen",
+      "subtitle": "Wählen Sie, wie Sie für jedes Ereignis benachrichtigt werden möchten",
+      "loadError": "Benachrichtigungseinstellungen konnten nicht geladen werden. Bitte aktualisieren Sie die Seite.",
+      "errorGeneric": "Etwas ist schiefgelaufen",
+      "eventColumn": "Ereignis",
+      "channels": {
+        "email": "E-Mail",
+        "sms": "SMS",
+        "push": "Push"
+      },
+      "events": {
+        "invoice_overdue": "Rechnung überfällig",
+        "invoice_paid": "Rechnung bezahlt",
+        "agreement_activated": "Vertrag aktiviert",
+        "access_credential_issued": "Zugangsdaten ausgestellt"
+      }
+    }
   },
   "home": {
     "nav": {

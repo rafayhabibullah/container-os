@@ -169,6 +169,10 @@ export default async function MyStoragePage() {
               <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>{t('myStorage.nav.supportTitle')}</h3>
               <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>{t('myStorage.nav.supportSubtitle')}</p>
             </Link>
+            <Link href="/my-storage/notifications" className="ms-nav-card" style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', padding: '20px', textDecoration: 'none', display: 'block', transition: 'box-shadow 0.15s' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '0 0 4px' }}>{t('myStorage.nav.notificationsTitle')}</h3>
+              <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>{t('myStorage.nav.notificationsSubtitle')}</p>
+            </Link>
           </div>
 
           <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a', margin: '0 0 14px', letterSpacing: '-0.01em' }}>{t('myStorage.dashboard.yourUnits')}</h2>

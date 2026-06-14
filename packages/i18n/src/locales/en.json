@@ -34,7 +34,9 @@
       "profileTitle": "Profile",
       "profileSubtitle": "Update your name and contact info",
       "supportTitle": "Support",
-      "supportSubtitle": "Report a problem"
+      "supportSubtitle": "Report a problem",
+      "notificationsTitle": "Notifications",
+      "notificationsSubtitle": "Manage how we contact you"
     },
     "dashboard": {
       "overdueSingular": "You have 1 overdue invoice",
@@ -206,7 +208,25 @@
       "signing": "Signing…",
       "errorSign": "Failed to sign agreement"
     },
-    "printButton": "Print / Download PDF"
+    "printButton": "Print / Download PDF",
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Choose how you want to be notified for each event",
+      "loadError": "Failed to load notification preferences. Please try refreshing the page.",
+      "errorGeneric": "Something went wrong",
+      "eventColumn": "Event",
+      "channels": {
+        "email": "Email",
+        "sms": "SMS",
+        "push": "Push"
+      },
+      "events": {
+        "invoice_overdue": "Invoice overdue",
+        "invoice_paid": "Invoice paid",
+        "agreement_activated": "Agreement activated",
+        "access_credential_issued": "Access credential issued"
+      }
+    }
   },
   "home": {
     "nav": {
