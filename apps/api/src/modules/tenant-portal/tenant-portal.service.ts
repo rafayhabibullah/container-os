@@ -10,7 +10,7 @@ export class TenantPortalService {
   private async resolveCustomerIds(userId: string): Promise<string[]> {
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true } });
     const contacts = await this.prisma.contact.findMany({
-      where: { email: user.email },
+      where: { email: user.email, deletedAt: null },
       select: { customerId: true },
     });
     return [...new Set(contacts.map((c) => c.customerId))];
@@ -19,7 +19,7 @@ export class TenantPortalService {
   async listMyAgreements(userId: string) {
     const customerIds = await this.resolveCustomerIds(userId);
     const agreements = await this.prisma.agreement.findMany({
-      where: { tenantId: { in: customerIds }, status: { in: ['active', 'signed', 'pending_signature'] } },
+      where: { tenantId: { in: customerIds }, status: { in: ['active', 'signed', 'pending_signature'] }, deletedAt: null },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -57,12 +57,12 @@ export class TenantPortalService {
   async listMyInvoices(userId: string) {
     const customerIds = await this.resolveCustomerIds(userId);
     const agreements = await this.prisma.agreement.findMany({
-      where: { tenantId: { in: customerIds } },
+      where: { tenantId: { in: customerIds }, deletedAt: null },
       select: { id: true },
     });
     const agreementIds = agreements.map((a) => a.id);
     return this.prisma.invoice.findMany({
-      where: { agreementId: { in: agreementIds } },
+      where: { agreementId: { in: agreementIds }, deletedAt: null },
       orderBy: { dueDate: 'desc' },
     });
   }
@@ -70,7 +70,7 @@ export class TenantPortalService {
   async listMyMandates(userId: string) {
     const customerIds = await this.resolveCustomerIds(userId);
     return this.prisma.mandate.findMany({
-      where: { customerId: { in: customerIds } },
+      where: { customerId: { in: customerIds }, deletedAt: null },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,

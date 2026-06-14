@@ -19,6 +19,7 @@ export class OperatorReservationsService {
     const reservations = await this.prisma.reservation.findMany({
       where: {
         siteId: { in: siteIds },
+        deletedAt: null,
         ...(filter.siteId ? { siteId: filter.siteId } : {}),
         ...(filter.status ? { status: filter.status as any } : {}),
       },

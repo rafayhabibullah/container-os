@@ -200,6 +200,7 @@ model Contact {
   email      String
   phone      String?
   createdAt  DateTime @default(now())
+  deletedAt  DateTime?
   customer   Customer @relation(fields: [customerId], references: [id])
 
   @@index([customerId])
@@ -227,6 +228,7 @@ model Reservation {
   expiresAt  DateTime
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
+  deletedAt  DateTime?
 }
 
 model ReservationHold {
@@ -264,6 +266,7 @@ model Agreement {
   language         String               @default("de")
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
+  deletedAt        DateTime?
   customer         Customer             @relation(fields: [tenantId], references: [id])
   amendments       AgreementAmendment[]
   invoices         Invoice[]
@@ -318,6 +321,7 @@ model Invoice {
   einvoiceStorageKey String?
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
+  deletedAt          DateTime?
   credits            CreditNote[]
   agreement          Agreement     @relation(fields: [agreementId], references: [id])
   lines              InvoiceLine[]
@@ -353,6 +357,7 @@ model Mandate {
   signedAt      DateTime?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  deletedAt     DateTime?
   customer      Customer      @relation(fields: [customerId], references: [id])
 
   @@index([customerId])
@@ -392,6 +397,7 @@ model Payment {
   reference   String           @unique
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+  deletedAt   DateTime?
   invoice     Invoice          @relation(fields: [invoiceId], references: [id])
   attempts    PaymentAttempt[]
 
@@ -715,6 +721,7 @@ model OrganisationMember {
   userId         String
   role           MemberRole
   createdAt      DateTime     @default(now())
+  deletedAt      DateTime?
   organisation   Organisation @relation(fields: [organisationId], references: [id])
   user           User         @relation(fields: [userId], references: [id])
 

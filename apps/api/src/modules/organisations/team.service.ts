@@ -7,7 +7,7 @@ export class TeamService {
 
   async listMembers(orgId: string) {
     return this.prisma.organisationMember.findMany({
-      where: { organisationId: orgId },
+      where: { organisationId: orgId, deletedAt: null },
       include: { user: { select: { id: true, name: true, email: true } } },
       orderBy: { createdAt: 'asc' },
     });
@@ -17,18 +17,21 @@ export class TeamService {
     if (requestingRole !== 'owner') throw new ForbiddenException('OWNER_REQUIRED');
 
     const member = await this.prisma.organisationMember.findFirst({
-      where: { id: memberId, organisationId: orgId },
+      where: { id: memberId, organisationId: orgId, deletedAt: null },
     });
     if (!member) throw new NotFoundException('MEMBER_NOT_FOUND');
 
     if (member.role === 'owner') {
       const ownerCount = await this.prisma.organisationMember.count({
-        where: { organisationId: orgId, role: 'owner' },
+        where: { organisationId: orgId, role: 'owner', deletedAt: null },
       });
       if (ownerCount <= 1) throw new BadRequestException('LAST_OWNER');
     }
 
-    await this.prisma.organisationMember.delete({ where: { id: memberId } });
+    await this.prisma.organisationMember.update({
+      where: { id: memberId },
+      data: { deletedAt: new Date() },
+    });
   }
 
   async listInvitations(orgId: string, requestingRole: string) {

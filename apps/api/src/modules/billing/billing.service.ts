@@ -17,7 +17,7 @@ export class BillingService {
   }
 
   async getInvoicesForSite(siteId: string) {
-    return this.prisma.invoice.findMany({ where: { siteId }, orderBy: { invoiceDate: 'desc' } });
+    return this.prisma.invoice.findMany({ where: { siteId, deletedAt: null }, orderBy: { invoiceDate: 'desc' } });
   }
 
   async listInvoicesForOrg(organisationId: string, filter: ListInvoicesFilter) {
@@ -29,6 +29,7 @@ export class BillingService {
 
     const where: Record<string, unknown> = {
       siteId: { in: orgSiteIds },
+      deletedAt: null,
     };
     if (filter.siteId) where.siteId = filter.siteId;
     if (filter.agreementId) where.agreementId = filter.agreementId;

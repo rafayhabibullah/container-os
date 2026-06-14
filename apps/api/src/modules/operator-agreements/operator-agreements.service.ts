@@ -18,6 +18,7 @@ export class OperatorAgreementsService {
     const agreements = await this.prisma.agreement.findMany({
       where: {
         siteId: { in: siteIds },
+        deletedAt: null,
         ...(filter.siteId ? { siteId: filter.siteId } : {}),
         ...(filter.unitId ? { unitId: filter.unitId } : {}),
         ...(filter.status ? { status: filter.status as any } : {}),

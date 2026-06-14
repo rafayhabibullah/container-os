@@ -16,6 +16,6 @@ export class MandateService {
   }
 
   async listMandates(customerId: string) {
-    return this.prisma.mandate.findMany({ where: { customerId }, orderBy: { createdAt: 'desc' } });
+    return this.prisma.mandate.findMany({ where: { customerId, deletedAt: null }, orderBy: { createdAt: 'desc' } });
   }
 }

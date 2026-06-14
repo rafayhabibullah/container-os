@@ -6,7 +6,8 @@ const mockPrisma = {
   organisationMember: {
     findMany: vi.fn(),
     findFirst: vi.fn(),
-    delete: vi.fn(),
+    update: vi.fn(),
+    count: vi.fn(),
   },
   invitation: {
     findMany: vi.fn(),
@@ -32,7 +33,7 @@ describe('TeamService', () => {
 
       expect(result).toEqual(members);
       expect(mockPrisma.organisationMember.findMany).toHaveBeenCalledWith({
-        where: { organisationId: 'org1' },
+        where: { organisationId: 'org1', deletedAt: null },
         include: { user: { select: { id: true, name: true, email: true } } },
         orderBy: { createdAt: 'asc' },
       });
@@ -56,11 +57,14 @@ describe('TeamService', () => {
 
     it('removes member when owner removes a different user', async () => {
       mockPrisma.organisationMember.findFirst.mockResolvedValue({ id: 'm1', userId: 'u2', organisationId: 'org1' });
-      mockPrisma.organisationMember.delete.mockResolvedValue({});
+      mockPrisma.organisationMember.update.mockResolvedValue({});
 
       await service.removeMember('org1', 'm1', 'owner', 'u1');
 
-      expect(mockPrisma.organisationMember.delete).toHaveBeenCalledWith({ where: { id: 'm1' } });
+      expect(mockPrisma.organisationMember.update).toHaveBeenCalledWith({
+        where: { id: 'm1' },
+        data: { deletedAt: expect.any(Date) },
+      });
     });
   });
 
