@@ -1,7 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { CreateListingDto } from './dto/create-listing.dto';
 import { UpdateListingDto } from './dto/update-listing.dto';
+import { StorageService } from '../documents/storage.service';
+import * as crypto from 'crypto';
 
 function slugify(text: string) {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -9,7 +11,31 @@ function slugify(text: string) {
 
 @Injectable()
 export class ListingsService {
-  constructor(private prisma: PrismaClient) {}
+  constructor(private prisma: PrismaClient, private storage: StorageService) {}
+
+  async addImage(organisationId: string, listingId: string, base64Data: string, contentType: string) {
+    const listing = await this.prisma.listing.findFirst({ where: { id: listingId, organisationId } });
+    if (!listing) throw new NotFoundException('Listing not found');
+    if (!/^image\/(png|jpe?g|webp|gif)$/.test(contentType)) throw new BadRequestException('Unsupported image type');
+
+    const buffer = Buffer.from(base64Data, 'base64');
+    if (buffer.length > 5 * 1024 * 1024) throw new BadRequestException('Image too large (max 5MB)');
+
+    const ext = contentType.split('/')[1].replace('jpeg', 'jpg');
+    const key = `listings/${listingId}/${crypto.randomUUID()}.${ext}`;
+    await this.storage.uploadPublic(key, buffer, contentType);
+    const url = this.storage.getPublicUrl(key);
+
+    const images = [...listing.images, url];
+    return this.prisma.listing.update({ where: { id: listingId }, data: { images } });
+  }
+
+  async removeImage(organisationId: string, listingId: string, imageUrl: string) {
+    const listing = await this.prisma.listing.findFirst({ where: { id: listingId, organisationId } });
+    if (!listing) throw new NotFoundException('Listing not found');
+    const images = listing.images.filter((img) => img !== imageUrl);
+    return this.prisma.listing.update({ where: { id: listingId }, data: { images } });
+  }
 
   async createListing(organisationId: string, dto: CreateListingDto) {
     const base = slugify(dto.title);
@@ -48,7 +74,7 @@ export class ListingsService {
   async updateListing(organisationId: string, listingId: string, dto: UpdateListingDto) {
     await this.assertOwnership(organisationId, listingId);
     const { unitId, title, description, publicPriceMinor, showPrice, depositMinor, availableFrom,
-            bookingMode, requiredDocs, seoTitle, seoDescription } = dto;
+            bookingMode, requiredDocs, images, seoTitle, seoDescription } = dto;
     return this.prisma.listing.update({
       where: { id: listingId },
       data: {
@@ -61,6 +87,7 @@ export class ListingsService {
         ...(availableFrom !== undefined && { availableFrom: availableFrom ? new Date(availableFrom) : null }),
         ...(bookingMode !== undefined && { bookingMode }),
         ...(requiredDocs !== undefined && { requiredDocs }),
+        ...(images !== undefined && { images }),
         ...(seoTitle !== undefined && { seoTitle }),
         ...(seoDescription !== undefined && { seoDescription }),
       },

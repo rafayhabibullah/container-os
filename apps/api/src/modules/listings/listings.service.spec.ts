@@ -15,7 +15,7 @@ describe('ListingsService', () => {
   let service: ListingsService;
 
   beforeEach(() => {
-    service = new ListingsService(mockPrisma as unknown as PrismaClient);
+    service = new ListingsService(mockPrisma as unknown as PrismaClient, {} as never);
     vi.clearAllMocks();
   });
 

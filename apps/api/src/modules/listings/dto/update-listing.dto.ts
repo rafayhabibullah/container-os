@@ -11,6 +11,7 @@ export class UpdateListingDto {
   @IsOptional() @IsIn(['approval_required', 'instant_booking', 'request_price'])
   bookingMode?: 'approval_required' | 'instant_booking' | 'request_price';
   @IsOptional() @IsArray() @IsString({ each: true }) requiredDocs?: string[];
+  @IsOptional() @IsArray() @IsString({ each: true }) images?: string[];
   @IsOptional() @IsString() seoTitle?: string;
   @IsOptional() @IsString() seoDescription?: string;
 }

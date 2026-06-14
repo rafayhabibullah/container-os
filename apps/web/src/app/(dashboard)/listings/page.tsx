@@ -16,6 +16,7 @@ interface ListingRow {
   showPrice: boolean;
   site: { name: string };
   unit: { unitCode: string };
+  images: string[];
   createdAt: string;
 }
 

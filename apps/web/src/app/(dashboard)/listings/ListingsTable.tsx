@@ -16,6 +16,7 @@ interface ListingRow {
   showPrice: boolean;
   site: { name: string };
   unit: { unitCode: string };
+  images: string[];
   createdAt: string;
 }
 
@@ -271,6 +272,7 @@ export default function ListingsTable({ listings, orgId, sites }: Props) {
                         siteId={listing.siteId}
                         unitId={listing.unitId}
                         sites={sites}
+                        images={listing.images}
                       />
                     </td>
                   </tr>

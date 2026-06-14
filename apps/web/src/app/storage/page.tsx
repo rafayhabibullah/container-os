@@ -13,6 +13,7 @@ interface ListingSearchResult {
   bookingMode: string;
   publicPriceMinor: number | null;
   showPrice: boolean;
+  images: string[];
   site: { name: string; slug: string; address: { city: string; country: string } };
   unit: { unitType: { sizeSqm: number; name: string } };
 }
@@ -130,33 +131,44 @@ export default async function StoragePage({
             <Link href="/storage" className="mt-4 inline-block text-sm text-blue-600 hover:underline">{t('storage.results.clearFilters')}</Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {listings.map((listing) => (
               <Link key={listing.id}
                 href={`/storage/${listing.site.slug}`}
-                className="bg-white rounded-xl border border-slate-200 p-5 hover:border-blue-300 hover:shadow-sm transition-all group">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h2 className="font-semibold text-slate-900 group-hover:text-blue-600 text-sm leading-tight">{listing.title}</h2>
-                    <p className="text-xs text-slate-500 mt-0.5">{listing.site.address.city}</p>
-                  </div>
+                className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:border-blue-300 hover:shadow-md transition-all group">
+                <div className="relative w-full h-40 bg-slate-100">
+                  {listing.images?.[0] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-300">
+                      <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 7a2 2 0 0 1 2-2h2l1.5-2h7L17 5h2a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                        <circle cx="12" cy="13" r="3.5" stroke="currentColor" strokeWidth="1.5"/>
+                      </svg>
+                    </div>
+                  )}
                   {listing.bookingMode === 'instant_booking' && (
-                    <span className="text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full shrink-0">{t('storage.results.instantBadge')}</span>
+                    <span className="absolute top-2 right-2 text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full shadow-sm">{t('storage.results.instantBadge')}</span>
                   )}
                 </div>
-                <p className="text-xs text-slate-400">{listing.unit.unitType.sizeSqm} m² · {listing.unit.unitType.name}</p>
-                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
-                  <div>
-                    {listing.showPrice && listing.publicPriceMinor != null ? (
-                      <span className="font-bold text-slate-900">
-                        {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(listing.publicPriceMinor / 100)}
-                        <span className="text-xs font-normal text-slate-400">{t('storage.results.perMonth')}</span>
-                      </span>
-                    ) : (
-                      <span className="text-sm text-slate-400">{t('storage.results.priceOnRequest')}</span>
-                    )}
+                <div className="p-4">
+                  <h2 className="font-semibold text-slate-900 group-hover:text-blue-600 text-sm leading-tight">{listing.title}</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">{listing.site.address.city}</p>
+                  <p className="text-xs text-slate-400 mt-2">{listing.unit.unitType.sizeSqm} m² · {listing.unit.unitType.name}</p>
+                  <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <div>
+                      {listing.showPrice && listing.publicPriceMinor != null ? (
+                        <span className="font-bold text-slate-900">
+                          {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(listing.publicPriceMinor / 100)}
+                          <span className="text-xs font-normal text-slate-400">{t('storage.results.perMonth')}</span>
+                        </span>
+                      ) : (
+                        <span className="text-sm text-slate-400">{t('storage.results.priceOnRequest')}</span>
+                      )}
+                    </div>
+                    <span className="text-xs text-blue-600 font-medium group-hover:underline">{t('storage.results.view')}</span>
                   </div>
-                  <span className="text-xs text-blue-600 font-medium group-hover:underline">{t('storage.results.view')}</span>
                 </div>
               </Link>
             ))}

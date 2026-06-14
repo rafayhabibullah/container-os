@@ -46,4 +46,22 @@ export class ListingsController {
   archive(@Param('organisationId') orgId: string, @Param('listingId') listingId: string) {
     return this.listings.archiveListing(orgId, listingId);
   }
+
+  @Post(':listingId/images')
+  addImage(
+    @Param('organisationId') orgId: string,
+    @Param('listingId') listingId: string,
+    @Body() body: { data: string; contentType: string },
+  ) {
+    return this.listings.addImage(orgId, listingId, body.data, body.contentType);
+  }
+
+  @Post(':listingId/images/remove')
+  removeImage(
+    @Param('organisationId') orgId: string,
+    @Param('listingId') listingId: string,
+    @Body() body: { url: string },
+  ) {
+    return this.listings.removeImage(orgId, listingId, body.url);
+  }
 }

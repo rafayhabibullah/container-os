@@ -1067,6 +1067,7 @@ model Listing {
   bookingMode      BookingMode   @default(approval_required)
   status           ListingStatus @default(draft)
   requiredDocs     String[]  @default([])
+  images           String[]  @default([])
   seoTitle         String?
   seoDescription   String?
   commissionRateBp Int           @default(0)

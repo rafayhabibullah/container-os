@@ -30,6 +30,7 @@ interface Props {
   siteId: string;
   unitId: string;
   sites: Site[];
+  images: string[];
 }
 
 const BOOKING_MODE_KEYS = ['approval_required', 'instant_booking', 'request_price'] as const;
@@ -57,7 +58,7 @@ const labelStyle: React.CSSProperties = {
   letterSpacing: '0.03em',
 };
 
-export function ListingActions({ listingId, orgId, status, title, description, bookingMode, publicPriceMinor, showPrice, siteId, unitId, sites }: Props) {
+export function ListingActions({ listingId, orgId, status, title, description, bookingMode, publicPriceMinor, showPrice, siteId, unitId, sites, images }: Props) {
   const router = useRouter();
   const t = useT();
   const [loading,      setLoading]      = useState(false);
@@ -68,6 +69,8 @@ export function ListingActions({ listingId, orgId, status, title, description, b
   const [editSiteId,   setEditSiteId]   = useState(siteId);
   const [units,        setUnits]        = useState<Unit[]>([]);
   const [unitsLoading, setUnitsLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageError,     setImageError]     = useState('');
 
   useEffect(() => {
     if (!showEdit) return;
@@ -121,6 +124,45 @@ export function ListingActions({ listingId, orgId, status, title, description, b
       setEditError(err instanceof Error ? err.message : t('dashboard.listings.actions.failed'));
     } finally {
       setEditLoading(false);
+    }
+  }
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setImageError('');
+    setImageUploading(true);
+    try {
+      const dataUrl: string = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const base64 = dataUrl.split(',')[1];
+      await clientFetch(`/v1/organisations/${orgId}/listings/${listingId}/images`, {
+        method: 'POST',
+        body: JSON.stringify({ data: base64, contentType: file.type }),
+      });
+      router.refresh();
+    } catch (err: unknown) {
+      setImageError(err instanceof Error ? err.message : t('dashboard.listings.actions.failed'));
+    } finally {
+      setImageUploading(false);
+    }
+  }
+
+  async function handleImageRemove(url: string) {
+    setImageError('');
+    try {
+      await clientFetch(`/v1/organisations/${orgId}/listings/${listingId}/images/remove`, {
+        method: 'POST',
+        body: JSON.stringify({ url }),
+      });
+      router.refresh();
+    } catch (err: unknown) {
+      setImageError(err instanceof Error ? err.message : t('dashboard.listings.actions.failed'));
     }
   }
 
@@ -245,6 +287,36 @@ export function ListingActions({ listingId, orgId, status, title, description, b
                   {t('dashboard.listings.editModal.showPricePublicly')}
                 </label>
               </div>
+            </div>
+
+            <div>
+              <label style={labelStyle}>{t('dashboard.listings.editModal.images')}</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '8px' }}>
+                {images.map((url) => (
+                  <div key={url} style={{ position: 'relative', width: '64px', height: '64px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <button
+                      type="button"
+                      onClick={() => handleImageRemove(url)}
+                      style={{ position: 'absolute', top: '2px', right: '2px', width: '18px', height: '18px', borderRadius: '50%', border: 'none', background: 'rgba(15,23,42,0.7)', color: '#fff', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                <label
+                  style={{
+                    width: '64px', height: '64px', borderRadius: '8px', border: '1px dashed #cbd5e1',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: imageUploading ? 'not-allowed' : 'pointer',
+                    color: '#94a3b8', fontSize: '20px', flexShrink: 0,
+                  }}
+                >
+                  {imageUploading ? '…' : '+'}
+                  <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={handleImageUpload} disabled={imageUploading} style={{ display: 'none' }} />
+                </label>
+              </div>
+              {imageError && <p style={{ fontSize: '12px', color: '#dc2626', margin: '0 0 8px' }}>{imageError}</p>}
             </div>
 
             {editError && (

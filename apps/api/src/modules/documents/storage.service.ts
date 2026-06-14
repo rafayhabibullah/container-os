@@ -37,6 +37,29 @@ export class StorageService {
     return { storageKey: key, hash };
   }
 
+  async uploadPublic(key: string, buffer: Buffer, contentType: string): Promise<{ storageKey: string; hash: string }> {
+    const client = this.getClient();
+    const exists = await client.bucketExists(this.bucket);
+    if (!exists) await client.makeBucket(this.bucket, 'eu-central-1');
+    try {
+      await client.setBucketPolicy(this.bucket, JSON.stringify({
+        Version: '2012-10-17',
+        Statement: [{ Effect: 'Allow', Principal: { AWS: ['*'] }, Action: ['s3:GetObject'], Resource: [`arn:aws:s3:::${this.bucket}/*`] }],
+      }));
+    } catch {
+      // policy already set or unsupported in test environments
+    }
+    return this.upload(key, buffer, contentType);
+  }
+
+  getPublicUrl(key: string): string {
+    const protocol = process.env.MINIO_USE_SSL === 'true' ? 'https' : 'http';
+    const endpoint = process.env.MINIO_ENDPOINT ?? 'localhost';
+    const port = process.env.MINIO_PORT ?? '9000';
+    const publicBase = process.env.MINIO_PUBLIC_URL ?? `${protocol}://${endpoint}:${port}`;
+    return `${publicBase}/${this.bucket}/${key}`;
+  }
+
   async uploadSafe(key: string, buffer: Buffer, contentType: string): Promise<{ storageKey: string; hash: string }> {
     try {
       return await this.upload(key, buffer, contentType);
