@@ -15,11 +15,17 @@ export class InvoiceRunService {
   }
 
   async runForDate(date: Date, organisationId?: string): Promise<{ created: number; skipped: number; errors: number }> {
+    let siteIdFilter: { in: string[] } | undefined;
+    if (organisationId) {
+      const sites = await this.prisma.site.findMany({ where: { organisationId }, select: { id: true } });
+      siteIdFilter = { in: sites.map((s) => s.id) };
+    }
+
     const agreements = await this.prisma.agreement.findMany({
       where: {
         status: 'active',
         billingCycle: 'monthly',
-        ...(organisationId ? { site: { organisationId } } : {}),
+        ...(siteIdFilter ? { siteId: siteIdFilter } : {}),
       },
     });
     let created = 0, skipped = 0, errors = 0;

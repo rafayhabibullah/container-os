@@ -2,6 +2,7 @@ import { serverFetch } from '@/lib/server-api';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getT, getLocale } from '@/lib/get-locale';
+import { getCurrentUser, getCurrentTenantUser } from '@/lib/auth';
 
 interface SiteAddress { street: string; city: string; postalCode: string; country: string; }
 interface Site { id: string; name: string; slug: string; address: SiteAddress; }
@@ -13,6 +14,9 @@ interface AvailabilityItem {
 export default async function StorageSiteDetailPage({ params }: { params: { slug: string } }) {
   const t = getT();
   const locale = getLocale();
+  const user = getCurrentUser();
+  const tenantUser = getCurrentTenantUser();
+  const accountHref = user ? '/dashboard' : tenantUser ? '/my-storage' : '/login';
   const sites = await serverFetch<Site[]>('/public/v1/sites').catch(() => []);
   const site = sites.find((s) => s.slug === params.slug);
   if (!site) notFound();
@@ -31,7 +35,9 @@ export default async function StorageSiteDetailPage({ params }: { params: { slug
             </div>
             <span className="font-bold text-slate-900 text-sm">SiteLager</span>
           </Link>
-          <Link href="/login" className="text-sm text-slate-600 hover:text-slate-900">{t('storage.nav.signIn')}</Link>
+          <Link href={accountHref} className="text-sm text-slate-600 hover:text-slate-900">
+            {user || tenantUser ? t('storage.nav.myAccount') : t('storage.nav.signIn')}
+          </Link>
         </div>
       </header>
 

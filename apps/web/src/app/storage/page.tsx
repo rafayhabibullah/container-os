@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Search, Filter } from 'lucide-react';
 import { getT } from '@/lib/get-locale';
+import { getCurrentUser, getCurrentTenantUser } from '@/lib/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api';
 
@@ -22,6 +23,9 @@ export default async function StoragePage({
   searchParams: { q?: string; city?: string; country?: string; minSize?: string; maxSize?: string; mode?: string };
 }) {
   const t = getT();
+  const user = getCurrentUser();
+  const tenantUser = getCurrentTenantUser();
+  const accountHref = user ? '/dashboard' : tenantUser ? '/my-storage' : '/login';
   const params = new URLSearchParams();
   if (searchParams.q) params.set('q', searchParams.q);
   if (searchParams.city) params.set('city', searchParams.city);
@@ -52,7 +56,9 @@ export default async function StoragePage({
             </div>
             <span className="font-bold text-slate-900 text-sm">SiteLager</span>
           </Link>
-          <Link href="/login" className="text-sm text-slate-600 hover:text-slate-900">{t('storage.nav.signIn')}</Link>
+          <Link href={accountHref} className="text-sm text-slate-600 hover:text-slate-900">
+            {user || tenantUser ? t('storage.nav.myAccount') : t('storage.nav.signIn')}
+          </Link>
         </div>
       </header>
 

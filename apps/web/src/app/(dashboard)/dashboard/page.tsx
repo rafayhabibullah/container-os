@@ -68,10 +68,13 @@ interface InvoiceRow {
 }
 
 const BOOKING_STATUS: Record<string, { dot: string; color: string; bg: string; border: string }> = {
-  pending:   { dot: '#f59e0b', color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
-  active:    { dot: '#16a34a', color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
-  expired:   { dot: '#94a3b8', color: '#475569', bg: '#f8fafc', border: '#e2e8f0' },
-  cancelled: { dot: '#ef4444', color: '#991b1b', bg: '#fef2f2', border: '#fecaca' },
+  pending:            { dot: '#f59e0b', color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
+  pending_signature:  { dot: '#f59e0b', color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
+  confirmed:          { dot: '#16a34a', color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+  active:             { dot: '#16a34a', color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+  converted:          { dot: '#16a34a', color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+  expired:            { dot: '#94a3b8', color: '#475569', bg: '#f8fafc', border: '#e2e8f0' },
+  cancelled:          { dot: '#ef4444', color: '#991b1b', bg: '#fef2f2', border: '#fecaca' },
 };
 
 const PRIORITY_PILL: Record<string, { color: string; bg: string; border: string }> = {

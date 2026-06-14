@@ -352,7 +352,8 @@
   },
   "storage": {
     "nav": {
-      "signIn": "Anmelden"
+      "signIn": "Anmelden",
+      "myAccount": "Mein Konto"
     },
     "search": {
       "label": "Suche",
@@ -739,7 +740,10 @@
       "manage": "Verwalten →",
       "bookingStatus": {
         "pending": "ausstehend",
+        "pending_signature": "Unterschrift ausstehend",
+        "confirmed": "bestätigt",
         "active": "aktiv",
+        "converted": "umgewandelt",
         "expired": "abgelaufen",
         "cancelled": "storniert"
       },
@@ -1464,6 +1468,7 @@
         "error": "Der Rechnungslauf ist fehlgeschlagen. Bitte erneut versuchen."
       },
       "searchPlaceholder": "Suchen…",
+      "noResults": "Keine Rechnungen entsprechen Ihrer Suche.",
       "empty": {
         "title": "Noch keine Rechnungen",
         "hint": "Rechnungen werden hier angezeigt, sobald sie erstellt wurden."

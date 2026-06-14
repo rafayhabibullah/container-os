@@ -352,7 +352,8 @@
   },
   "storage": {
     "nav": {
-      "signIn": "Sign in"
+      "signIn": "Sign in",
+      "myAccount": "My account"
     },
     "search": {
       "label": "Search",
@@ -739,7 +740,10 @@
       "manage": "Manage →",
       "bookingStatus": {
         "pending": "pending",
+        "pending_signature": "pending signature",
+        "confirmed": "confirmed",
         "active": "active",
+        "converted": "converted",
         "expired": "expired",
         "cancelled": "cancelled"
       },
@@ -1464,6 +1468,7 @@
         "error": "The invoice run failed. Please try again."
       },
       "searchPlaceholder": "Search…",
+      "noResults": "No invoices match your search.",
       "empty": {
         "title": "No invoices yet",
         "hint": "Invoices will appear here once generated."

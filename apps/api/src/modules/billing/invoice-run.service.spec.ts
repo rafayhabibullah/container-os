@@ -3,6 +3,7 @@ import { InvoiceRunService } from './invoice-run.service';
 
 const mockPrisma = {
   agreement: { findMany: vi.fn() },
+  site: { findMany: vi.fn() },
   invoice: { findFirst: vi.fn(), upsert: vi.fn() },
   invoiceLine: { createMany: vi.fn() },
 };
@@ -33,13 +34,15 @@ describe('InvoiceRunService', () => {
   });
 
   it('scopes agreements to organisation when organisationId is provided', async () => {
+    mockPrisma.site.findMany.mockResolvedValue([{ id: 's1' }, { id: 's2' }]);
     mockPrisma.agreement.findMany.mockResolvedValue([]);
     await service.runForDate(new Date('2026-06-01T01:00:00Z'), 'org_01');
+    expect(mockPrisma.site.findMany).toHaveBeenCalledWith({ where: { organisationId: 'org_01' }, select: { id: true } });
     expect(mockPrisma.agreement.findMany).toHaveBeenCalledWith({
       where: {
         status: 'active',
         billingCycle: 'monthly',
-        site: { organisationId: 'org_01' },
+        siteId: { in: ['s1', 's2'] },
       },
     });
   });
