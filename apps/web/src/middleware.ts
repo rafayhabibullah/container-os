@@ -9,6 +9,8 @@ const PUBLIC_PREFIX_PATHS = [
   '/for-operators',
   '/pricing',
   '/legal',
+  '/platform-admin',
+  '/api/platform-admin',
 ];
 const PUBLIC_EXACT_PATHS = ['/'];
 
