@@ -3,6 +3,7 @@ import { serverFetch } from '@/lib/server-api';
 import { getT } from '@/lib/get-locale';
 import ListingsTable from './ListingsTable';
 import NewListingButton from './NewListingButton';
+import ReviewModeration from './ReviewModeration';
 
 interface ListingRow {
   id: string;
@@ -25,12 +26,24 @@ interface Site {
   name: string;
 }
 
+interface ReviewRow {
+  id: string;
+  rating: number;
+  title: string | null;
+  body: string | null;
+  reviewerName: string | null;
+  status: string;
+  createdAt: string;
+  listing?: { title: string; slug: string };
+}
+
 export default async function ListingsPage() {
   const user = await requireAuth();
   const t = getT();
-  const [listings, sites] = await Promise.all([
+  const [listings, sites, reviews] = await Promise.all([
     serverFetch<ListingRow[]>(`/v1/organisations/${user.organisationId}/listings`).catch(() => [] as ListingRow[]),
     serverFetch<Site[]>(`/v1/organisations/${user.organisationId}/sites`).catch(() => [] as Site[]),
+    serverFetch<ReviewRow[]>(`/v1/organisations/${user.organisationId}/listings/reviews`).catch(() => [] as ReviewRow[]),
   ]);
 
   const published   = listings.filter((l) => l.status === 'published').length;
@@ -97,6 +110,7 @@ export default async function ListingsPage() {
           </div>
 
           <ListingsTable listings={listings} orgId={user.organisationId} sites={sites} />
+          <ReviewModeration orgId={user.organisationId} reviews={reviews} />
         </div>
       </div>
     </>

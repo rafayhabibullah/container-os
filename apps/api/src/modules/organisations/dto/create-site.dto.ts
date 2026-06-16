@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsObject, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsObject, IsOptional, IsString } from 'class-validator';
 
 export class CreateSiteDto {
   @ApiProperty({ example: 'Berlin Mitte Self-Storage' })
@@ -19,4 +19,14 @@ export class CreateSiteDto {
   @IsOptional()
   @IsString()
   currency?: string;
+
+  @ApiPropertyOptional({ example: 52.520008 })
+  @IsOptional()
+  @IsNumber()
+  latitude?: number;
+
+  @ApiPropertyOptional({ example: 13.404954 })
+  @IsOptional()
+  @IsNumber()
+  longitude?: number;
 }

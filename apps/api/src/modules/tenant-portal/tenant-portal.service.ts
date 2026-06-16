@@ -117,6 +117,9 @@ export class TenantPortalService {
     const signatories = await this.prisma.signatory.findMany({ where: { agreementId: agreement.id } });
     if (signatories.every((s) => s.status === 'signed')) {
       await this.prisma.agreement.update({ where: { id: agreement.id }, data: { status: 'signed' } });
+      await this.prisma.backgroundJob.create({
+        data: { kind: 'rental.activate-ready', payload: { agreementId: agreement.id, actorId: userId } },
+      }).catch(() => undefined);
     }
     return { agreementId: agreement.id, signed: true };
   }
@@ -200,7 +203,7 @@ export class TenantPortalService {
       ? await this.prisma.unit.findUnique({ where: { id: agreement.unitId }, select: { id: true } })
       : null;
     const incident = await this.prisma.incident.create({
-      data: { siteId: agreement.siteId, unitId: unitExists ? agreement.unitId : undefined, tenantId: customerIds[0], severity: 'low', type: params.type },
+      data: { siteId: agreement.siteId, unitId: unitExists ? agreement.unitId : undefined, tenantId: customerIds[0], severity: 'low', type: params.type, description: params.description, photoIds: [] },
     });
     const task = await this.prisma.task.create({
       data: {

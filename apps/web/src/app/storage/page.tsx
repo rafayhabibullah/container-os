@@ -19,7 +19,8 @@ interface ListingSearchResult {
   requiredDocs: string[];
   ratingAverage: number | null;
   reviewCount: number;
-  site: { id: string; name: string; slug: string; address: { street?: string; city?: string; postalCode?: string; country?: string }; accessHours?: unknown };
+  distanceKm?: number | null;
+  site: { id: string; name: string; slug: string; latitude?: number | null; longitude?: number | null; address: { street?: string; city?: string; postalCode?: string; country?: string }; accessHours?: unknown };
   organisation: { legalName: string; tradingName: string | null; countryCode: string };
   unit: { id: string; kind: string; driveUp: boolean; unitType: { id: string; name: string; sizeSqm: number; sizeCbm: number | null; doorType: string | null; features: string[] } };
 }
@@ -41,7 +42,7 @@ function append(params: URLSearchParams, key: string, value?: string) {
 export default async function StoragePage({
   searchParams,
 }: {
-  searchParams: { q?: string; city?: string; country?: string; minSize?: string; maxSize?: string; minPrice?: string; maxPrice?: string; mode?: string; feature?: string; sort?: string };
+  searchParams: { q?: string; city?: string; country?: string; minSize?: string; maxSize?: string; minPrice?: string; maxPrice?: string; mode?: string; feature?: string; sort?: string; lat?: string; lng?: string; radiusKm?: string };
 }) {
   const t = getT();
   const user = getCurrentUser();
@@ -58,6 +59,9 @@ export default async function StoragePage({
   append(params, 'bookingMode', searchParams.mode);
   append(params, 'feature', searchParams.feature);
   append(params, 'sort', searchParams.sort);
+  append(params, 'lat', searchParams.lat);
+  append(params, 'lng', searchParams.lng);
+  append(params, 'radiusKm', searchParams.radiusKm);
   params.set('limit', '60');
 
   const [listings, allListings] = await Promise.all([
@@ -80,6 +84,9 @@ export default async function StoragePage({
     mode: searchParams.mode,
     feature: searchParams.feature,
     sort: searchParams.sort,
+    lat: searchParams.lat,
+    lng: searchParams.lng,
+    radiusKm: searchParams.radiusKm,
   };
 
   return (
@@ -121,6 +128,7 @@ export default async function StoragePage({
               <span className="text-xs font-semibold text-slate-500">Sortierung</span>
               <select name="sort" defaultValue={searchParams.sort ?? ''} className="mt-1 w-full border border-slate-200 rounded-lg bg-white px-3 py-2.5 text-sm">
                 <option value="">Empfohlen</option>
+                <option value="distance">Entfernung</option>
                 <option value="price_asc">Preis aufsteigend</option>
                 <option value="price_desc">Preis absteigend</option>
               </select>
@@ -138,6 +146,11 @@ export default async function StoragePage({
                 <option value="instant_booking">Sofort buchbar</option>
                 <option value="approval_required">Anfrage</option>
               </select>
+            </div>
+            <div className="md:col-span-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <input name="lat" defaultValue={searchParams.lat} placeholder="Latitude, z.B. 52.5200" className="border border-slate-200 rounded-lg px-3 py-2 text-sm" />
+              <input name="lng" defaultValue={searchParams.lng} placeholder="Longitude, z.B. 13.4050" className="border border-slate-200 rounded-lg px-3 py-2 text-sm" />
+              <input name="radiusKm" defaultValue={searchParams.radiusKm} placeholder="Radius km" className="border border-slate-200 rounded-lg px-3 py-2 text-sm" />
             </div>
           </form>
           {features.length > 0 && (
@@ -197,6 +210,7 @@ export default async function StoragePage({
                     <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-600">
                       <span className="border border-slate-200 rounded-full px-2 py-1 flex items-center gap-1"><Ruler className="w-3 h-3" /> {listing.unit.unitType.sizeSqm} m²</span>
                       {listing.unit.driveUp && <span className="border border-slate-200 rounded-full px-2 py-1">Drive-up</span>}
+                      {listing.distanceKm != null && <span className="border border-blue-200 bg-blue-50 text-blue-700 rounded-full px-2 py-1">{listing.distanceKm} km</span>}
                       {listing.ratingAverage && <span className="border border-amber-200 bg-amber-50 text-amber-700 rounded-full px-2 py-1 flex items-center gap-1"><Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {listing.ratingAverage} ({listing.reviewCount})</span>}
                       {listing.unit.unitType.features.slice(0, 2).map((feature) => <span key={feature} className="border border-slate-200 rounded-full px-2 py-1">{feature}</span>)}
                     </div>

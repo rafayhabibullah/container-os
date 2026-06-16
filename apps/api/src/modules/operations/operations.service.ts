@@ -63,7 +63,7 @@ export class OperationsService {
       if (!site) throw new NotFoundException('SITE_NOT_FOUND');
     }
     const { organisationId: _organisationId, ...incidentData } = params;
-    const incident = await this.prisma.incident.create({ data: incidentData });
+    const incident = await this.prisma.incident.create({ data: { ...incidentData, photoIds: params.photoIds ?? [] } });
     const task = await this.createTask({ organisationId: params.organisationId, siteId: params.siteId, unitId: params.unitId, tenantId: params.tenantId, title: `Incident: ${params.type}`, priority: this.severityToTaskPriority(params.severity), subjectRef: `Incident:${incident.id}`, source: 'incident' });
     return { incidentId: incident.id, taskId: task.id };
   }

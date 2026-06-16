@@ -12,6 +12,6 @@ import { PrismaClient } from '@prisma/client';
   imports: [AuthModule],
   controllers: [NotificationsController],
   providers: [NotificationsService, TemplateRendererService, EmailService, SmsService, PushService, { provide: PrismaClient, useValue: new PrismaClient() }],
-  exports: [NotificationsService],
+  exports: [NotificationsService, EmailService],
 })
 export class NotificationsModule {}

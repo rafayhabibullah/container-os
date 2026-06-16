@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useT } from '@/lib/i18n';
 import { CHECKLISTS } from './checklists';
 
@@ -379,7 +380,7 @@ export default function InspectionActions({ sites = [] }: Props) {
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {photos.map((p, idx) => (
                     <div key={idx} style={{ position: 'relative', width: '72px', height: '72px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
-                      <img src={p.previewUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <Image src={p.previewUrl} alt="" fill sizes="72px" unoptimized style={{ objectFit: 'cover' }} />
                       {p.uploading && (
                         <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <span style={{ fontSize: '10px', fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#64748b' }}>{t('dashboard.inspections.form.uploading')}</span>

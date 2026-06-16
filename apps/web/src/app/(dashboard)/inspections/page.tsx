@@ -3,6 +3,7 @@ import { serverFetch } from '@/lib/server-api';
 import { getT } from '@/lib/get-locale';
 import InspectionActions from './InspectionActions';
 import InspectionsPageClient from './InspectionsPageClient';
+import PlanLockedNotice from '../components/PlanLockedNotice';
 
 interface InspectionRow {
   id: string;
@@ -25,13 +26,20 @@ interface Site {
   name: string;
 }
 
+interface Entitlements {
+  plan: string;
+  features: string[];
+}
+
 export default async function InspectionsPage() {
   const user = await requireAuth();
   const t = getT();
-  const [inspections, sites] = await Promise.all([
+  const [inspections, sites, entitlements] = await Promise.all([
     serverFetch<InspectionRow[]>(`/v1/organisations/${user.organisationId}/inspections`).catch(() => [] as InspectionRow[]),
     serverFetch<Site[]>(`/v1/organisations/${user.organisationId}/sites`).catch(() => [] as Site[]),
+    serverFetch<Entitlements>(`/v1/organisations/${user.organisationId}/entitlements`).catch(() => ({ plan: 'free', features: [] } as Entitlements)),
   ]);
+  const operationsEnabled = entitlements.features.includes('operations');
 
   const passed     = inspections.filter((i) => i.result === 'pass').length;
   const failed     = inspections.filter((i) => i.result === 'fail').length;
@@ -76,10 +84,17 @@ export default async function InspectionsPage() {
                 )}
               </div>
             </div>
-            <InspectionActions sites={sites} />
+            {operationsEnabled && <InspectionActions sites={sites} />}
           </div>
 
-          <InspectionsPageClient inspections={inspections} />
+          {operationsEnabled ? (
+            <InspectionsPageClient inspections={inspections} />
+          ) : (
+            <PlanLockedNotice
+              title="Inspections are available on Professional"
+              body={`Your current ${entitlements.plan} plan keeps simple operations lean. Upgrade when you want move-in, move-out and routine inspection reports with photos, failed-item follow-up tasks and agreement evidence.`}
+            />
+          )}
         </div>
       </div>
     </>

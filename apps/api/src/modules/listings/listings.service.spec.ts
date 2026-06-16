@@ -9,6 +9,9 @@ const mockPrisma = {
     findFirst: vi.fn(),
     update: vi.fn(),
   },
+  unit: {
+    findFirst: vi.fn(),
+  },
 };
 
 describe('ListingsService', () => {
@@ -27,14 +30,35 @@ describe('ListingsService', () => {
         title: 'Big Box',
         bookingMode: 'approval_required' as const,
       };
+      mockPrisma.unit.findFirst.mockResolvedValue({ id: 'unit-1', status: 'available', listing: null });
       mockPrisma.listing.create.mockResolvedValue({ id: 'list-1', status: 'draft', ...dto });
       const result = await service.createListing('org-1', dto);
+      expect(mockPrisma.unit.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id: 'unit-1',
+            siteId: 'site-1',
+            site: expect.objectContaining({ organisationId: 'org-1' }),
+          }),
+        }),
+      );
       expect(mockPrisma.listing.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ organisationId: 'org-1', status: 'draft', source: 'manual' }),
         }),
       );
       expect(result.status).toBe('draft');
+    });
+
+    it('rejects a listing when the unit is not available in the organisation site', async () => {
+      mockPrisma.unit.findFirst.mockResolvedValue(null);
+      await expect(service.createListing('org-1', {
+        unitId: 'unit-1',
+        siteId: 'site-1',
+        title: 'Big Box',
+        bookingMode: 'approval_required',
+      })).rejects.toThrow('UNIT_NOT_FOUND_FOR_SITE');
+      expect(mockPrisma.listing.create).not.toHaveBeenCalled();
     });
   });
 

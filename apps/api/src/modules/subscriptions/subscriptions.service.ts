@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { OrgPlan, PrismaClient } from '@prisma/client';
 import { MollieAdapter } from '../payments/mollie.adapter';
+import PDFDocument from 'pdfkit';
 
 const PLANS: Record<OrgPlan, { basePriceMinor: number; includedSites: number; includedUnits: number; extraUnitPriceMinor: number; marketplaceRateBp: number }> = {
   free: { basePriceMinor: 0, includedSites: 1, includedUnits: 10, extraUnitPriceMinor: 0, marketplaceRateBp: 700 },
@@ -34,6 +35,66 @@ export class SubscriptionsService {
   private billedAmount(plan: OrgPlan, billingInterval: string) {
     const monthly = PLANS[plan].basePriceMinor;
     return billingInterval === 'yearly' ? monthly * 10 : monthly;
+  }
+
+  private async nextSubscriptionInvoiceNumber() {
+    const count = await this.prisma.subscriptionInvoice.count();
+    const year = new Date().getFullYear();
+    return `SL-${year}-${String(count + 1).padStart(6, '0')}`;
+  }
+
+  private invoiceAmounts(totalMinor: number) {
+    const netMinor = Math.round(totalMinor / 1.19);
+    return { netMinor, vatMinor: totalMinor - netMinor, totalMinor };
+  }
+
+  private sellerSnapshot() {
+    return {
+      name: process.env.SITELAGER_LEGAL_NAME ?? 'SiteLager GmbH',
+      address: process.env.SITELAGER_LEGAL_ADDRESS ?? 'Germany',
+      vatId: process.env.SITELAGER_VAT_ID ?? null,
+      taxNumber: process.env.SITELAGER_TAX_NUMBER ?? null,
+      billingEmail: process.env.SITELAGER_BILLING_EMAIL ?? 'billing@sitelager.com',
+    };
+  }
+
+  private async createSubscriptionInvoice(params: {
+    organisation: { id: string; legalName: string; billingEmail: string; vatId?: string | null; taxNumber?: string | null; countryCode: string };
+    subscriptionId: string;
+    plan: OrgPlan;
+    billingInterval: string;
+    periodStart: Date;
+    periodEnd: Date;
+  }) {
+    const amount = this.billedAmount(params.plan, params.billingInterval);
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 7);
+    const invoice = await this.prisma.subscriptionInvoice.create({
+      data: {
+        organisationId: params.organisation.id,
+        subscriptionId: params.subscriptionId,
+        invoiceNumber: await this.nextSubscriptionInvoiceNumber(),
+        plan: params.plan,
+        billingInterval: params.billingInterval,
+        status: 'open',
+        currency: 'EUR',
+        ...this.invoiceAmounts(amount),
+        periodStart: params.periodStart,
+        periodEnd: params.periodEnd,
+        dueDate,
+        lineItems: [{ kind: 'saas_subscription', description: `SiteLager ${params.plan} (${params.billingInterval})`, amountMinor: amount, vatRate: 0.19 }],
+        sellerSnapshot: this.sellerSnapshot(),
+        buyerSnapshot: {
+          organisationId: params.organisation.id,
+          legalName: params.organisation.legalName,
+          billingEmail: params.organisation.billingEmail,
+          vatId: params.organisation.vatId,
+          taxNumber: params.organisation.taxNumber,
+          countryCode: params.organisation.countryCode,
+        },
+      },
+    });
+    return invoice;
   }
 
   private webhookUrl() {
@@ -86,23 +147,35 @@ export class SubscriptionsService {
     const pending = await this.prisma.organisationSubscription.create({
       data: { organisationId, plan, billingInterval, ...PLANS[plan], provider: 'mollie', providerCustomerId: customerId, status: 'pending_payment', currentPeriodStart: now, currentPeriodEnd },
     });
+    const invoice = await this.createSubscriptionInvoice({
+      organisation,
+      subscriptionId: pending.id,
+      plan,
+      billingInterval,
+      periodStart: now,
+      periodEnd: currentPeriodEnd,
+    });
     const appUrl = process.env.APP_URL ?? 'http://localhost:3001';
     const payment = await this.mollie.createPaymentLink({
-      invoiceId: `subscription:${pending.id}`,
-      amountMinor: this.billedAmount(plan, billingInterval),
+      invoiceId: invoice.invoiceNumber,
+      amountMinor: invoice.totalMinor,
       currency: 'EUR',
-      description: `SiteLager ${plan} - ${billingInterval}`,
+      description: `${invoice.invoiceNumber} SiteLager ${plan} - ${billingInterval}`,
       redirectUrl: redirectUrl ?? `${appUrl}/billing?checkout=return`,
       webhookUrl: this.webhookUrl(),
       customerId,
       sequenceType: 'first',
-      metadata: { type: 'subscription', subscriptionId: pending.id, organisationId },
+      metadata: { type: 'subscription', subscriptionId: pending.id, organisationId, subscriptionInvoiceId: invoice.id, invoiceNumber: invoice.invoiceNumber },
     });
     await this.prisma.organisationSubscription.update({
       where: { id: pending.id },
       data: { providerPaymentId: payment.molliePaymentId, checkoutUrl: payment.checkoutUrl, lastPaymentStatus: 'open' },
     });
-    return { requiresPayment: true, checkoutUrl: payment.checkoutUrl, subscriptionId: pending.id };
+    await this.prisma.subscriptionInvoice.update({
+      where: { id: invoice.id },
+      data: { provider: 'mollie', providerPaymentId: payment.molliePaymentId, checkoutUrl: payment.checkoutUrl },
+    });
+    return { requiresPayment: true, checkoutUrl: payment.checkoutUrl, subscriptionId: pending.id, invoiceId: invoice.id, invoiceNumber: invoice.invoiceNumber };
   }
 
   async handlePaymentWebhook(providerPaymentId: string) {
@@ -124,6 +197,13 @@ export class SubscriptionsService {
       return true;
     }
     await this.prisma.organisationSubscription.update({ where: { id: pending.id }, data: { lastPaymentStatus: payment.status } });
+    await this.prisma.subscriptionInvoice.updateMany({
+      where: { OR: [{ providerPaymentId }, { subscriptionId: pending.id, status: { in: ['open', 'draft'] } }] },
+      data: {
+        status: payment.status === 'paid' ? 'paid' : ['failed', 'canceled', 'expired'].includes(payment.status) ? 'failed' : 'open',
+        paidAt: payment.status === 'paid' ? new Date() : undefined,
+      },
+    });
     if (payment.status !== 'paid') {
       if (['failed', 'canceled', 'expired'].includes(payment.status)) {
         await this.prisma.organisationSubscription.update({ where: { id: pending.id }, data: { status: 'payment_failed' } });
@@ -179,5 +259,70 @@ export class SubscriptionsService {
 
   listCommissions(organisationId: string) {
     return this.prisma.commissionRecord.findMany({ where: { organisationId }, orderBy: { createdAt: 'desc' } });
+  }
+
+  listInvoices(organisationId: string) {
+    return this.prisma.subscriptionInvoice.findMany({ where: { organisationId }, orderBy: { invoiceDate: 'desc' } });
+  }
+
+  getInvoice(organisationId: string, invoiceId: string) {
+    return this.prisma.subscriptionInvoice.findFirstOrThrow({ where: { id: invoiceId, organisationId } });
+  }
+
+  async generateInvoicePdf(organisationId: string, invoiceId: string) {
+    const invoice = await this.prisma.subscriptionInvoice.findFirstOrThrow({ where: { id: invoiceId, organisationId } });
+    const seller = invoice.sellerSnapshot as { name?: string; address?: string; vatId?: string | null; taxNumber?: string | null; billingEmail?: string };
+    const buyer = invoice.buyerSnapshot as { legalName?: string; billingEmail?: string; vatId?: string | null; taxNumber?: string | null; countryCode?: string };
+    const lineItems = invoice.lineItems as { description?: string; amountMinor?: number; vatRate?: number }[];
+    const money = (minor: number) => `${(minor / 100).toFixed(2)} ${invoice.currency}`;
+
+    const buffer = await new Promise<Buffer>((resolve, reject) => {
+      const pdf = new PDFDocument({ size: 'A4', margin: 50 });
+      const chunks: Buffer[] = [];
+      pdf.on('data', (chunk: Buffer) => chunks.push(chunk));
+      pdf.on('end', () => resolve(Buffer.concat(chunks)));
+      pdf.on('error', reject);
+
+      pdf.fontSize(20).text(`Rechnung ${invoice.invoiceNumber}`);
+      pdf.moveDown(0.5).fontSize(10).fillColor('#475569');
+      pdf.text(`Rechnungsdatum: ${invoice.invoiceDate.toLocaleDateString('de-DE')}`);
+      pdf.text(`Faellig am: ${invoice.dueDate.toLocaleDateString('de-DE')}`);
+      if (invoice.paidAt) pdf.text(`Bezahlt am: ${invoice.paidAt.toLocaleDateString('de-DE')}`);
+
+      pdf.moveDown().fillColor('#0f172a').fontSize(12).text('Leistungserbringer', { underline: true });
+      pdf.fontSize(10).text(seller.name ?? 'SiteLager');
+      pdf.text(seller.address ?? 'Germany');
+      if (seller.vatId) pdf.text(`USt-IdNr.: ${seller.vatId}`);
+      if (seller.taxNumber) pdf.text(`Steuernummer: ${seller.taxNumber}`);
+      if (seller.billingEmail) pdf.text(seller.billingEmail);
+
+      pdf.moveDown().fontSize(12).text('Rechnungsempfaenger', { underline: true });
+      pdf.fontSize(10).text(buyer.legalName ?? 'Organisation');
+      if (buyer.billingEmail) pdf.text(buyer.billingEmail);
+      if (buyer.vatId) pdf.text(`USt-IdNr.: ${buyer.vatId}`);
+      if (buyer.taxNumber) pdf.text(`Steuernummer: ${buyer.taxNumber}`);
+      if (buyer.countryCode) pdf.text(`Land: ${buyer.countryCode}`);
+
+      pdf.moveDown().fontSize(12).text('Abrechnungszeitraum', { underline: true });
+      pdf.fontSize(10).text(`${invoice.periodStart.toLocaleDateString('de-DE')} - ${invoice.periodEnd.toLocaleDateString('de-DE')}`);
+      pdf.text(`Plan: ${invoice.plan} (${invoice.billingInterval})`);
+
+      pdf.moveDown().fontSize(12).text('Positionen', { underline: true });
+      pdf.moveDown(0.25);
+      for (const item of lineItems) {
+        pdf.fontSize(10).text(item.description ?? 'SiteLager Subscription', { continued: true });
+        pdf.text(money(item.amountMinor ?? 0), { align: 'right' });
+      }
+
+      pdf.moveDown();
+      pdf.fontSize(10).text(`Netto: ${money(invoice.netMinor)}`, { align: 'right' });
+      pdf.text(`USt. ${(invoice.vatRate * 100).toFixed(0)}%: ${money(invoice.vatMinor)}`, { align: 'right' });
+      pdf.fontSize(13).fillColor('#0f172a').text(`Gesamt: ${money(invoice.totalMinor)}`, { align: 'right' });
+      pdf.moveDown().fontSize(9).fillColor('#64748b').text(`Status: ${invoice.status}`);
+      pdf.text('Diese Rechnung wurde elektronisch durch SiteLager erstellt.');
+      pdf.end();
+    });
+
+    return { fileName: `${invoice.invoiceNumber}.pdf`, buffer };
   }
 }

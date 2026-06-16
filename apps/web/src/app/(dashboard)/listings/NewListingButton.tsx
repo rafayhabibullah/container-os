@@ -77,7 +77,7 @@ export default function NewListingButton({ orgId, sites, listedUnitIds }: Props)
       .then((data: Unit[]) => setUnits(data.filter((u) => u.status === 'available' && !listedUnitIds.includes(u.id))))
       .catch(() => setUnits([]))
       .finally(() => setUnitsLoading(false));
-  }, [siteId]);
+  }, [listedUnitIds, siteId]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

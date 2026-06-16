@@ -3,6 +3,7 @@ import { serverFetch } from '@/lib/server-api';
 import { getT } from '@/lib/get-locale';
 import IncidentActions from './IncidentActions';
 import IncidentsTable from './IncidentsTable';
+import PlanLockedNotice from '../components/PlanLockedNotice';
 
 interface Incident {
   id: string;
@@ -21,13 +22,20 @@ interface Site {
   name: string;
 }
 
+interface Entitlements {
+  plan: string;
+  features: string[];
+}
+
 export default async function IncidentsPage() {
   const user = await requireAuth();
   const t = getT();
-  const [incidents, sites] = await Promise.all([
+  const [incidents, sites, entitlements] = await Promise.all([
     serverFetch<Incident[]>(`/v1/organisations/${user.organisationId}/incidents`).catch(() => [] as Incident[]),
     serverFetch<Site[]>(`/v1/organisations/${user.organisationId}/sites`).catch(() => [] as Site[]),
+    serverFetch<Entitlements>(`/v1/organisations/${user.organisationId}/entitlements`).catch(() => ({ plan: 'free', features: [] } as Entitlements)),
   ]);
+  const operationsEnabled = entitlements.features.includes('operations');
 
   const open       = incidents.filter((i) => i.status === 'open').length;
   const critical   = incidents.filter((i) => i.severity === 'critical').length;
@@ -118,10 +126,17 @@ export default async function IncidentsPage() {
               </div>
             </div>
 
-            <IncidentActions type="report" sites={sites} />
+            {operationsEnabled && <IncidentActions type="report" sites={sites} />}
           </div>
 
-          <IncidentsTable incidents={incidents} sites={sites} />
+          {operationsEnabled ? (
+            <IncidentsTable incidents={incidents} sites={sites} />
+          ) : (
+            <PlanLockedNotice
+              title="Incident workflows are available on Professional"
+              body={`Your current ${entitlements.plan} plan can still manage core storage records. Upgrade when you want incident triage, linked tasks, severity tracking and resolution workflow for every site.`}
+            />
+          )}
         </div>
       </div>
     </>

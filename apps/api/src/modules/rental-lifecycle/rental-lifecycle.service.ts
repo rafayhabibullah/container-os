@@ -15,22 +15,31 @@ export class RentalLifecycleService {
 
   async readiness(agreementId: string) {
     const agreement = await this.prisma.agreement.findUniqueOrThrow({ where: { id: agreementId } });
-    const [signatories, mandate, moveInInspection, credential, documents] = await Promise.all([
+    const [signatories, mandate, moveInInspection, credential, documents, openInvoices] = await Promise.all([
       this.prisma.signatory.findMany({ where: { agreementId } }),
       this.prisma.mandate.findFirst({ where: { customerId: agreement.tenantId, status: 'active' } }),
       this.prisma.inspectionRun.findFirst({ where: { unitId: agreement.unitId, kind: 'move_in', completedAt: { not: null } } }),
       this.prisma.accessCredential.findUnique({ where: { agreementId } }),
       this.prisma.document.findMany({ where: { subjectType: 'Agreement', subjectId: agreementId } }),
+      this.prisma.invoice.findMany({ where: { agreementId, status: { in: ['pending', 'sent', 'overdue'] }, deletedAt: null } }),
     ]);
     const signaturesComplete = signatories.length > 0 && signatories.every((s) => s.status === 'signed');
+    const invoicesPaid = openInvoices.length === 0;
     return {
       agreementId,
       status: agreement.status,
-      prerequisites: { signaturesComplete, activeMandate: Boolean(mandate), moveInInspectionComplete: Boolean(moveInInspection) },
+      prerequisites: { signaturesComplete, activeMandate: Boolean(mandate), invoicesPaid, moveInInspectionComplete: Boolean(moveInInspection) },
       access: credential,
       documents,
-      canActivate: signaturesComplete && Boolean(mandate),
+      canActivate: signaturesComplete && invoicesPaid,
     };
+  }
+
+  async activateIfReady(agreementId: string, actorId = 'system') {
+    const ready = await this.readiness(agreementId);
+    if (!ready.canActivate) return { activated: false, agreementId, readiness: ready };
+    const result = await this.activateAndRelease(agreementId, actorId, false);
+    return { activated: true, agreementId, result };
   }
 
   async activateAndRelease(agreementId: string, actorId: string, requireMoveInInspection = true) {

@@ -15,6 +15,8 @@ model Site {
   timezone       String        @default("Europe/Berlin")
   currency       String        @default("EUR")
   address        Json
+  latitude       Float?
+  longitude      Float?
   accessHours    Json?
   status         SiteStatus    @default(active)
   createdAt      DateTime      @default(now())
@@ -30,6 +32,7 @@ model Site {
   marketplaceEvents  MarketplaceEvent[]
 
   @@index([organisationId])
+  @@index([latitude, longitude])
 }
 
 model Zone {
@@ -422,6 +425,7 @@ model PaymentAttempt {
   status      String
   providerRef String   @unique
   errorCode   String?
+  lastCheckedAt DateTime?
   createdAt   DateTime @default(now())
   payment     Payment  @relation(fields: [paymentId], references: [id])
 
@@ -772,6 +776,7 @@ model Organisation {
   marketplaceReviews MarketplaceReview[]
   marketplaceEvents  MarketplaceEvent[]
   subscriptions   OrganisationSubscription[]
+  subscriptionInvoices SubscriptionInvoice[]
   paymentAccounts OrganisationPaymentAccount[]
 }
 
@@ -818,8 +823,42 @@ model OrganisationSubscription {
   createdAt              DateTime     @default(now())
   updatedAt              DateTime     @updatedAt
   organisation           Organisation @relation(fields: [organisationId], references: [id])
+  invoices               SubscriptionInvoice[]
 
   @@index([organisationId, status])
+}
+
+model SubscriptionInvoice {
+  id             String                   @id @default(cuid())
+  organisationId String
+  subscriptionId String?
+  invoiceNumber  String                   @unique
+  plan           OrgPlan
+  billingInterval String                  @default("monthly")
+  status         String                   @default("draft")
+  currency       String                   @default("EUR")
+  netMinor       Int
+  vatMinor       Int
+  totalMinor     Int
+  vatRate        Float                    @default(0.19)
+  periodStart    DateTime
+  periodEnd      DateTime
+  invoiceDate    DateTime                 @default(now())
+  dueDate        DateTime
+  paidAt         DateTime?
+  provider       String?
+  providerPaymentId String?               @unique
+  checkoutUrl    String?
+  lineItems      Json
+  sellerSnapshot Json
+  buyerSnapshot  Json
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  organisation   Organisation             @relation(fields: [organisationId], references: [id])
+  subscription   OrganisationSubscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([organisationId, status])
+  @@index([subscriptionId])
 }
 
 model CommissionRecord {

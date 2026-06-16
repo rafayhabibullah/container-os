@@ -35,6 +35,7 @@ export default function TeamActions({ type, id, label }: Props) {
   const router = useRouter();
   const t = useT();
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleRemoveMember() {
@@ -74,17 +75,20 @@ export default function TeamActions({ type, id, label }: Props) {
   async function handleInvite(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
     const form = new FormData(e.currentTarget);
+    const email = String(form.get('email') ?? '');
     try {
       const res = await fetch('/api/invitations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.get('email'), role: form.get('role') }),
+        body: JSON.stringify({ email, role: form.get('role') }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? t('dashboard.team.invite.failed'));
       (e.target as HTMLFormElement).reset();
+      setSuccess(`Invitation sent to ${email}`);
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t('dashboard.team.invite.failed'));
@@ -155,6 +159,9 @@ export default function TeamActions({ type, id, label }: Props) {
       </button>
       {error && (
         <p style={{ color: '#dc2626', fontSize: '13px', margin: '4px 0 0', width: '100%' }}>{error}</p>
+      )}
+      {success && (
+        <p style={{ color: '#15803d', fontSize: '13px', margin: '4px 0 0', width: '100%' }}>{success}</p>
       )}
     </form>
   );

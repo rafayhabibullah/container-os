@@ -24,6 +24,21 @@ interface Subscription {
   lastPaymentStatus: string | null;
 }
 
+interface SubscriptionInvoice {
+  id: string;
+  invoiceNumber: string;
+  plan: string;
+  billingInterval: string;
+  status: string;
+  currency: string;
+  totalMinor: number;
+  netMinor: number;
+  vatMinor: number;
+  invoiceDate: string;
+  dueDate: string;
+  paidAt: string | null;
+}
+
 const PLAN_DETAILS: Record<string, { key: string; price: string; sites: number; units: number }> = {
   free:         { key: 'free',         price: '€0/mo',   sites: 1,   units: 10 },
   starter:      { key: 'starter',      price: '€49/mo',  sites: 1,        units: 50 },
@@ -37,9 +52,11 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
   const org = await serverFetch<OrgProfile>(`/v1/organisations/${user.organisationId}`).catch(() => null);
   const usage = await serverFetch<PlanUsage>(`/v1/organisations/${user.organisationId}/usage`).catch(() => null);
   const subscription = await serverFetch<Subscription>(`/v1/organisations/${user.organisationId}/subscription`).catch(() => null);
+  const subscriptionInvoices = await serverFetch<SubscriptionInvoice[]>(`/v1/organisations/${user.organisationId}/subscription/invoices`).catch(() => [] as SubscriptionInvoice[]);
 
   const plan    = org?.plan ?? 'free';
   const details = PLAN_DETAILS[plan] ?? PLAN_DETAILS.free;
+  const money = (minor: number, currency = 'EUR') => new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(minor / 100);
 
   return (
     <>
@@ -129,6 +146,32 @@ export default async function BillingPage({ searchParams }: { searchParams: { ch
                     <p style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: 0, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                       {data.used} {t('dashboard.billing.usage.of')} {Number.isFinite(data.limit) ? data.limit : t('dashboard.billing.usage.unlimited')}
                     </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {subscriptionInvoices.length > 0 && (
+            <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden', marginBottom: '20px' }}>
+              <div style={{ padding: '14px 20px', borderBottom: '1px solid #f1f5f9' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>SiteLager invoices</span>
+              </div>
+              <div>
+                {subscriptionInvoices.slice(0, 8).map((invoice, index) => (
+                  <div key={invoice.id} style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr 1fr auto auto', gap: '12px', alignItems: 'center', padding: '14px 20px', borderBottom: index < subscriptionInvoices.length - 1 ? '1px solid #f8fafc' : 'none' }}>
+                    <div>
+                      <p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>{invoice.invoiceNumber}</p>
+                      <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#94a3b8' }}>{invoice.plan} · {invoice.billingInterval}</p>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#475569' }}>{new Date(invoice.invoiceDate).toLocaleDateString('de-DE')}</p>
+                    <p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#0f172a' }}>{money(invoice.totalMinor, invoice.currency)}</p>
+                    <span style={{ display: 'inline-flex', borderRadius: '20px', padding: '4px 10px', fontSize: '12px', fontWeight: 700, background: invoice.status === 'paid' ? '#f0fdf4' : invoice.status === 'failed' ? '#fef2f2' : '#fffbeb', color: invoice.status === 'paid' ? '#15803d' : invoice.status === 'failed' ? '#dc2626' : '#92400e', border: `1px solid ${invoice.status === 'paid' ? '#bbf7d0' : invoice.status === 'failed' ? '#fecaca' : '#fde68a'}` }}>
+                      {invoice.status}
+                    </span>
+                    <a href={`/api/billing/subscription-invoices/${invoice.id}/pdf`} style={{ fontSize: '12px', fontWeight: 700, color: '#2563eb', textDecoration: 'none' }}>
+                      PDF
+                    </a>
                   </div>
                 ))}
               </div>

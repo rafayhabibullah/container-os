@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { CreateListingDto } from './dto/create-listing.dto';
 import { UpdateListingDto } from './dto/update-listing.dto';
@@ -7,6 +7,17 @@ import * as crypto from 'crypto';
 
 function slugify(text: string) {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const toRad = (value: number) => value * Math.PI / 180;
+  const earthKm = 6371;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return earthKm * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
 
 @Injectable()
@@ -44,6 +55,21 @@ export class ListingsService {
     return { score, missing: checks.filter((check) => !check.ok).map((check) => ({ key: check.key, label: check.label })) };
   }
 
+  async listReviews(organisationId: string, status?: string) {
+    return this.prisma.marketplaceReview.findMany({
+      where: { organisationId, ...(status ? { status } : {}) },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      include: { listing: { select: { id: true, title: true, slug: true } }, site: { select: { id: true, name: true } } },
+    });
+  }
+
+  async moderateReview(organisationId: string, reviewId: string, status: 'published' | 'hidden' | 'rejected') {
+    const review = await this.prisma.marketplaceReview.findFirst({ where: { id: reviewId, organisationId } });
+    if (!review) throw new NotFoundException('Review not found');
+    return this.prisma.marketplaceReview.update({ where: { id: reviewId }, data: { status } });
+  }
+
   private attachMarketplaceStats<T extends { marketplaceReviews?: { rating: number; title?: string | null; body?: string | null; reviewerName?: string | null; createdAt?: Date }[] }>(listing: T) {
     const reviews = listing.marketplaceReviews ?? [];
     const reviewCount = reviews.length;
@@ -76,6 +102,19 @@ export class ListingsService {
   }
 
   async createListing(organisationId: string, dto: CreateListingDto) {
+    const unit = await this.prisma.unit.findFirst({
+      where: {
+        id: dto.unitId,
+        siteId: dto.siteId,
+        deletedAt: null,
+        site: { organisationId, deletedAt: null },
+      },
+      include: { listing: true },
+    });
+    if (!unit) throw new BadRequestException('UNIT_NOT_FOUND_FOR_SITE');
+    if (unit.status !== 'available') throw new BadRequestException('UNIT_NOT_AVAILABLE');
+    if (unit.listing) throw new ConflictException('UNIT_ALREADY_LISTED');
+
     const base = slugify(dto.title);
     const slug = `${base}-${Date.now()}`;
     return this.prisma.listing.create({
@@ -181,6 +220,9 @@ export class ListingsService {
     bookingMode?: string;
     feature?: string | string[];
     sort?: string;
+    lat?: string;
+    lng?: string;
+    radiusKm?: string;
     limit?: string;
     offset?: string;
   }) {
@@ -193,6 +235,11 @@ export class ListingsService {
     if (filters.bookingMode && !bookingModeValues.includes(filters.bookingMode)) {
       throw new Error('Invalid bookingMode');
     }
+    const lat = filters.lat ? parseFloat(filters.lat) : undefined;
+    const lng = filters.lng ? parseFloat(filters.lng) : undefined;
+    const radiusKm = filters.radiusKm ? parseFloat(filters.radiusKm) : undefined;
+    const hasRadius = lat != null && lng != null && radiusKm != null;
+    if ([lat, lng, radiusKm].some((value) => value != null && Number.isNaN(value))) throw new Error('Invalid radius search params');
 
     const orderBy =
       filters.sort === 'price_asc' ? { publicPriceMinor: 'asc' as const } :
@@ -237,15 +284,24 @@ export class ListingsService {
       },
       include: {
         organisation: { select: { legalName: true, tradingName: true, countryCode: true } },
-        site: { select: { id: true, name: true, slug: true, address: true, accessHours: true, timezone: true } },
+        site: { select: { id: true, name: true, slug: true, address: true, latitude: true, longitude: true, accessHours: true, timezone: true } },
         unit: { select: { id: true, unitCode: true, kind: true, driveUp: true, status: true, unitType: { select: { id: true, sizeSqm: true, sizeCbm: true, name: true, doorType: true, features: true } } } },
         marketplaceReviews: { where: { status: 'published' }, select: { rating: true } },
       },
-      take,
+      take: hasRadius ? Math.min(200, MAX_LIMIT * 2) : take,
       skip,
       orderBy,
     });
-    return listings.map((listing) => this.attachMarketplaceStats(listing));
+    const withStats = listings.map((listing) => {
+      const site = listing.site as typeof listing.site & { latitude?: number | null; longitude?: number | null };
+      const calculatedDistance = hasRadius && site.latitude != null && site.longitude != null
+        ? Number(distanceKm({ lat: lat!, lng: lng! }, { lat: site.latitude, lng: site.longitude }).toFixed(1))
+        : null;
+      return { ...this.attachMarketplaceStats(listing), distanceKm: calculatedDistance };
+    });
+    const radiusFiltered = hasRadius ? withStats.filter((listing) => listing.distanceKm != null && listing.distanceKm <= radiusKm!) : withStats;
+    if (filters.sort === 'distance' && hasRadius) radiusFiltered.sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+    return radiusFiltered.slice(0, take);
   }
 
   async getPublicListingBySlug(slug: string) {
@@ -253,7 +309,7 @@ export class ListingsService {
       where: { slug, status: 'published', unit: { status: 'available', deletedAt: null } },
       include: {
         organisation: { select: { legalName: true, tradingName: true, countryCode: true } },
-        site: { select: { id: true, name: true, slug: true, address: true, accessHours: true, timezone: true, currency: true } },
+        site: { select: { id: true, name: true, slug: true, address: true, latitude: true, longitude: true, accessHours: true, timezone: true, currency: true } },
         unit: { select: { id: true, unitCode: true, kind: true, driveUp: true, status: true, unitType: { select: { id: true, name: true, sizeSqm: true, sizeCbm: true, doorType: true, features: true } } } },
         marketplaceReviews: {
           where: { status: 'published' },

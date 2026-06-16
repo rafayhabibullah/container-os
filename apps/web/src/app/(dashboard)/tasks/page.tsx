@@ -3,6 +3,7 @@ import { serverFetch } from '@/lib/server-api';
 import { getT } from '@/lib/get-locale';
 import TaskActions from './TaskActions';
 import TasksTable from './TasksTable';
+import PlanLockedNotice from '../components/PlanLockedNotice';
 
 export interface Task {
   id: string;
@@ -31,14 +32,21 @@ export interface Member {
   user: { id: string; name: string; email: string };
 }
 
+interface Entitlements {
+  plan: string;
+  features: string[];
+}
+
 export default async function TasksPage() {
   const user = await requireAuth();
   const t = getT();
-  const [tasks, sites, members] = await Promise.all([
+  const [tasks, sites, members, entitlements] = await Promise.all([
     serverFetch<Task[]>(`/v1/organisations/${user.organisationId}/tasks`).catch(() => [] as Task[]),
     serverFetch<Site[]>(`/v1/organisations/${user.organisationId}/sites`).catch(() => [] as Site[]),
     serverFetch<Member[]>(`/v1/organisations/${user.organisationId}/members`).catch(() => [] as Member[]),
+    serverFetch<Entitlements>(`/v1/organisations/${user.organisationId}/entitlements`).catch(() => ({ plan: 'free', features: [] } as Entitlements)),
   ]);
+  const operationsEnabled = entitlements.features.includes('operations');
 
   const sitesById   = Object.fromEntries(sites.map((s) => [s.id, s]));
   const membersById = Object.fromEntries(members.map((m) => [m.userId, m]));
@@ -98,10 +106,17 @@ export default async function TasksPage() {
                 )}
               </div>
             </div>
-            <TaskActions type="create" sites={sites} members={members} />
+            {operationsEnabled && <TaskActions type="create" sites={sites} members={members} />}
           </div>
 
-          <TasksTable tasks={tasks} sitesById={sitesById} membersById={membersById} />
+          {operationsEnabled ? (
+            <TasksTable tasks={tasks} sitesById={sitesById} membersById={membersById} />
+          ) : (
+            <PlanLockedNotice
+              title="Tasks are available on Professional"
+              body={`Your current ${entitlements.plan} plan keeps the basics enabled. Upgrade when you want assigned work, due dates, incident follow-ups, comments and SLA-style operations tracking across sites.`}
+            />
+          )}
         </div>
       </div>
     </>

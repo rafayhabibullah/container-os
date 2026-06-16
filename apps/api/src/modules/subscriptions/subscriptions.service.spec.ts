@@ -3,6 +3,7 @@ import { SubscriptionsService } from './subscriptions.service';
 
 const prisma = {
   organisation: { findUniqueOrThrow: vi.fn(), update: vi.fn() },
+  subscriptionInvoice: { count: vi.fn(), create: vi.fn(), update: vi.fn(), updateMany: vi.fn(), findMany: vi.fn(), findFirstOrThrow: vi.fn() },
   organisationSubscription: {
     findFirst: vi.fn(),
     findUnique: vi.fn(),
@@ -39,16 +40,20 @@ describe('SubscriptionsService', () => {
   });
 
   it('creates a pending paid subscription and Mollie hosted checkout', async () => {
-    prisma.organisation.findUniqueOrThrow.mockResolvedValue({ legalName: 'Alpha GmbH', billingEmail: 'owner@alpha.de' });
+    prisma.organisation.findUniqueOrThrow.mockResolvedValue({ id: 'org_1', legalName: 'Alpha GmbH', billingEmail: 'owner@alpha.de', countryCode: 'DE' });
     prisma.organisationSubscription.findFirst.mockResolvedValue(null);
     prisma.organisationSubscription.create.mockResolvedValue({ id: 'sub_paid' });
+    prisma.subscriptionInvoice.count.mockResolvedValue(0);
+    prisma.subscriptionInvoice.create.mockResolvedValue({ id: 'sinv_1', invoiceNumber: 'SL-2026-000001', totalMinor: 4900 });
     mollie.createCustomer.mockResolvedValue({ customerId: 'cst_1' });
     mollie.createPaymentLink.mockResolvedValue({ molliePaymentId: 'tr_1', checkoutUrl: 'https://mollie.test/checkout' });
 
     const result = await service.createCheckout('org_1', 'starter', 'monthly');
 
-    expect(result).toMatchObject({ requiresPayment: true, checkoutUrl: 'https://mollie.test/checkout' });
+    expect(result).toMatchObject({ requiresPayment: true, checkoutUrl: 'https://mollie.test/checkout', invoiceNumber: 'SL-2026-000001' });
+    expect(prisma.subscriptionInvoice.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ organisationId: 'org_1', subscriptionId: 'sub_paid', totalMinor: 4900 }) }));
     expect(mollie.createPaymentLink).toHaveBeenCalledWith(expect.objectContaining({ amountMinor: 4900, sequenceType: 'first', customerId: 'cst_1' }));
+    expect(mollie.createPaymentLink).toHaveBeenCalledWith(expect.objectContaining({ invoiceId: 'SL-2026-000001' }));
     expect(mollie.createPaymentLink).toHaveBeenCalledWith(expect.objectContaining({ webhookUrl: undefined }));
   });
 

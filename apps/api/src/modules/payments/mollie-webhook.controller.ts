@@ -28,11 +28,12 @@ export class MollieWebhookController {
 
     const mollieStatus = await this.mollie.getPaymentStatus(molliePaymentId);
     const mappedStatus = this.mollie.mapMollieStatus(mollieStatus);
+    const alreadySettled = attempt.status === mappedStatus && ['succeeded', 'failed'].includes(mappedStatus);
 
-    await this.prisma.paymentAttempt.update({ where: { id: attempt.id }, data: { status: mappedStatus } });
+    await this.prisma.paymentAttempt.update({ where: { id: attempt.id }, data: { status: mappedStatus, lastCheckedAt: new Date() } });
     await this.prisma.payment.update({ where: { id: attempt.paymentId }, data: { status: mappedStatus } });
 
-    if (mappedStatus === 'succeeded') {
+    if (mappedStatus === 'succeeded' && !alreadySettled) {
       const payment = await this.prisma.payment.findUniqueOrThrow({ where: { id: attempt.paymentId } });
       const invoice = await this.prisma.invoice.findUniqueOrThrow({ where: { id: payment.invoiceId } });
       await this.prisma.ledgerEntry.create({
@@ -47,6 +48,9 @@ export class MollieWebhookController {
         },
       });
       await this.delinquency.markPaid(payment.invoiceId);
+      await (this.prisma as any).backgroundJob?.create({
+        data: { kind: 'rental.activate-ready', payload: { agreementId: invoice.agreementId, actorId: 'mollie-webhook' } },
+      }).catch(() => undefined);
     }
 
     return { received: true };

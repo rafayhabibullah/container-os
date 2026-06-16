@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { OrganisationGuard } from '../../common/guards/organisation.guard';
@@ -16,6 +16,20 @@ export class ListingsController {
   @Get()
   list(@Param('organisationId') orgId: string) {
     return this.listings.listListings(orgId);
+  }
+
+  @Get('reviews')
+  reviews(@Param('organisationId') orgId: string, @Query('status') status?: string) {
+    return this.listings.listReviews(orgId, status);
+  }
+
+  @Post('reviews/:reviewId/moderate')
+  moderateReview(
+    @Param('organisationId') orgId: string,
+    @Param('reviewId') reviewId: string,
+    @Body() body: { status: 'published' | 'hidden' | 'rejected' },
+  ) {
+    return this.listings.moderateReview(orgId, reviewId, body.status);
   }
 
   @Post()

@@ -9,6 +9,18 @@ interface Site {
   status: 'active' | 'inactive';
 }
 
+interface OrgProfile {
+  id: string;
+  legalName: string;
+  plan: string;
+}
+
+interface PlanUsage {
+  plan: string;
+  sites: { used: number; limit: number };
+  units: { used: number; limit: number };
+}
+
 interface Member {
   id: string;
   role: 'owner' | 'billing_admin' | 'site_manager' | 'operator' | 'tenant';
@@ -45,6 +57,12 @@ interface Incident {
   severity: string;
   siteId: string;
   createdAt: string;
+}
+
+interface Listing {
+  id: string;
+  status: string;
+  title: string;
 }
 
 interface InvoiceRow {
@@ -115,19 +133,48 @@ export default async function DashboardPage() {
   const t = getT();
   const user = await requireAuth();
 
-  const [sites, members, bookings, tasks, incidents, invoices] = await Promise.all([
+  const [org, usage, sites, members, bookings, tasks, incidents, invoices, listings] = await Promise.all([
+    serverFetch<OrgProfile>(`/v1/organisations/${user.organisationId}`).catch(() => null),
+    serverFetch<PlanUsage>(`/v1/organisations/${user.organisationId}/usage`).catch(() => null),
     serverFetch<Site[]>(`/v1/organisations/${user.organisationId}/sites`).catch(() => [] as Site[]),
     serverFetch<Member[]>(`/v1/organisations/${user.organisationId}/members`).catch(() => [] as Member[]),
     serverFetch<Booking[]>(`/v1/organisations/${user.organisationId}/reservations`).catch(() => [] as Booking[]),
     serverFetch<Task[]>(`/v1/organisations/${user.organisationId}/tasks`).catch(() => [] as Task[]),
     serverFetch<Incident[]>(`/v1/organisations/${user.organisationId}/incidents`).catch(() => [] as Incident[]),
     serverFetch<InvoiceRow[]>(`/v1/organisations/${user.organisationId}/invoices`).catch(() => [] as InvoiceRow[]),
+    serverFetch<Listing[]>(`/v1/organisations/${user.organisationId}/listings`).catch(() => [] as Listing[]),
   ]);
 
   const pendingReservations = bookings.filter((b) => b.status === 'pending').length;
   const openTasks = tasks.filter((t) => t.status === 'open' || t.status === 'in_progress');
   const openIncidents = incidents.filter((i) => i.status === 'open');
   const overdueInvoices = invoices.filter((i) => i.status === 'overdue');
+  const publishedListings = listings.filter((l) => l.status === 'published').length;
+  const draftListings = listings.filter((l) => l.status === 'draft').length;
+  const activeSites = sites.filter((s) => s.status === 'active').length;
+  const invoiceExposureMinor = overdueInvoices.reduce((sum, invoice) => sum + invoice.totalMinor, 0);
+  const sitesOverLimit = usage ? usage.sites.used > usage.sites.limit : false;
+  const unitsOverLimit = usage ? usage.units.used > usage.units.limit : false;
+  const healthIssues = [
+    pendingReservations > 0,
+    openTasks.length > 0,
+    openIncidents.length > 0,
+    overdueInvoices.length > 0,
+    draftListings > 0,
+    sitesOverLimit || unitsOverLimit,
+  ].filter(Boolean).length;
+  const setupSteps = [
+    { label: 'Create first site', done: sites.length > 0, href: '/sites/new' },
+    { label: 'Add unit inventory', done: (usage?.units.used ?? 0) > 0, href: sites[0] ? `/sites/${sites[0].id}#units` : '/sites' },
+    { label: 'Publish marketplace listing', done: publishedListings > 0, href: '/listings' },
+    { label: 'Invite team member', done: members.length > 1, href: '/team' },
+    { label: 'Configure billing', done: invoices.length > 0, href: '/billing' },
+  ];
+  const setupDone = setupSteps.filter((step) => step.done).length;
+  const usageText = (value?: { used: number; limit: number }) => {
+    if (!value) return '—';
+    return `${value.used} / ${Number.isFinite(value.limit) ? value.limit : '∞'}`;
+  };
 
   const stats = [
     { label: t('dashboard.overview.statTotalSites'), value: sites.length, href: '/sites' },
@@ -310,6 +357,69 @@ export default async function DashboardPage() {
               >
                 {stat.value}
               </p>
+            </Link>
+          ))}
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 0.75fr', gap: '20px', marginBottom: '20px' }}>
+          <div style={{ ...panelStyle, padding: '22px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', alignItems: 'flex-start', marginBottom: '18px' }}>
+              <div>
+                <p style={{ margin: '0 0 6px', fontSize: '12px', color: '#64748b', fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                  Business health
+                </p>
+                <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>
+                  {healthIssues === 0 ? 'Everything important is clear' : `${healthIssues} area${healthIssues === 1 ? ' needs' : 's need'} attention`}
+                </h2>
+                <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#64748b', lineHeight: 1.5 }}>
+                  {org?.legalName ?? 'Your organisation'} is on the <strong style={{ color: '#0f172a' }}>{org?.plan ?? usage?.plan ?? 'free'}</strong> plan.
+                </p>
+              </div>
+              <Link href="/billing" style={{ background: '#0f172a', color: '#ffffff', borderRadius: '8px', padding: '9px 14px', fontSize: '13px', fontWeight: 800, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                Plan & usage
+              </Link>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+              {[
+                { label: 'Active sites', value: `${activeSites}/${sites.length || 0}` },
+                { label: 'Units used', value: usageText(usage?.units) },
+                { label: 'Marketplace live', value: String(publishedListings) },
+                { label: 'Overdue value', value: fmtCurrency(invoiceExposureMinor, invoices[0]?.currency ?? 'EUR') },
+              ].map((item) => (
+                <div key={item.label} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px' }}>
+                  <p style={{ margin: '0 0 6px', fontSize: '11px', color: '#94a3b8', fontWeight: 800, textTransform: 'uppercase' }}>{item.label}</p>
+                  <p style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>{item.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ ...panelStyle, padding: '22px' }}>
+            <p style={{ margin: '0 0 12px', fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>Setup progress</p>
+            <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden', marginBottom: '14px' }}>
+              <div style={{ width: `${Math.round((setupDone / setupSteps.length) * 100)}%`, height: '100%', background: '#16a34a' }} />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
+              {setupSteps.map((step) => (
+                <Link key={step.label} href={step.href} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', textDecoration: 'none', color: '#0f172a', fontSize: '13px', fontWeight: 700 }}>
+                  <span>{step.label}</span>
+                  <span style={{ color: step.done ? '#15803d' : '#94a3b8' }}>{step.done ? 'Done' : 'Open'}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }}>
+          {[
+            { label: 'Add site', href: '/sites/new' },
+            { label: 'New listing', href: '/listings' },
+            { label: 'Run invoices', href: '/invoices' },
+            { label: 'Invite team', href: '/team' },
+          ].map((action) => (
+            <Link key={action.label} href={action.href} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '13px 14px', color: '#0f172a', fontSize: '13px', fontWeight: 800, textDecoration: 'none', boxShadow: '0 1px 3px rgba(15,23,42,0.06)' }}>
+              {action.label}
             </Link>
           ))}
         </div>

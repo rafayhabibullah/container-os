@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useT } from '@/lib/i18n';
@@ -66,7 +66,7 @@ export default function CustomerMandatesPage() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function loadMandates() {
+  const loadMandates = useCallback(async () => {
     setLoading(true);
     const res = await fetch(`/api/billing/mandates?customerId=${customerId}`).catch(() => null);
     if (res?.ok) {
@@ -74,9 +74,9 @@ export default function CustomerMandatesPage() {
       setMandates(data);
     }
     setLoading(false);
-  }
+  }, [customerId]);
 
-  useEffect(() => { loadMandates(); }, [customerId]);
+  useEffect(() => { loadMandates(); }, [loadMandates]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();

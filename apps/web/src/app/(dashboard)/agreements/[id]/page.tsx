@@ -54,6 +54,16 @@ function signatoryPill(status: string) {
   return { dot: '#f59e0b', color: '#92400e', bg: '#fffbeb', border: '#fde68a' };
 }
 
+function documentStatusPill(status: 'ready' | 'missing' | 'not_needed') {
+  if (status === 'ready') return { label: 'Ready', color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' };
+  if (status === 'not_needed') return { label: 'Not needed yet', color: '#475569', bg: '#f8fafc', border: '#e2e8f0' };
+  return { label: 'Missing', color: '#92400e', bg: '#fffbeb', border: '#fde68a' };
+}
+
+function hasDocument(documents: AgreementDocument[], kinds: string[]) {
+  return documents.some((document) => kinds.includes(document.kind));
+}
+
 const cardStyle: React.CSSProperties = {
   background: '#ffffff',
   borderRadius: '12px',
@@ -80,6 +90,73 @@ export default async function AgreementDetailPage({ params }: { params: { id: st
   ).catch(() => null);
 
   if (!agreement) return notFound();
+
+  const hasSignedSignatory = agreement.signatories.some((signatory) => signatory.status === 'signed');
+  const hasMoveInReport = agreement.inspections.some((inspection) => (
+    inspection.kind === 'move_in' && (inspection.reportDocumentId || inspection.completedAt)
+  ));
+  const hasMoveOutReport = agreement.inspections.some((inspection) => (
+    inspection.kind === 'move_out' && (inspection.reportDocumentId || inspection.completedAt)
+  ));
+  const hasTermination = agreement.terminationRequests.length > 0 || agreement.status === 'terminated';
+  const packageItems = [
+    {
+      label: 'Contract PDF',
+      detail: 'Initial rental agreement document',
+      status: hasDocument(agreement.documents, ['contract_pdf', 'contract']) ? 'ready' as const : 'missing' as const,
+    },
+    {
+      label: 'Signed PDF',
+      detail: 'Signed contract copy stored as proof',
+      status: hasDocument(agreement.documents, ['signed_contract']) ? 'ready' as const : hasSignedSignatory ? 'missing' as const : 'not_needed' as const,
+    },
+    {
+      label: 'Evidence pack',
+      detail: 'Combined proof package for disputes and audit',
+      status: hasDocument(agreement.documents, ['evidence_pack']) ? 'ready' as const : 'missing' as const,
+    },
+    {
+      label: 'Move-in report',
+      detail: 'Condition evidence at handover',
+      status: hasMoveInReport ? 'ready' as const : 'missing' as const,
+    },
+    {
+      label: 'Move-out report',
+      detail: 'Condition evidence at return',
+      status: hasMoveOutReport ? 'ready' as const : hasTermination ? 'missing' as const : 'not_needed' as const,
+    },
+    {
+      label: 'Termination notice',
+      detail: 'Tenant/operator move-out documentation',
+      status: hasDocument(agreement.documents, ['termination_notice']) ? 'ready' as const : hasTermination ? 'missing' as const : 'not_needed' as const,
+    },
+    {
+      label: 'Deposit deduction notice',
+      detail: 'Required when move-out deductions are recorded',
+      status: hasDocument(agreement.documents, ['deposit_deduction_notice']) ? 'ready' as const : 'not_needed' as const,
+    },
+  ];
+  const missingPackageItems = packageItems.filter((item) => item.status === 'missing').length;
+  const timelineItems = [
+    ...agreement.documents.map((document) => ({
+      id: `document-${document.id}`,
+      date: document.createdAt,
+      label: `${document.kind.replaceAll('_', ' ')} document`,
+      detail: `v${document.version} · ${document.scanStatus}`,
+    })),
+    ...agreement.inspections.map((inspection) => ({
+      id: `inspection-${inspection.id}`,
+      date: inspection.completedAt ?? agreement.createdAt,
+      label: `${inspection.kind.replaceAll('_', ' ')} inspection`,
+      detail: inspection.result ?? 'pending',
+    })),
+    ...agreement.terminationRequests.map((request) => ({
+      id: `termination-${request.id}`,
+      date: request.requestedDate,
+      label: 'Move-out request',
+      detail: request.status,
+    })),
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <>
@@ -166,6 +243,37 @@ export default async function AgreementDetailPage({ params }: { params: { id: st
           )}
 
           <div style={{ ...cardStyle, padding: '20px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'flex-start', marginBottom: '16px' }}>
+              <div>
+                <p style={sectionLabelStyle}>Agreement package</p>
+                <h2 style={{ margin: '0 0 6px', fontSize: '20px', fontWeight: 800, color: '#0f172a' }}>
+                  {missingPackageItems === 0 ? 'Document package is complete' : `${missingPackageItems} document${missingPackageItems === 1 ? '' : 's'} need attention`}
+                </h2>
+                <p style={{ margin: 0, fontSize: '13px', color: '#64748b', lineHeight: 1.5 }}>
+                  Contract, signature, inspection, termination, and evidence records for this agreement.
+                </p>
+              </div>
+              <span style={{ background: missingPackageItems === 0 ? '#f0fdf4' : '#fffbeb', color: missingPackageItems === 0 ? '#15803d' : '#92400e', border: `1px solid ${missingPackageItems === 0 ? '#bbf7d0' : '#fde68a'}`, borderRadius: '20px', padding: '4px 10px', fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                {packageItems.length - missingPackageItems}/{packageItems.length} covered
+              </span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px' }}>
+              {packageItems.map((item) => {
+                const pill = documentStatusPill(item.status);
+                return (
+                  <div key={item.label} style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px', background: '#f8fafc' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', alignItems: 'flex-start', marginBottom: '6px' }}>
+                      <span style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a' }}>{item.label}</span>
+                      <span style={{ background: pill.bg, color: pill.color, border: `1px solid ${pill.border}`, borderRadius: '999px', padding: '2px 8px', fontSize: '11px', fontWeight: 700, whiteSpace: 'nowrap' }}>{pill.label}</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#64748b', lineHeight: 1.45 }}>{item.detail}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div style={{ ...cardStyle, padding: '20px', marginBottom: '16px' }}>
             <p style={sectionLabelStyle}>Documents and evidence</p>
             {agreement.documents.length === 0 ? (
               <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>No generated agreement documents yet.</p>
@@ -181,14 +289,16 @@ export default async function AgreementDetailPage({ params }: { params: { id: st
             )}
           </div>
 
-          {(agreement.inspections.length > 0 || agreement.terminationRequests.length > 0) && (
+          {timelineItems.length > 0 && (
             <div style={{ ...cardStyle, padding: '20px', marginBottom: '16px' }}>
-              <p style={sectionLabelStyle}>Lifecycle evidence</p>
-              {[...agreement.inspections.map((item) => ({ id: item.id, label: `${item.kind.replaceAll('_', ' ')} inspection`, status: item.result ?? 'pending' })),
-                ...agreement.terminationRequests.map((item) => ({ id: item.id, label: `Move-out requested ${new Date(item.requestedDate).toLocaleDateString('de-DE')}`, status: item.status }))].map((item) => (
+              <p style={sectionLabelStyle}>Evidence timeline</p>
+              {timelineItems.map((item) => (
                 <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
-                  <span style={{ fontSize: '14px', color: '#0f172a' }}>{item.label}</span>
-                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>{item.status}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ fontSize: '14px', color: '#0f172a' }}>{item.label}</span>
+                    <span style={{ fontSize: '12px', color: '#94a3b8' }}>{new Date(item.date).toLocaleDateString('de-DE')}</span>
+                  </div>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>{item.detail}</span>
                 </div>
               ))}
             </div>

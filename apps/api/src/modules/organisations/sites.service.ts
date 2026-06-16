@@ -30,6 +30,8 @@ export class SiteService {
           address: dto.address,
           timezone: dto.timezone ?? 'Europe/Berlin',
           currency: dto.currency ?? 'EUR',
+          latitude: dto.latitude,
+          longitude: dto.longitude,
           slug,
           organisationId: orgId,
         },
@@ -82,6 +84,8 @@ export class SiteService {
   async createUnit(orgId: string, siteId: string, data: { unitCode: string; unitTypeId: string; kind: string; driveUp: boolean }) {
     await this.getSite(orgId, siteId);
     await this.planEnforcement.assertCanCreateUnit(orgId);
+    const unitType = await this.prisma.unitType.findFirst({ where: { id: data.unitTypeId, siteId } });
+    if (!unitType) throw new BadRequestException('INVALID_UNIT_TYPE');
     try {
       return await this.prisma.unit.create({
         data: { siteId, ...data } as any,

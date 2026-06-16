@@ -44,8 +44,13 @@ export default function SiteDetailTabs({ site, unitTypes, units, priceBooks, oth
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
-    const hash = window.location.hash.replace('#', '') as Tab;
-    if (['unit-types', 'units', 'pricing'].includes(hash)) setActiveTab(hash);
+    const syncTabFromHash = () => {
+      const hash = window.location.hash.replace('#', '') as Tab;
+      if (['unit-types', 'units', 'pricing'].includes(hash)) setActiveTab(hash);
+    };
+    syncTabFromHash();
+    window.addEventListener('hashchange', syncTabFromHash);
+    return () => window.removeEventListener('hashchange', syncTabFromHash);
   }, []);
 
   function handleTabClick(tab: Tab) {

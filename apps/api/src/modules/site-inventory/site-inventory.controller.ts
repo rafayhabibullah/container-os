@@ -51,11 +51,14 @@ export class SiteInventoryController {
     @Query('bookingMode') bookingMode?: string,
     @Query('feature') feature?: string | string[],
     @Query('sort') sort?: string,
+    @Query('lat') lat?: string,
+    @Query('lng') lng?: string,
+    @Query('radiusKm') radiusKm?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
     try {
-      return this.listingsService.searchPublicListings({ q, city, country, minPriceMinor, maxPriceMinor, minSizeSqm, maxSizeSqm, bookingMode, feature, sort, limit, offset });
+      return this.listingsService.searchPublicListings({ q, city, country, minPriceMinor, maxPriceMinor, minSizeSqm, maxSizeSqm, bookingMode, feature, sort, lat, lng, radiusKm, limit, offset });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Bad request';
       throw new BadRequestException(message);
