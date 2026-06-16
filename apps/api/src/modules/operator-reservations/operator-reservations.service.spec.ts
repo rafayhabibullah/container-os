@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { OperatorReservationsService } from './operator-reservations.service';
-import { DomainException } from '@sitelager/domain-types';
 
 const mockPrisma = {
   reservation: {
@@ -8,15 +7,23 @@ const mockPrisma = {
     findFirstOrThrow: vi.fn(),
     update: vi.fn(),
   },
-  agreement: { create: vi.fn() },
+  agreement: { upsert: vi.fn() },
   site: { findMany: vi.fn() },
+  customer: { findMany: vi.fn() },
+  unit: { findMany: vi.fn() },
+  unitType: { findMany: vi.fn() },
 };
 const mockAudit = { record: vi.fn() };
 
 const service = new OperatorReservationsService(mockPrisma as any, mockAudit as any);
 
 describe('OperatorReservationsService', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPrisma.customer.findMany.mockResolvedValue([]);
+    mockPrisma.unit.findMany.mockResolvedValue([]);
+    mockPrisma.unitType.findMany.mockResolvedValue([]);
+  });
 
   it('lists reservations filtered by organisationId (via site join)', async () => {
     mockPrisma.site.findMany.mockResolvedValue([{ id: 'site_01' }]);
@@ -55,7 +62,7 @@ describe('OperatorReservationsService', () => {
       id: 'res_01', siteId: 'site_01', unitId: 'unit_01', customerId: 'cust_01', status: 'confirmed',
     });
     mockPrisma.reservation.update.mockResolvedValue({ id: 'res_01', status: 'converted' });
-    mockPrisma.agreement.create.mockResolvedValue({ id: 'agr_01', status: 'draft' });
+    mockPrisma.agreement.upsert.mockResolvedValue({ id: 'agr_01', status: 'draft' });
     const result = await service.createAgreementFromReservation('org_01', 'res_01', {
       billingCycle: 'monthly', language: 'de', pricingSnapshot: { amountMinor: 14900 },
     }, 'actor_01');

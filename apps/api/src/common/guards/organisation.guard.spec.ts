@@ -9,10 +9,10 @@ const mockPrisma = {
   },
 };
 
-const makeContext = (user: object) =>
+const makeContext = (user: object, params: Record<string, string> = {}) =>
   ({
     switchToHttp: () => ({
-      getRequest: () => ({ user }),
+      getRequest: () => ({ user, params }),
     }),
   }) as unknown as ExecutionContext;
 
@@ -46,6 +46,13 @@ describe('OrganisationGuard', () => {
       makeContext({ sub: 'u1', organisationId: 'org1' }),
     );
     expect(result).toBe(false);
+  });
+
+  it('rejects route organisationId that differs from the authenticated organisation', async () => {
+    await expect(
+      guard.canActivate(makeContext({ sub: 'u1', organisationId: 'org1' }, { organisationId: 'org2' })),
+    ).rejects.toThrow('Organisation scope mismatch');
+    expect(mockPrisma.organisationMember.findFirst).not.toHaveBeenCalled();
   });
 
   it('attaches organisation and member to request when valid', async () => {

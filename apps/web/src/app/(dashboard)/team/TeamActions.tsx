@@ -130,6 +130,8 @@ export default function TeamActions({ type, id, label }: Props) {
           style={{ ...inputStyle, width: 'auto' }}
         >
           <option value="owner">{t('dashboard.team.invite.roleOwner')}</option>
+          <option value="billing_admin">{t('dashboard.team.invite.roleBillingAdmin')}</option>
+          <option value="site_manager">{t('dashboard.team.invite.roleSiteManager')}</option>
           <option value="operator">{t('dashboard.team.invite.roleOperator')}</option>
         </select>
       </div>

@@ -2,6 +2,8 @@ import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
 import { getT } from '@/lib/get-locale';
 import { PlanSwitchButton } from './plan-switch-button';
+import { CheckoutStarter } from './CheckoutStarter';
+import { CheckoutReturn } from './CheckoutReturn';
 
 interface OrgProfile {
   id: string;
@@ -15,20 +17,29 @@ interface PlanUsage {
   units: { used: number; limit: number };
 }
 
+interface Subscription {
+  status: string;
+  billingInterval: string;
+  currentPeriodEnd: string;
+  lastPaymentStatus: string | null;
+}
+
 const PLAN_DETAILS: Record<string, { key: string; price: string; sites: number; units: number }> = {
-  starter:      { key: 'starter',      price: '€49/mo',  sites: 1,        units: 50  },
-  professional: { key: 'professional', price: '€199/mo', sites: 5,        units: 500 },
-  enterprise:   { key: 'enterprise',   price: 'Custom',  sites: Infinity, units: Infinity },
+  free:         { key: 'free',         price: '€0/mo',   sites: 1,   units: 10 },
+  starter:      { key: 'starter',      price: '€49/mo',  sites: 1,        units: 50 },
+  professional: { key: 'professional', price: '€149/mo', sites: 5,        units: 500 },
+  enterprise:   { key: 'enterprise',   price: '€399/mo', sites: Infinity, units: Infinity },
 };
 
-export default async function BillingPage() {
+export default async function BillingPage({ searchParams }: { searchParams: { checkout?: string; plan?: string; interval?: string } }) {
   const user = await requireAuth();
   const t = getT();
   const org = await serverFetch<OrgProfile>(`/v1/organisations/${user.organisationId}`).catch(() => null);
   const usage = await serverFetch<PlanUsage>(`/v1/organisations/${user.organisationId}/usage`).catch(() => null);
+  const subscription = await serverFetch<Subscription>(`/v1/organisations/${user.organisationId}/subscription`).catch(() => null);
 
-  const plan    = org?.plan ?? 'starter';
-  const details = PLAN_DETAILS[plan] ?? PLAN_DETAILS.starter;
+  const plan    = org?.plan ?? 'free';
+  const details = PLAN_DETAILS[plan] ?? PLAN_DETAILS.free;
 
   return (
     <>
@@ -49,6 +60,13 @@ export default async function BillingPage() {
             </p>
           </div>
 
+          {searchParams.checkout === 'return' && (
+            <CheckoutReturn />
+          )}
+          {searchParams.plan && searchParams.plan !== 'free' && (
+            <CheckoutStarter plan={searchParams.plan} billingInterval={searchParams.interval ?? 'monthly'} />
+          )}
+
           {/* Current plan card */}
           <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '24px', marginBottom: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -62,10 +80,15 @@ export default async function BillingPage() {
                   </h2>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#16a34a', display: 'inline-block' }} />
-                    {t('dashboard.billing.active')}
+                    {subscription?.status ?? t('dashboard.billing.active')}
                   </span>
                 </div>
                 <p style={{ fontSize: '15px', fontWeight: 600, color: '#475569', margin: 0, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{details.price}</p>
+                {subscription && (
+                  <p style={{ fontSize: '12px', color: '#94a3b8', margin: '6px 0 0' }}>
+                    {subscription.billingInterval} billing · next period {new Date(subscription.currentPeriodEnd).toLocaleDateString('de-DE')}
+                  </p>
+                )}
               </div>
               <a href="#available-plans" style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '9px 16px', cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", textDecoration: 'none' }}>
                 {t('dashboard.billing.upgradePlan')}

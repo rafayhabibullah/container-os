@@ -41,6 +41,15 @@ export class TenantPortalController {
     return this.service.listMyInvoices(user.id);
   }
 
+  @Post('invoices/:invoiceId/pay')
+  payInvoice(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('invoiceId') invoiceId: string,
+    @Body() body: { redirectUrl?: string },
+  ) {
+    return this.service.createMyInvoicePayment(user.id, invoiceId, body.redirectUrl);
+  }
+
   @Get('mandates')
   listMandates(@CurrentUser() user: AuthenticatedUser) {
     return this.service.listMyMandates(user.id);

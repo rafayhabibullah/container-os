@@ -54,7 +54,7 @@ export class SiteInventoryService {
     return updated;
   }
 
-  async deleteUnit(unitId: string, actorId: string) {
+  async deleteUnit(unitId: string, _actorId: string) {
     if (await this.audit.hasLegalHold('Unit', unitId)) throw new DomainException(ErrorCodes.LEGAL_HOLD_ACTIVE, `Unit ${unitId} has an active legal hold`);
     return this.prisma.unit.update({ where: { id: unitId }, data: { deletedAt: new Date() } });
   }

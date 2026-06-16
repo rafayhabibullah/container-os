@@ -41,11 +41,12 @@ describe('AuthService', () => {
       const user = { id: 'u1', type: 'owner', email: 'new@test.de' };
       const org = { id: 'org1', status: 'active' };
       const member = { id: 'm1', organisationId: 'org1', userId: 'u1', role: 'owner' };
-      mockPrisma.$transaction.mockImplementation(async (fn: Function) =>
+      mockPrisma.$transaction.mockImplementation(async (fn: (tx: any) => Promise<any>) =>
         fn({
           user: { create: vi.fn().mockResolvedValue(user) },
           organisation: { create: vi.fn().mockResolvedValue(org) },
           organisationMember: { create: vi.fn().mockResolvedValue(member) },
+          organisationSubscription: { create: vi.fn().mockResolvedValue({ id: 'sub1' }) },
         }),
       );
       mockPrisma.userSession.create.mockResolvedValue({});
@@ -72,7 +73,7 @@ describe('AuthService', () => {
     });
 
     it('throws UnauthorizedException for wrong password', async () => {
-      const hash = await bcrypt.hash('correct', 12);
+      const hash = await bcrypt.hash('correct', 4);
       mockPrisma.user.findUnique.mockResolvedValue({ id: 'u1', passwordHash: hash });
       await expect(
         service.login({ email: 'u@test.de', password: 'wrong' }),
@@ -80,7 +81,7 @@ describe('AuthService', () => {
     });
 
     it('returns tokens on valid credentials', async () => {
-      const hash = await bcrypt.hash('correct', 12);
+      const hash = await bcrypt.hash('correct', 4);
       mockPrisma.user.findUnique.mockResolvedValue({
         id: 'u1',
         passwordHash: hash,

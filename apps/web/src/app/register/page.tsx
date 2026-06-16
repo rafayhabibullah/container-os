@@ -30,7 +30,10 @@ export default function RegisterPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? 'Registration failed');
-      router.push('/dashboard');
+      const params = new URLSearchParams(window.location.search);
+      const plan = params.get('plan') ?? 'free';
+      const interval = params.get('interval') ?? 'monthly';
+      router.push(plan === 'free' ? '/dashboard' : `/billing?plan=${plan}&interval=${interval}`);
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed');

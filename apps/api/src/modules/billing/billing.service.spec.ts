@@ -1,14 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BillingService } from './billing.service';
-import { NotFoundException, ForbiddenException } from '@nestjs/common';
+import { ForbiddenException } from '@nestjs/common';
 
 const mockPrisma = {
+  site: { findMany: vi.fn(), findUnique: vi.fn() },
   invoice: {
     findMany: vi.fn(),
     findUniqueOrThrow: vi.fn(),
+    findFirstOrThrow: vi.fn(),
     update: vi.fn(),
     count: vi.fn(),
   },
+  organisationPaymentAccount: { findUnique: vi.fn() },
+  organisationSubscription: { findFirst: vi.fn() },
+  reservation: { findUnique: vi.fn() },
+  commissionRecord: { create: vi.fn() },
   creditNote: { create: vi.fn() },
   payment: { create: vi.fn() },
   paymentAttempt: { create: vi.fn() },
@@ -20,17 +26,19 @@ describe('BillingService', () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
   it('listInvoicesForOrg returns invoices filtered by orgId via siteId join', async () => {
+    mockPrisma.site.findMany.mockResolvedValue([{ id: 's1' }]);
     mockPrisma.invoice.findMany.mockResolvedValue([
       { id: 'inv_01', siteId: 's1', status: 'pending', totalMinor: 17731, dueDate: new Date(), agreement: { tenantId: 'cust_01', unit: { unitCode: 'A01' } } },
     ]);
     const result = await service.listInvoicesForOrg('org_01', {});
     expect(mockPrisma.invoice.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: expect.objectContaining({ agreement: { site: { organisationId: 'org_01' } } }) }),
+      expect.objectContaining({ where: expect.objectContaining({ siteId: { in: ['s1'] } }) }),
     );
     expect(result).toHaveLength(1);
   });
 
   it('listInvoicesForOrg applies siteId filter when provided', async () => {
+    mockPrisma.site.findMany.mockResolvedValue([{ id: 's1' }]);
     mockPrisma.invoice.findMany.mockResolvedValue([]);
     await service.listInvoicesForOrg('org_01', { siteId: 's1' });
     expect(mockPrisma.invoice.findMany).toHaveBeenCalledWith(
@@ -65,5 +73,19 @@ describe('BillingService', () => {
     const result = await service.createMolliePayment('inv_01', mockMollie as any, 'https://app/invoices/inv_01');
     expect(mockPrisma.payment.create).toHaveBeenCalled();
     expect(result).toHaveProperty('checkoutUrl', 'https://mollie.com/checkout/tr_01');
+  });
+
+  it('createMolliePayment requires a connected organisation Mollie account when org scoped', async () => {
+    mockPrisma.site.findMany.mockResolvedValue([{ id: 's1' }]);
+    mockPrisma.invoice.findFirstOrThrow.mockResolvedValue({
+      id: 'inv_01', status: 'pending', totalMinor: 17731, currency: 'EUR', siteId: 's1',
+      agreementId: 'agr_01',
+      agreement: { tenantId: 'cust_01', reservationId: 'res_01' },
+    });
+    mockPrisma.site.findUnique.mockResolvedValue({ organisationId: 'org_01' });
+    mockPrisma.organisationPaymentAccount.findUnique.mockResolvedValue({ status: 'not_connected' });
+    const mockMollie = { createPaymentLink: vi.fn() };
+    await expect(service.createMolliePayment('inv_01', mockMollie as any, 'https://app/invoices/inv_01', 'org_01')).rejects.toThrow(ForbiddenException);
+    expect(mockMollie.createPaymentLink).not.toHaveBeenCalled();
   });
 });

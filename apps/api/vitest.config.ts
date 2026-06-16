@@ -6,6 +6,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     setupFiles: ['./src/test/setup.ts'],
+    testTimeout: 15000,
     coverage: { reporter: ['text', 'lcov'] },
     passWithNoTests: true,
   },

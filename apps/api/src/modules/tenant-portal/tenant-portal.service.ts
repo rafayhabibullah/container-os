@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { BillingService } from '../billing/billing.service';
+import { MollieAdapter } from '../payments/mollie.adapter';
 
 @Injectable()
 export class TenantPortalService {
-  constructor(private prisma: PrismaClient) {}
+  constructor(private prisma: PrismaClient, private billing?: BillingService, private mollie?: MollieAdapter) {}
 
   // Agreement.tenantId is Customer.id, but the JWT sub is User.id.
   // One email can have multiple Contact records (e.g. separate checkout flows), so resolve all.
@@ -65,6 +67,22 @@ export class TenantPortalService {
       where: { agreementId: { in: agreementIds }, deletedAt: null },
       orderBy: { dueDate: 'desc' },
     });
+  }
+
+  async createMyInvoicePayment(userId: string, invoiceId: string, redirectUrl?: string) {
+    const customerIds = await this.resolveCustomerIds(userId);
+    const invoice = await this.prisma.invoice.findFirstOrThrow({
+      where: {
+        id: invoiceId,
+        deletedAt: null,
+        agreement: { tenantId: { in: customerIds } },
+        status: { in: ['pending', 'sent', 'overdue'] },
+      },
+      include: { agreement: true },
+    });
+    const target = redirectUrl ?? `${process.env.APP_URL ?? 'http://localhost:3001'}/my-storage/invoices/${invoiceId}`;
+    if (!this.billing || !this.mollie) throw new Error('Payment checkout is not configured');
+    return this.billing.createMolliePayment(invoice.id, this.mollie, target);
   }
 
   async listMyMandates(userId: string) {

@@ -6,8 +6,97 @@ import { resolveDateRange } from './dto/report-query.dto';
 export class ReportingService {
   constructor(private prisma: PrismaClient) {}
 
-  private async getSites(orgId: string): Promise<{ id: string; name: string }[]> {
-    return this.prisma.site.findMany({ where: { organisationId: orgId }, select: { id: true, name: true } });
+  private async getSites(orgId: string, siteId?: string): Promise<{ id: string; name: string }[]> {
+    return this.prisma.site.findMany({ where: { organisationId: orgId, ...(siteId ? { id: siteId } : {}) }, select: { id: true, name: true } });
+  }
+
+  private percentage(value: number, total: number) {
+    return total > 0 ? Math.round((value / total) * 1000) / 10 : 0;
+  }
+
+  private changePct(current: number, previous: number) {
+    if (previous === 0) return current === 0 ? 0 : 100;
+    return Math.round(((current - previous) / previous) * 1000) / 10;
+  }
+
+  async getExecutiveReport(orgId: string, fromStr?: string, toStr?: string, siteId?: string) {
+    const sites = await this.getSites(orgId, siteId);
+    const siteIds = sites.map((site) => site.id);
+    const { from, to } = resolveDateRange(fromStr, toStr);
+    const periodMs = Math.max(to.getTime() - from.getTime(), 1);
+    const previousTo = new Date(from.getTime() - 1);
+    const previousFrom = new Date(previousTo.getTime() - periodMs);
+
+    const [units, currentInvoices, previousInvoices, leads, previousLeads, reservations, tasks, incidents] = await Promise.all([
+      this.prisma.unit.findMany({ where: { siteId: { in: siteIds }, deletedAt: null }, select: { siteId: true, status: true } }),
+      this.prisma.invoice.findMany({ where: { siteId: { in: siteIds }, invoiceDate: { gte: from, lte: to }, deletedAt: null }, select: { siteId: true, status: true, totalMinor: true, dueDate: true } }),
+      this.prisma.invoice.findMany({ where: { siteId: { in: siteIds }, invoiceDate: { gte: previousFrom, lte: previousTo }, deletedAt: null }, select: { status: true, totalMinor: true } }),
+      this.prisma.lead.findMany({ where: { siteId: { in: siteIds }, createdAt: { gte: from, lte: to }, deletedAt: null }, select: { status: true, source: true } }),
+      this.prisma.lead.findMany({ where: { siteId: { in: siteIds }, createdAt: { gte: previousFrom, lte: previousTo }, deletedAt: null }, select: { status: true } }),
+      this.prisma.reservation.findMany({ where: { siteId: { in: siteIds }, createdAt: { gte: from, lte: to }, deletedAt: null }, select: { status: true, source: true } }),
+      this.prisma.task.findMany({ where: { siteId: { in: siteIds } }, select: { status: true, priority: true, dueAt: true } }),
+      this.prisma.incident.findMany({ where: { siteId: { in: siteIds } }, select: { status: true, severity: true } }),
+    ]);
+
+    const paidMinor = currentInvoices.filter((invoice) => invoice.status === 'paid').reduce((sum, invoice) => sum + invoice.totalMinor, 0);
+    const previousPaidMinor = previousInvoices.filter((invoice) => invoice.status === 'paid').reduce((sum, invoice) => sum + invoice.totalMinor, 0);
+    const invoicedMinor = currentInvoices.reduce((sum, invoice) => sum + invoice.totalMinor, 0);
+    const overdueMinor = currentInvoices.filter((invoice) => invoice.status === 'overdue' || (invoice.status === 'pending' && invoice.dueDate < to)).reduce((sum, invoice) => sum + invoice.totalMinor, 0);
+    const occupied = units.filter((unit) => unit.status === 'occupied').length;
+    const converted = leads.filter((lead) => lead.status === 'converted').length;
+    const previousConverted = previousLeads.filter((lead) => lead.status === 'converted').length;
+    const openTasks = tasks.filter((task) => task.status !== 'completed' && task.status !== 'cancelled').length;
+    const overdueTasks = tasks.filter((task) => task.status !== 'completed' && task.status !== 'cancelled' && task.dueAt && task.dueAt < to).length;
+    const openIncidents = incidents.filter((incident) => incident.status !== 'resolved').length;
+
+    const sitePerformance = sites.map((site) => {
+      const siteUnits = units.filter((unit) => unit.siteId === site.id);
+      const siteOccupied = siteUnits.filter((unit) => unit.status === 'occupied').length;
+      const siteInvoices = currentInvoices.filter((invoice) => invoice.siteId === site.id);
+      const revenueMinor = siteInvoices.filter((invoice) => invoice.status === 'paid').reduce((sum, invoice) => sum + invoice.totalMinor, 0);
+      const siteOverdueMinor = siteInvoices.filter((invoice) => invoice.status === 'overdue' || (invoice.status === 'pending' && invoice.dueDate < to)).reduce((sum, invoice) => sum + invoice.totalMinor, 0);
+      return {
+        siteId: site.id,
+        siteName: site.name,
+        totalUnits: siteUnits.length,
+        occupiedUnits: siteOccupied,
+        occupancyPct: this.percentage(siteOccupied, siteUnits.length),
+        revenueMinor,
+        overdueMinor: siteOverdueMinor,
+      };
+    }).sort((a, b) => b.revenueMinor - a.revenueMinor);
+
+    const recommendations = sitePerformance.flatMap((site) => {
+      if (site.occupancyPct > 90) return [{ type: 'pricing', severity: 'opportunity', siteId: site.siteId, title: `Review pricing at ${site.siteName}`, detail: `${site.occupancyPct}% occupancy indicates room for a price increase.` }];
+      if (site.totalUnits > 0 && site.occupancyPct < 60) return [{ type: 'demand', severity: 'attention', siteId: site.siteId, title: `Increase demand at ${site.siteName}`, detail: `${site.occupancyPct}% occupancy suggests a targeted promotion or listing review.` }];
+      return [];
+    });
+    if (overdueMinor > 0) recommendations.push({ type: 'collections', severity: 'attention', siteId: '', title: 'Prioritise overdue collections', detail: `€${(overdueMinor / 100).toFixed(2)} is overdue in the selected period.` });
+    if (overdueTasks > 0) recommendations.push({ type: 'operations', severity: 'attention', siteId: '', title: 'Clear overdue tasks', detail: `${overdueTasks} operational tasks are past their due date.` });
+
+    return {
+      period: { from, to, previousFrom, previousTo },
+      kpis: {
+        revenueMinor: paidMinor,
+        revenueChangePct: this.changePct(paidMinor, previousPaidMinor),
+        invoicedMinor,
+        collectionRatePct: this.percentage(paidMinor, invoicedMinor),
+        overdueMinor,
+        occupancyPct: this.percentage(occupied, units.length),
+        totalUnits: units.length,
+        convertedLeads: converted,
+        conversionRatePct: this.percentage(converted, leads.length),
+        conversionChangePct: this.changePct(converted, previousConverted),
+        openTasks,
+        overdueTasks,
+        openIncidents,
+        reservations: reservations.length,
+      },
+      unitsByStatus: Object.entries(units.reduce<Record<string, number>>((acc, unit) => ({ ...acc, [unit.status]: (acc[unit.status] ?? 0) + 1 }), {})).map(([status, count]) => ({ status, count })),
+      bookingSources: Object.entries(reservations.reduce<Record<string, number>>((acc, reservation) => ({ ...acc, [reservation.source]: (acc[reservation.source] ?? 0) + 1 }), {})).map(([source, count]) => ({ source, count })),
+      sitePerformance,
+      recommendations,
+    };
   }
 
   async getOccupancyReport(orgId: string) {

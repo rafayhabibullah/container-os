@@ -28,7 +28,7 @@ describe('BillingOrgController', () => {
 
   it('getInvoice calls BillingService.getInvoiceDetail', async () => {
     await controller.getInvoice('org_01', 'inv_01');
-    expect(mockBilling.getInvoiceDetail).toHaveBeenCalledWith('inv_01');
+    expect(mockBilling.getInvoiceDetail).toHaveBeenCalledWith('inv_01', 'org_01');
   });
 
   it('runInvoices triggers InvoiceRunService.runForDate', async () => {
@@ -43,7 +43,7 @@ describe('BillingOrgController', () => {
 
   it('voidInvoice calls BillingService.voidInvoice', async () => {
     const result = await controller.voidInvoice('org_01', 'inv_01', { reason: 'Test void' });
-    expect(mockBilling.voidInvoice).toHaveBeenCalledWith('inv_01', 'Test void');
+    expect(mockBilling.voidInvoice).toHaveBeenCalledWith('inv_01', 'Test void', 'org_01');
     expect(result).toHaveProperty('creditNoteId');
   });
 

@@ -11,6 +11,8 @@ const mockPrisma = {
   customer: { create: vi.fn() },
   contact: { findFirst: vi.fn(), create: vi.fn() },
   reservation: { create: vi.fn() },
+  agreement: { create: vi.fn() },
+  invoice: { create: vi.fn() },
 };
 const mockNotifications = { sendNotification: vi.fn().mockResolvedValue(undefined) };
 const mockAudit = { record: vi.fn() };
@@ -48,6 +50,8 @@ describe('CheckoutService', () => {
       status: 'pending_signature',
       expiresAt: new Date(Date.now() + 86_400_000),
     });
+    mockPrisma.agreement.create.mockResolvedValue({ id: 'agr_01' });
+    mockPrisma.invoice.create.mockResolvedValue({ id: 'inv_01' });
     mockPrisma.reservationHold.delete.mockResolvedValue({});
     mockPrisma.checkoutSession.update.mockResolvedValue({});
   });
@@ -80,6 +84,31 @@ describe('CheckoutService', () => {
     expect(result).toHaveProperty('reservationId', 'res_01');
     expect(mockPrisma.customer.create).not.toHaveBeenCalled();
     expect(mockPrisma.contact.create).not.toHaveBeenCalled();
+  });
+
+  it('creates agreement and first invoice for instant marketplace bookings', async () => {
+    mockPrisma.checkoutSession.findUniqueOrThrow.mockResolvedValue({
+      ...validSession,
+      metadata: {
+        unitId: 'unit_01',
+        startDate: new Date().toISOString(),
+        bookingMode: 'instant_booking',
+        pricingSnapshot: { rentMinor: 12000, depositMinor: 12000, currency: 'EUR' },
+      },
+    });
+    const result = await service.confirmCheckout('chk_01', {
+      name: 'Anna Müller',
+      email: 'anna@example.com',
+      phone: '+49170123456',
+      marketingConsent: false,
+    });
+    expect(result).toMatchObject({ agreementId: 'agr_01', invoiceId: 'inv_01', nextStep: 'signature_and_payment' });
+    expect(mockPrisma.agreement.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ reservationId: 'res_01', status: 'pending_signature' }) }),
+    );
+    expect(mockPrisma.invoice.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ agreementId: 'agr_01', totalMinor: 24000 }) }),
+    );
   });
 
   it('throws when checkout session is expired', async () => {

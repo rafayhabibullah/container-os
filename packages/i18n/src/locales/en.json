@@ -108,6 +108,8 @@
       "colDueDate": "Due date",
       "colAmount": "Amount",
       "colStatus": "Status",
+      "colAction": "Action",
+      "pay": "Pay",
       "statusPending": "pending",
       "statusSent": "sent",
       "statusPaid": "paid",
@@ -1544,6 +1546,7 @@
       "sites_plural": "{{count}} sites",
       "units": "{{count}} units",
       "plans": {
+        "free": "Free",
         "starter": "Starter",
         "growth": "Growth",
         "pro": "Pro",
@@ -1553,6 +1556,7 @@
       "switchConfirm": "Switch plan to {{plan}}?",
       "switchSuccess": "Plan changed successfully.",
       "switchFailed": "Failed to change plan.",
+      "paymentNotConfigured": "Secure payment checkout is not configured yet. Add the Mollie API key to enable paid upgrades.",
       "switching": "Switching…",
       "usage": {
         "title": "Plan usage",
@@ -1633,6 +1637,21 @@
       "avgOccupancy": "Avg Occupancy",
       "revenueThisMonth": "Revenue (this month)",
       "occupancyBySite": "Occupancy by site",
+      "executive": {
+        "revenue": "Collected revenue",
+        "occupancy": "Portfolio occupancy",
+        "collectionRate": "Collection rate",
+        "conversion": "Lead conversion",
+        "openWork": "Open tasks",
+        "openIncidents": "Open incidents",
+        "overdue": "Overdue",
+        "bookings": "Bookings",
+        "recommendations": "Recommended actions",
+        "sitePerformance": "Site performance",
+        "unitsByStatus": "Units by status",
+        "bookingSources": "Booking sources",
+        "exportCsv": "Export CSV"
+      },
       "table": {
         "site": "Site",
         "occupancy": "Occupancy",
@@ -1725,6 +1744,8 @@
         "email": "Email",
         "role": "Role",
         "roleOwner": "Owner",
+        "roleBillingAdmin": "Billing Admin",
+        "roleSiteManager": "Site Manager",
         "roleOperator": "Operator",
         "send": "Send invite",
         "sending": "Sending…",
@@ -1742,6 +1763,8 @@
       },
       "roles": {
         "owner": "Owner",
+        "billing_admin": "Billing Admin",
+        "site_manager": "Site Manager",
         "operator": "Operator",
         "tenant": "Tenant"
       }

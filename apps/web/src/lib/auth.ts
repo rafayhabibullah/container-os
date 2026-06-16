@@ -9,7 +9,7 @@ const TENANT_REFRESH_COOKIE = 'sl_tenant_refresh';
 export interface TokenPayload {
   sub: string;
   organisationId: string;
-  role: 'owner' | 'operator' | 'tenant';
+  role: 'owner' | 'billing_admin' | 'site_manager' | 'operator' | 'tenant';
   type: 'owner' | 'operator' | 'tenant';
   exp: number;
 }

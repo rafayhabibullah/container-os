@@ -9,7 +9,7 @@ export class StubAccessAdapter implements AccessVendorAdapter {
     const pin = String(Math.floor(1000 + Math.random() * 9000));
     const externalRef = `stub_${params.agreementId}_${Date.now()}`;
     this.credentials.set(externalRef, { revoked: false });
-    return { externalRef, maskedValue: `****${pin.slice(-2)}` };
+    return { externalRef, maskedValue: `****${pin.slice(-2)}`, secretValue: pin };
   }
 
   async revokeCredential(externalRef: string): Promise<void> { this.credentials.set(externalRef, { revoked: true }); }

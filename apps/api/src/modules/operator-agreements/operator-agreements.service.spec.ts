@@ -1,14 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { OperatorAgreementsService } from './operator-agreements.service';
-import { DomainException } from '@sitelager/domain-types';
 
 const mockPrisma = {
-  site: { findMany: vi.fn() },
+  site: { findMany: vi.fn(), findFirst: vi.fn() },
   agreement: {
     findMany: vi.fn(),
     findFirstOrThrow: vi.fn(),
     update: vi.fn(),
   },
+  customer: { findMany: vi.fn() },
+  unit: { findMany: vi.fn(), findFirst: vi.fn() },
+  unitType: { findMany: vi.fn(), findFirst: vi.fn() },
   signatory: { createMany: vi.fn() },
   terminationRequest: { create: vi.fn() },
 };
@@ -28,6 +30,11 @@ describe('OperatorAgreementsService', () => {
     vi.clearAllMocks();
     mockPrisma.site.findMany.mockResolvedValue([{ id: 'site_01' }]);
     mockPrisma.agreement.findFirstOrThrow.mockResolvedValue(agreement);
+    mockPrisma.customer.findMany.mockResolvedValue([]);
+    mockPrisma.unit.findMany.mockResolvedValue([]);
+    mockPrisma.unitType.findMany.mockResolvedValue([]);
+    mockPrisma.unit.findFirst.mockResolvedValue(null);
+    mockPrisma.site.findFirst.mockResolvedValue(null);
   });
 
   it('lists agreements for org via site join', async () => {

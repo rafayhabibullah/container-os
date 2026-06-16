@@ -3,17 +3,22 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { OrganisationGuard } from '../../common/guards/organisation.guard';
+import { PermissionGuard } from '../../common/guards/permission.guard';
+import { RequirePermissions } from '../../common/decorators/require-permissions.decorator';
 import { CurrentMember } from '../../common/decorators/current-member.decorator';
 import { OperationsService } from './operations.service';
 import { InspectionService } from './inspection.service';
 import { PrismaClient, TaskType, TaskPriority } from '@prisma/client';
 import { StorageService } from '../documents/storage.service';
+import { PlanFeatureGuard } from '../organisations/plan-feature.guard';
+import { RequirePlanFeature } from '../organisations/require-plan-feature.decorator';
 
 interface MemberContext { userId: string; role: string; organisationId: string; }
 
 @ApiTags('operations')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, OrganisationGuard)
+@RequirePlanFeature('operations')
+@UseGuards(JwtAuthGuard, OrganisationGuard, PlanFeatureGuard, PermissionGuard)
 @Controller('v1/organisations/:organisationId')
 export class OrgOperationsController {
   constructor(
@@ -24,6 +29,7 @@ export class OrgOperationsController {
   ) {}
 
   @Get('tasks')
+  @RequirePermissions('operations:read')
   @ApiOperation({ summary: 'List tasks' })
   listTasks(
     @Param('organisationId') orgId: string,
@@ -34,6 +40,7 @@ export class OrgOperationsController {
   }
 
   @Post('tasks')
+  @RequirePermissions('operations:write')
   @ApiOperation({ summary: 'Create a task' })
   createTask(
     @Param('organisationId') orgId: string,
@@ -55,6 +62,7 @@ export class OrgOperationsController {
   }
 
   @Patch('tasks/:taskId')
+  @RequirePermissions('operations:write')
   @ApiOperation({ summary: 'Update task status or assignee' })
   updateTask(
     @Param('organisationId') orgId: string,
@@ -64,7 +72,20 @@ export class OrgOperationsController {
     return this.ops.updateTask(orgId, taskId, body);
   }
 
+  @Post('tasks/:taskId/comments')
+  @RequirePermissions('operations:write')
+  @ApiOperation({ summary: 'Add a task comment' })
+  addTaskComment(
+    @Param('organisationId') orgId: string,
+    @Param('taskId') taskId: string,
+    @Body() body: { body: string },
+    @CurrentMember() member: MemberContext,
+  ) {
+    return this.ops.addTaskComment(orgId, taskId, body.body, member.userId);
+  }
+
   @Get('incidents')
+  @RequirePermissions('operations:read')
   @ApiOperation({ summary: 'List incidents' })
   listIncidents(
     @Param('organisationId') orgId: string,
@@ -75,16 +96,17 @@ export class OrgOperationsController {
   }
 
   @Post('incidents')
+  @RequirePermissions('operations:write')
   @ApiOperation({ summary: 'Report an incident' })
   createIncident(
     @Param('organisationId') orgId: string,
     @Body() body: { siteId: string; unitId?: string; title: string; description: string; severity: string },
-    @CurrentMember() member: MemberContext,
   ) {
-    return this.ops.createIncident({ siteId: body.siteId, unitId: body.unitId, severity: body.severity, type: body.title });
+    return this.ops.createIncident({ organisationId: orgId, siteId: body.siteId, unitId: body.unitId, severity: body.severity, type: body.title, description: body.description, source: 'operator' });
   }
 
   @Patch('incidents/:incidentId')
+  @RequirePermissions('operations:write')
   @ApiOperation({ summary: 'Update incident status' })
   updateIncident(
     @Param('organisationId') orgId: string,
@@ -95,6 +117,7 @@ export class OrgOperationsController {
   }
 
   @Get('maintenance-orders')
+  @RequirePermissions('operations:read')
   @ApiOperation({ summary: 'List maintenance orders' })
   listMaintenanceOrders(
     @Param('organisationId') orgId: string,
@@ -104,6 +127,7 @@ export class OrgOperationsController {
   }
 
   @Post('maintenance-orders')
+  @RequirePermissions('operations:write')
   @ApiOperation({ summary: 'Create a maintenance order' })
   createMaintenanceOrder(
     @Param('organisationId') orgId: string,
@@ -113,6 +137,7 @@ export class OrgOperationsController {
   }
 
   @Post('inspection-runs')
+  @RequirePermissions('operations:write')
   @ApiOperation({ summary: 'Start an inspection run' })
   createInspectionRun(
     @Body() body: {
@@ -139,6 +164,7 @@ export class OrgOperationsController {
   }
 
   @Patch('inspection-runs/:id')
+  @RequirePermissions('operations:write')
   @ApiOperation({ summary: 'Complete an in-progress inspection run' })
   async completeInspectionRun(
     @Param('organisationId') orgId: string,
@@ -177,6 +203,7 @@ export class OrgOperationsController {
   }
 
   @Post('inspection-photos')
+  @RequirePermissions('operations:write')
   @ApiOperation({ summary: 'Upload an inspection photo and return a storage key' })
   @UseInterceptors(FileInterceptor('file'))
   async uploadInspectionPhoto(
@@ -189,6 +216,7 @@ export class OrgOperationsController {
   }
 
   @Get('inspections')
+  @RequirePermissions('operations:read')
   @ApiOperation({ summary: 'List inspection runs for all units in organisation' })
   async listInspections(@Param('organisationId') orgId: string) {
     const sites = await this.prisma.site.findMany({ where: { organisationId: orgId }, select: { id: true, name: true } });

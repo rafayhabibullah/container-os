@@ -6,17 +6,43 @@ const mockPrisma = {
   unit: { groupBy: vi.fn(), findMany: vi.fn() },
   invoice: { aggregate: vi.fn(), findMany: vi.fn() },
   agreement: { findMany: vi.fn() },
+  reservation: { findMany: vi.fn() },
   lead: { findMany: vi.fn() },
   mandate: { findMany: vi.fn() },
   inspectionRun: { findMany: vi.fn() },
-  task: { groupBy: vi.fn() },
-  incident: { groupBy: vi.fn() },
+  task: { groupBy: vi.fn(), findMany: vi.fn() },
+  incident: { groupBy: vi.fn(), findMany: vi.fn() },
   paymentAttempt: { findMany: vi.fn() },
   $transaction: vi.fn((ops: any[]) => Promise.all(ops)),
 };
 const service = new ReportingService(mockPrisma as any);
 
 describe('ReportingService', () => {
+  it('builds an executive portfolio report with recommendations', async () => {
+    mockPrisma.site.findMany.mockResolvedValue([{ id: 'site_01', name: 'Berlin' }]);
+    mockPrisma.unit.findMany.mockResolvedValue(Array.from({ length: 10 }, (_, index) => ({ siteId: 'site_01', status: index < 9 ? 'occupied' : 'available' })));
+    mockPrisma.invoice.findMany
+      .mockResolvedValueOnce([
+        { siteId: 'site_01', status: 'paid', totalMinor: 10000, dueDate: new Date('2026-06-10') },
+        { siteId: 'site_01', status: 'overdue', totalMinor: 2000, dueDate: new Date('2026-06-01') },
+      ])
+      .mockResolvedValueOnce([{ status: 'paid', totalMinor: 8000 }]);
+    mockPrisma.lead.findMany
+      .mockResolvedValueOnce([{ status: 'converted', source: 'marketplace' }, { status: 'new', source: 'web' }])
+      .mockResolvedValueOnce([{ status: 'converted' }]);
+    mockPrisma.reservation.findMany.mockResolvedValue([{ status: 'confirmed', source: 'marketplace' }]);
+    mockPrisma.task.findMany.mockResolvedValue([{ status: 'open', priority: 'high', dueAt: new Date('2026-06-01') }]);
+    mockPrisma.incident.findMany.mockResolvedValue([{ status: 'open', severity: 'high' }]);
+
+    const result = await service.getExecutiveReport('org_01', '2026-06-01', '2026-06-30');
+
+    expect(result.kpis.revenueMinor).toBe(10000);
+    expect(result.kpis.collectionRatePct).toBeCloseTo(83.3);
+    expect(result.kpis.occupancyPct).toBe(90);
+    expect(result.sitePerformance[0].siteName).toBe('Berlin');
+    expect(result.recommendations.some((item) => item.type === 'collections')).toBe(true);
+  });
+
   it('calculates occupancy percentage for a site', async () => {
     mockPrisma.site.findMany.mockResolvedValue([{ id: 'site_01' }]);
     mockPrisma.unit.groupBy.mockResolvedValue([

@@ -7,6 +7,9 @@ import AgreementDetailActions from './AgreementDetailActions';
 
 interface Signatory { id: string; personId: string; status: string; signedAt: string | null; }
 interface Amendment { id: string; type: string; effectiveFrom: string; }
+interface AgreementDocument { id: string; kind: string; locale: string | null; scanStatus: string; version: number; createdAt: string; }
+interface TerminationRequest { id: string; status: string; requestedDate: string; operatorNote: string | null; }
+interface InspectionRun { id: string; kind: string; result: string | null; reportDocumentId: string | null; completedAt: string | null; }
 interface Agreement {
   id: string;
   tenantId: string;
@@ -22,6 +25,9 @@ interface Agreement {
   createdAt: string;
   signatories: Signatory[];
   amendments: Amendment[];
+  documents: AgreementDocument[];
+  terminationRequests: TerminationRequest[];
+  inspections: InspectionRun[];
 }
 
 const STATUS_PILL: Record<string, { dot: string; color: string; bg: string; border: string }> = {
@@ -156,6 +162,35 @@ export default async function AgreementDetailPage({ params }: { params: { id: st
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          <div style={{ ...cardStyle, padding: '20px', marginBottom: '16px' }}>
+            <p style={sectionLabelStyle}>Documents and evidence</p>
+            {agreement.documents.length === 0 ? (
+              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>No generated agreement documents yet.</p>
+            ) : (
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {agreement.documents.map((document) => (
+                  <li key={document.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>{document.kind.replaceAll('_', ' ')}</span>
+                    <span style={{ fontSize: '12px', color: '#64748b' }}>v{document.version} · {document.scanStatus} · {new Date(document.createdAt).toLocaleDateString('de-DE')}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {(agreement.inspections.length > 0 || agreement.terminationRequests.length > 0) && (
+            <div style={{ ...cardStyle, padding: '20px', marginBottom: '16px' }}>
+              <p style={sectionLabelStyle}>Lifecycle evidence</p>
+              {[...agreement.inspections.map((item) => ({ id: item.id, label: `${item.kind.replaceAll('_', ' ')} inspection`, status: item.result ?? 'pending' })),
+                ...agreement.terminationRequests.map((item) => ({ id: item.id, label: `Move-out requested ${new Date(item.requestedDate).toLocaleDateString('de-DE')}`, status: item.status }))].map((item) => (
+                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                  <span style={{ fontSize: '14px', color: '#0f172a' }}>{item.label}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>{item.status}</span>
+                </div>
+              ))}
             </div>
           )}
 

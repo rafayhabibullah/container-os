@@ -9,5 +9,5 @@ export async function POST(req: NextRequest) {
   if (!plan) return NextResponse.json({ message: 'plan is required' }, { status: 400 });
 
   const orgId = ctx.payload.organisationId;
-  return proxyToBackend(`/v1/organisations/${orgId}`, 'PATCH', ctx.token, { plan });
+  return proxyToBackend(`/v1/organisations/${orgId}/subscription/change-plan`, 'POST', ctx.token, { plan });
 }

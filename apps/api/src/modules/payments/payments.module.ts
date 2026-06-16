@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { PaymentsController } from './payments.controller';
+import { OrganisationPaymentController } from './organisation-payment.controller';
+import { OrganisationPaymentService } from './organisation-payment.service';
 import { StripeAdapter } from './stripe.adapter';
 import { MollieAdapter } from './mollie.adapter';
 import { MollieModule } from './mollie.module';
@@ -10,10 +12,12 @@ import { DatevOrgController } from './datev-org.controller';
 import { LedgerService } from './ledger.service';
 import { DatevExportService } from './datev-export.service';
 import { EInvoiceService } from './einvoice.service';
+import { AccountingValidationService } from './accounting-validation.service';
 import { AuditModule } from '../audit/audit.module';
 import { BillingModule } from '../billing/billing.module';
 import { PrismaClient } from '@prisma/client';
 import { PAYMENT_ADAPTER } from './payment-adapter.interface';
+import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 
 const stubStorage = { upload: async () => ({ storageKey: '', hash: '' }), getSignedUrl: async () => '' };
 
@@ -27,17 +31,19 @@ export const paymentAdapterFactory = {
 };
 
 @Module({
-  imports: [AuditModule, BillingModule, MollieModule],
-  controllers: [PaymentsController, MollieWebhookController, StripeWebhookController, DatevOrgController],
+  imports: [AuditModule, BillingModule, MollieModule, SubscriptionsModule],
+  controllers: [PaymentsController, OrganisationPaymentController, MollieWebhookController, StripeWebhookController, DatevOrgController],
   providers: [
     PaymentsService,
+    OrganisationPaymentService,
     StripeAdapter,
     paymentAdapterFactory,
     LedgerService,
     EInvoiceService,
+    AccountingValidationService,
     { provide: PrismaClient, useValue: new PrismaClient() },
     { provide: DatevExportService, useValue: new DatevExportService(new PrismaClient(), stubStorage) },
   ],
-  exports: [PaymentsService, LedgerService],
+  exports: [PaymentsService, LedgerService, OrganisationPaymentService],
 })
 export class PaymentsModule {}

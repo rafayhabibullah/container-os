@@ -11,7 +11,7 @@ interface Site {
 
 interface Member {
   id: string;
-  role: 'owner' | 'operator' | 'tenant';
+  role: 'owner' | 'billing_admin' | 'site_manager' | 'operator' | 'tenant';
   user: { id: string; name: string | null; email: string };
 }
 

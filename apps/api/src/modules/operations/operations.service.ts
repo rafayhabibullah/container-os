@@ -23,8 +23,14 @@ export class OperationsService {
     notes?: string;
     assigneeId?: string;
     subjectRef?: string;
+    source?: string;
     dueAt?: Date;
   }) {
+    if (params.organisationId) {
+      const findSite = (this.prisma.site as any)?.findFirst as ((args: object) => Promise<{ id: string } | null>) | undefined;
+      const site = await findSite?.({ where: { id: params.siteId, organisationId: params.organisationId }, select: { id: true } });
+      if (findSite && !site) throw new NotFoundException('SITE_NOT_FOUND');
+    }
     const task = await this.prisma.task.create({
       data: {
         organisationId: params.organisationId,
@@ -38,6 +44,7 @@ export class OperationsService {
         notes: params.notes,
         assigneeId: params.assigneeId,
         subjectRef: params.subjectRef,
+        source: params.source,
         dueAt: params.dueAt,
       },
     });
@@ -50,9 +57,14 @@ export class OperationsService {
     return map[severity] ?? 'normal';
   }
 
-  async createIncident(params: { siteId: string; unitId?: string; severity: string; type: string; linkedAccessEventId?: string }) {
-    const incident = await this.prisma.incident.create({ data: params });
-    const task = await this.createTask({ siteId: params.siteId, title: `Incident: ${params.type}`, priority: this.severityToTaskPriority(params.severity), subjectRef: `Incident:${incident.id}` });
+  async createIncident(params: { organisationId?: string; siteId: string; unitId?: string; tenantId?: string; severity: string; type: string; description?: string; source?: string; rootCause?: string; photoIds?: string[]; linkedAccessEventId?: string }) {
+    if (params.organisationId) {
+      const site = await this.prisma.site.findFirst({ where: { id: params.siteId, organisationId: params.organisationId }, select: { id: true } });
+      if (!site) throw new NotFoundException('SITE_NOT_FOUND');
+    }
+    const { organisationId: _organisationId, ...incidentData } = params;
+    const incident = await this.prisma.incident.create({ data: incidentData });
+    const task = await this.createTask({ organisationId: params.organisationId, siteId: params.siteId, unitId: params.unitId, tenantId: params.tenantId, title: `Incident: ${params.type}`, priority: this.severityToTaskPriority(params.severity), subjectRef: `Incident:${incident.id}`, source: 'incident' });
     return { incidentId: incident.id, taskId: task.id };
   }
 
@@ -97,7 +109,14 @@ export class OperationsService {
     const siteIds = await this.orgSiteIds(orgId);
     const task = await this.prisma.task.findFirst({ where: { id: taskId, siteId: { in: siteIds } } });
     if (!task) throw new NotFoundException('TASK_NOT_FOUND');
-    return this.prisma.task.update({ where: { id: taskId }, data: data as any });
+    return this.prisma.task.update({ where: { id: taskId }, data: { ...data, ...(data.status === 'completed' ? { completedAt: new Date() } : {}) } as any });
+  }
+
+  async addTaskComment(orgId: string, taskId: string, body: string, actorId?: string) {
+    const siteIds = await this.orgSiteIds(orgId);
+    const task = await this.prisma.task.findFirst({ where: { id: taskId, siteId: { in: siteIds } } });
+    if (!task) throw new NotFoundException('TASK_NOT_FOUND');
+    return this.prisma.taskComment.create({ data: { taskId, actorId, body } });
   }
 
   async listIncidents(orgId: string, filters: { siteId?: string; status?: string }) {
@@ -132,13 +151,19 @@ export class OperationsService {
   }
 
   async listMaintenanceOrders(orgId: string, filters: { siteId?: string }) {
+    const siteIds = await this.orgSiteIds(orgId);
+    const unitWhere = filters.siteId ? { siteId: filters.siteId } : { siteId: { in: siteIds } };
+    const units = await this.prisma.unit.findMany({ where: unitWhere, select: { id: true } });
     return this.prisma.maintenanceOrder.findMany({
-      where: { ...(filters.siteId ? { unitId: filters.siteId } : {}) },
+      where: { unitId: { in: units.map((unit) => unit.id) } },
       orderBy: { createdAt: 'asc' },
     });
   }
 
   async createMaintenanceOrder(orgId: string, data: { unitId: string; vendorContact?: string }) {
+    const siteIds = await this.orgSiteIds(orgId);
+    const unit = await this.prisma.unit.findFirst({ where: { id: data.unitId, siteId: { in: siteIds } }, select: { id: true } });
+    if (!unit) throw new NotFoundException('UNIT_NOT_FOUND');
     return this.prisma.maintenanceOrder.create({
       data: { unitId: data.unitId, vendorContact: data.vendorContact, status: 'open' },
     });

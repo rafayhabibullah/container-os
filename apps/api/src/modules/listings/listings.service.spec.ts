@@ -40,10 +40,43 @@ describe('ListingsService', () => {
 
   describe('publishListing', () => {
     it('sets status to published when listing belongs to org', async () => {
-      mockPrisma.listing.findFirst.mockResolvedValue({ id: 'list-1', organisationId: 'org-1', status: 'draft' });
+      mockPrisma.listing.findFirst.mockResolvedValue({
+        id: 'list-1',
+        organisationId: 'org-1',
+        status: 'draft',
+        title: 'Secure storage box',
+        description: 'A clean, dry and secure storage unit with easy vehicle access, clear pricing and flexible booking for local customers.',
+        publicPriceMinor: 9900,
+        showPrice: true,
+        depositMinor: 9900,
+        bookingMode: 'instant_booking',
+        images: ['https://example.com/listing.jpg'],
+        seoTitle: 'Secure storage box',
+        seoDescription: 'Book a secure storage unit.',
+        site: { address: { city: 'Berlin', postalCode: '10115' } },
+        unit: { status: 'available', unitType: { sizeSqm: 8, features: ['Drive-up'] } },
+      });
       mockPrisma.listing.update.mockResolvedValue({ id: 'list-1', status: 'published' });
       const result = await service.publishListing('org-1', 'list-1');
       expect(result.status).toBe('published');
+    });
+
+    it('blocks publishing when public marketplace quality is incomplete', async () => {
+      mockPrisma.listing.findFirst.mockResolvedValue({
+        id: 'list-1',
+        organisationId: 'org-1',
+        title: 'Box',
+        description: null,
+        publicPriceMinor: null,
+        showPrice: true,
+        depositMinor: null,
+        bookingMode: 'instant_booking',
+        images: [],
+        site: { address: {} },
+        unit: { status: 'available', unitType: { sizeSqm: 8, features: [] } },
+      });
+      await expect(service.publishListing('org-1', 'list-1')).rejects.toThrow();
+      expect(mockPrisma.listing.update).not.toHaveBeenCalled();
     });
 
     it('throws when listing does not belong to org', async () => {

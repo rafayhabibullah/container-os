@@ -8,9 +8,10 @@ import { AuditModule } from '../audit/audit.module';
 import { PrismaClient } from '@prisma/client';
 import { StorageService } from '../documents/storage.service';
 import { DocumentsModule } from '../documents/documents.module';
+import { OrganisationModule } from '../organisations/organisations.module';
 
 @Module({
-  imports: [AuthModule, AuditModule, DocumentsModule],
+  imports: [AuthModule, AuditModule, DocumentsModule, OrganisationModule],
   controllers: [OperationsController, OrgOperationsController],
   providers: [OperationsService, InspectionService, StorageService, { provide: PrismaClient, useValue: new PrismaClient() }],
   exports: [OperationsService, InspectionService],

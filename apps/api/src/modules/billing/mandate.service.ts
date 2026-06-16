@@ -1,6 +1,5 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { DomainException } from '@sitelager/domain-types';
 import { validateMandateReference, generateMandateReference, escapeXml } from './sepa-validation';
 import { DocumentsService } from '../documents/documents.service';
 
@@ -19,12 +18,15 @@ export class MandateService {
     stripeSetupId?: string,
     reference?: string,
     creditorId?: string,
+    consentEvidence?: object,
+    provider = 'mollie',
+    providerRef?: string,
   ) {
     const ref = reference ?? generateMandateReference(customerId);
     validateMandateReference(ref);
 
     return this.prisma.mandate.create({
-      data: { customerId, scheme: scheme as any, reference: ref, creditorId, ibanLast4, consentSource, stripeSetupId, status: 'pending' },
+      data: { customerId, scheme: scheme as any, reference: ref, creditorId, ibanLast4, consentSource, consentEvidence, provider, providerRef, stripeSetupId, status: 'pending' },
     });
   }
 

@@ -62,6 +62,25 @@ export class AuthService {
         },
       });
 
+      const now = new Date();
+      const currentPeriodEnd = new Date(now);
+      currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1);
+      await tx.organisationSubscription.create({
+        data: {
+          organisationId: organisation.id,
+          plan: 'free',
+          status: 'active',
+          billingInterval: 'monthly',
+          basePriceMinor: 0,
+          includedSites: 1,
+          includedUnits: 10,
+          extraUnitPriceMinor: 0,
+          marketplaceRateBp: 700,
+          currentPeriodStart: now,
+          currentPeriodEnd,
+        },
+      });
+
       return { user, organisation, member };
     });
 
@@ -135,7 +154,7 @@ export class AuthService {
       data: {
         organisationId,
         email: dto.email,
-        role: dto.role,
+        role: dto.role as any,
         tokenHash,
         status: 'pending',
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -174,12 +193,13 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(dto.password, BCRYPT_ROUNDS);
 
     const result = await this.prisma.$transaction(async (tx) => {
+      const userType = invitation.role === 'tenant' ? 'tenant' : 'operator';
       const user = await tx.user.create({
         data: {
           email: invitation.email,
           name: dto.name,
           passwordHash,
-          type: invitation.role as 'operator' | 'tenant',
+          type: userType,
         },
       });
 
@@ -187,7 +207,7 @@ export class AuthService {
         data: {
           organisationId: invitation.organisationId,
           userId: user.id,
-          role: invitation.role,
+          role: invitation.role as any,
         },
       });
 

@@ -2,8 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TenantPortalService } from './tenant-portal.service';
 
 const mockPrisma = {
+  user: { findUniqueOrThrow: vi.fn() },
+  contact: { findMany: vi.fn() },
   agreement: { findMany: vi.fn(), findFirstOrThrow: vi.fn() },
   invoice: { findMany: vi.fn() },
+  unit: { findMany: vi.fn(), findUnique: vi.fn() },
+  site: { findMany: vi.fn(), findUnique: vi.fn() },
 };
 
 const service = new TenantPortalService(mockPrisma as any);
@@ -18,7 +22,15 @@ const agreement = {
 };
 
 describe('TenantPortalService', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPrisma.user.findUniqueOrThrow.mockResolvedValue({ email: 'tenant@example.com' });
+    mockPrisma.contact.findMany.mockResolvedValue([{ customerId: tenantId }]);
+    mockPrisma.unit.findMany.mockResolvedValue([]);
+    mockPrisma.site.findMany.mockResolvedValue([]);
+    mockPrisma.unit.findUnique.mockResolvedValue(null);
+    mockPrisma.site.findUnique.mockResolvedValue(null);
+  });
 
   it('lists only active/signed agreements for the tenant', async () => {
     mockPrisma.agreement.findMany.mockResolvedValue([agreement]);
@@ -26,7 +38,7 @@ describe('TenantPortalService', () => {
     expect(result).toHaveLength(1);
     expect(mockPrisma.agreement.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.objectContaining({ tenantId, status: { in: ['active', 'signed', 'pending_signature'] } }),
+        where: expect.objectContaining({ tenantId: { in: [tenantId] }, status: { in: ['active', 'signed', 'pending_signature'] } }),
       }),
     );
   });
@@ -36,7 +48,7 @@ describe('TenantPortalService', () => {
     const result = await service.getMyAgreement(tenantId, 'agr_01');
     expect(result).toHaveProperty('id', 'agr_01');
     expect(mockPrisma.agreement.findFirstOrThrow).toHaveBeenCalledWith(
-      expect.objectContaining({ where: expect.objectContaining({ id: 'agr_01', tenantId }) }),
+      expect.objectContaining({ where: expect.objectContaining({ id: 'agr_01', tenantId: { in: [tenantId] } }) }),
     );
   });
 

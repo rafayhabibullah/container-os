@@ -23,13 +23,14 @@ export class PaymentsService {
   async chargeInvoice(invoiceId: string) {
     const invoice = await this.prisma.invoice.findUniqueOrThrow({ where: { id: invoiceId }, include: { agreement: true } });
     const mandate = await this.prisma.mandate.findFirst({ where: { customerId: invoice.agreement.tenantId, status: 'active' } });
-    if (!mandate?.stripeSetupId) throw new Error('No active payment method for tenant');
+    const providerCustomerRef = mandate?.providerRef ?? mandate?.stripeSetupId;
+    if (!mandate || !providerCustomerRef) throw new Error('No active payment method for tenant');
 
     const reference = uuidv4();
     const payment = await this.prisma.payment.create({ data: { invoiceId, method: mandate.scheme, amountMinor: invoice.totalMinor, reference } });
 
     try {
-      const result = await this.paymentAdapter.chargeInvoice({ invoiceId, amountMinor: invoice.totalMinor, currency: invoice.currency, customerId: mandate.stripeSetupId, paymentMethodId: mandate.stripeSetupId });
+      const result = await this.paymentAdapter.chargeInvoice({ invoiceId, amountMinor: invoice.totalMinor, currency: invoice.currency, customerId: providerCustomerRef, paymentMethodId: providerCustomerRef });
       const existing = await this.prisma.paymentAttempt.findFirst({ where: { providerRef: result.providerRef } });
       if (!existing) await this.prisma.paymentAttempt.create({ data: { paymentId: payment.id, provider: process.env.PAYMENT_PROVIDER ?? 'mollie', status: result.status, providerRef: result.providerRef } });
 

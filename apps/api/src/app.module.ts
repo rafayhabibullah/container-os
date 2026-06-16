@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { resolve } from 'path';
 import { EventBusModule } from './events/event-bus.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AuditModule } from './modules/audit/audit.module';
@@ -25,10 +26,20 @@ import { OperatorReservationsModule } from './modules/operator-reservations/oper
 import { OperatorAgreementsModule } from './modules/operator-agreements/operator-agreements.module';
 import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module';
 import { ListingsModule } from './modules/listings/listings.module';
+import { JobsModule } from './modules/jobs/jobs.module';
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
+import { PlatformModule } from './modules/platform/platform.module';
+import { RentalLifecycleModule } from './modules/rental-lifecycle/rental-lifecycle.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: [
+        resolve(__dirname, '../../../.env'),
+        resolve(__dirname, '../.env'),
+      ],
+    }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     EventBusModule,
     // Foundation
@@ -61,6 +72,10 @@ import { ListingsModule } from './modules/listings/listings.module';
     OperatorReservationsModule,
     OperatorAgreementsModule,
     TenantPortalModule,
+    JobsModule,
+    SubscriptionsModule,
+    PlatformModule,
+    RentalLifecycleModule,
   ],
 })
 export class AppModule {}

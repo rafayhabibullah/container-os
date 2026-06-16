@@ -5,7 +5,7 @@ import { getT } from '@/lib/get-locale';
 
 interface Member {
   id: string;
-  role: 'owner' | 'operator' | 'tenant';
+  role: 'owner' | 'billing_admin' | 'site_manager' | 'operator' | 'tenant';
   user: { id: string; name: string | null; email: string };
 }
 
@@ -27,6 +27,8 @@ const pillBase: React.CSSProperties = {
 
 const ROLE_PILL: Record<string, React.CSSProperties> = {
   owner: { ...pillBase, background: '#0f172a', color: '#ffffff', border: '1px solid #0f172a' },
+  billing_admin: { ...pillBase, background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' },
+  site_manager: { ...pillBase, background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' },
   operator: { ...pillBase, background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a' },
   tenant: { ...pillBase, background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0' },
 };

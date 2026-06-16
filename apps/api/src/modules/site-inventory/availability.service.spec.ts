@@ -1,7 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
 import { AvailabilityService } from './availability.service';
 
-const mockPrisma = { unit: { findMany: vi.fn() } };
+const mockPrisma = {
+  unit: { findMany: vi.fn() },
+  unitType: { findMany: vi.fn().mockResolvedValue([
+    { id: 'ut1', name: 'Small', sizeSqm: 5 },
+    { id: 'ut2', name: 'Large', sizeSqm: 10 },
+  ]) },
+};
 const service = new AvailabilityService(mockPrisma as any);
 
 describe('AvailabilityService', () => {

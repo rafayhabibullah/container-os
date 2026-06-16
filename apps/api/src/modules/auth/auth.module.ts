@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { AuthController, OrganisationInviteController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { OrganisationGuard } from '../../common/guards/organisation.guard';
+import { PermissionGuard } from '../../common/guards/permission.guard';
 import { RbacService } from './rbac.service';
 
 @Module({
@@ -26,9 +27,10 @@ import { RbacService } from './rbac.service';
     AuthService,
     JwtStrategy,
     OrganisationGuard,
+    PermissionGuard,
     RbacService,
   ],
   controllers: [AuthController, OrganisationInviteController],
-  exports: [AuthService, OrganisationGuard, RbacService],
+  exports: [AuthService, OrganisationGuard, PermissionGuard, RbacService],
 })
 export class AuthModule {}

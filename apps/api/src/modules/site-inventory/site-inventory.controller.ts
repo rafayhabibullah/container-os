@@ -44,17 +44,26 @@ export class SiteInventoryController {
     @Query('q') q?: string,
     @Query('city') city?: string,
     @Query('country') country?: string,
+    @Query('minPriceMinor') minPriceMinor?: string,
+    @Query('maxPriceMinor') maxPriceMinor?: string,
     @Query('minSizeSqm') minSizeSqm?: string,
     @Query('maxSizeSqm') maxSizeSqm?: string,
     @Query('bookingMode') bookingMode?: string,
+    @Query('feature') feature?: string | string[],
+    @Query('sort') sort?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
     try {
-      return this.listingsService.searchPublicListings({ q, city, country, minSizeSqm, maxSizeSqm, bookingMode, limit, offset });
+      return this.listingsService.searchPublicListings({ q, city, country, minPriceMinor, maxPriceMinor, minSizeSqm, maxSizeSqm, bookingMode, feature, sort, limit, offset });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Bad request';
       throw new BadRequestException(message);
     }
+  }
+
+  @Get('public/v1/listings/:slug')
+  getPublicListing(@Param('slug') slug: string) {
+    return this.listingsService.getPublicListingBySlug(slug);
   }
 }

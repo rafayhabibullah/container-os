@@ -2,6 +2,7 @@ import { requireTenantAuth } from '@/lib/auth';
 import { serverTenantFetch } from '@/lib/server-api';
 import { getT } from '@/lib/get-locale';
 import Link from 'next/link';
+import PayInvoiceButton from './PayInvoiceButton';
 
 interface Invoice {
   id: string;
@@ -71,6 +72,7 @@ export default async function MyInvoicesPage() {
                     <th style={thStyle}>{t('myStorage.invoices.colDueDate')}</th>
                     <th style={thStyle}>{t('myStorage.invoices.colAmount')}</th>
                     <th style={thStyle}>{t('myStorage.invoices.colStatus')}</th>
+                    <th style={{ ...thStyle, textAlign: 'right' }}>{t('myStorage.invoices.colAction')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -83,6 +85,11 @@ export default async function MyInvoicesPage() {
                         <span style={INVOICE_STATUS_PILL[inv.status] ?? INVOICE_STATUS_PILL.pending}>
                           {statusLabels[inv.status] ?? inv.status}
                         </span>
+                      </td>
+                      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                        {['pending', 'sent', 'overdue'].includes(inv.status) ? (
+                          <PayInvoiceButton invoiceId={inv.id} label={t('myStorage.invoices.pay')} />
+                        ) : null}
                       </td>
                     </tr>
                   ))}

@@ -70,6 +70,23 @@ export class InspectionService {
     });
   }
 
+  private async generateDepositDeductionNotice(params: { agreementId: string; runId: string; depositDeduction: number; notes?: string }) {
+    return this.documents.storeGeneratedDocument({
+      subjectType: 'Agreement',
+      subjectId: params.agreementId,
+      kind: 'deposit_deduction_notice',
+      fileName: `deposit-deduction-${params.runId}.txt`,
+      contentType: 'text/plain',
+      buffer: Buffer.from([
+        'Deposit Deduction Notice',
+        `Agreement: ${params.agreementId}`,
+        `Inspection: ${params.runId}`,
+        `Deduction: EUR ${params.depositDeduction.toFixed(2)}`,
+        params.notes ? `Notes: ${params.notes}` : null,
+      ].filter(Boolean).join('\n'), 'utf-8'),
+    });
+  }
+
   async createInspectionRun(input: CreateInspectionInput) {
     const { unitId, siteId, kind, checklist, photoIds = [], notes, contractId, depositDeduction } = input;
 
@@ -97,7 +114,11 @@ export class InspectionService {
     }
 
     await this.createTasksForFailedItems({ runId: run.id, siteId, unitId, checklist });
-    await this.generateInspectionReport({ runId: run.id, kind, result: overallResult, checklist, completedAt: run.completedAt ?? new Date() });
+    const report = await this.generateInspectionReport({ runId: run.id, kind, result: overallResult, checklist, completedAt: run.completedAt ?? new Date() });
+    await this.prisma.inspectionRun.update({ where: { id: run.id }, data: { reportDocumentId: report.id } });
+    if (kind === 'move_out' && contractId && depositDeduction && depositDeduction > 0) {
+      await this.generateDepositDeductionNotice({ agreementId: contractId, runId: run.id, depositDeduction, notes });
+    }
 
     return { inspectionId: run.id, result: overallResult };
   }
@@ -130,7 +151,11 @@ export class InspectionService {
 
     const unit = await this.prisma.unit.findUnique({ where: { id: existing.unitId } });
     await this.createTasksForFailedItems({ runId: run.id, siteId: unit?.siteId ?? '', unitId: existing.unitId, checklist });
-    await this.generateInspectionReport({ runId: run.id, kind: existing.kind, result: overallResult, checklist, completedAt: run.completedAt ?? new Date() });
+    const report = await this.generateInspectionReport({ runId: run.id, kind: existing.kind, result: overallResult, checklist, completedAt: run.completedAt ?? new Date() });
+    await this.prisma.inspectionRun.update({ where: { id: run.id }, data: { reportDocumentId: report.id } });
+    if (existing.kind === 'move_out' && existing.contractId && depositDeduction && depositDeduction > 0) {
+      await this.generateDepositDeductionNotice({ agreementId: existing.contractId, runId: run.id, depositDeduction, notes });
+    }
 
     return { inspectionId: run.id, result: overallResult };
   }

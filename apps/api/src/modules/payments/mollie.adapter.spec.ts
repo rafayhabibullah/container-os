@@ -12,6 +12,16 @@ const adapter = new MollieAdapter();
 (adapter as any).client = mockMollie;
 
 describe('MollieAdapter', () => {
+  it('reports whether a real Mollie API key is configured', () => {
+    const original = process.env.MOLLIE_API_KEY;
+    delete process.env.MOLLIE_API_KEY;
+    expect(adapter.isConfigured()).toBe(false);
+    process.env.MOLLIE_API_KEY = 'test_example-key';
+    expect(adapter.isConfigured()).toBe(true);
+    if (original === undefined) delete process.env.MOLLIE_API_KEY;
+    else process.env.MOLLIE_API_KEY = original;
+  });
+
   it('createPaymentLink returns checkoutUrl from Mollie response', async () => {
     mockMollie.payments.create.mockResolvedValue({
       id: 'tr_mollie_01',

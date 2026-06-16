@@ -1,4 +1,4 @@
-export interface CredentialResult { externalRef: string; maskedValue: string; }
+export interface CredentialResult { externalRef: string; maskedValue: string; secretValue?: string; }
 
 export interface AccessVendorAdapter {
   issueCredential(params: { agreementId: string; credentialType: 'pin' | 'card' | 'app'; siteId: string; unitId: string }): Promise<CredentialResult>;

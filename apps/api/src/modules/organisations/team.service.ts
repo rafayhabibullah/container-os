@@ -20,6 +20,7 @@ export class TeamService {
       where: { id: memberId, organisationId: orgId, deletedAt: null },
     });
     if (!member) throw new NotFoundException('MEMBER_NOT_FOUND');
+    if (member.userId === requestingUserId) throw new BadRequestException('CANNOT_REMOVE_SELF');
 
     if (member.role === 'owner') {
       const ownerCount = await this.prisma.organisationMember.count({
@@ -51,5 +52,18 @@ export class TeamService {
     if (!invitation) throw new NotFoundException('INVITATION_NOT_FOUND');
 
     await this.prisma.invitation.update({ where: { id: invitationId }, data: { status: 'revoked' } });
+  }
+
+  async updateMemberSites(orgId: string, memberId: string, siteIds: string[], requestingRole: string) {
+    if (requestingRole !== 'owner') throw new ForbiddenException('OWNER_REQUIRED');
+    const member = await this.prisma.organisationMember.findFirst({ where: { id: memberId, organisationId: orgId, deletedAt: null } });
+    if (!member) throw new NotFoundException('MEMBER_NOT_FOUND');
+    const sites = await this.prisma.site.findMany({ where: { organisationId: orgId, id: { in: siteIds } }, select: { id: true } });
+    if (sites.length !== siteIds.length) throw new BadRequestException('INVALID_SITE_SCOPE');
+    return this.prisma.organisationMember.update({
+      where: { id: memberId },
+      data: { siteIds },
+      include: { user: { select: { id: true, name: true, email: true } } },
+    } as any);
   }
 }

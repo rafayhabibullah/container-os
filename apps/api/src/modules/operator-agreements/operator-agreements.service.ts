@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
+import { DocumentsService } from '../documents/documents.service';
 
 interface ListAgreementsFilter { siteId?: string; unitId?: string; status?: string; }
 
 @Injectable()
 export class OperatorAgreementsService {
-  constructor(private prisma: PrismaClient, private audit: AuditService) {}
+  constructor(private prisma: PrismaClient, private audit: AuditService, private documents?: DocumentsService) {}
 
   private async getSiteIds(organisationId: string): Promise<string[]> {
     const sites = await this.prisma.site.findMany({ where: { organisationId, deletedAt: null }, select: { id: true } });
@@ -73,7 +74,7 @@ export class OperatorAgreementsService {
       include: { signatories: true, amendments: true },
     });
 
-    const [unit, site] = await Promise.all([
+    const [unit, site, documents, terminationRequests, inspections] = await Promise.all([
       this.prisma.unit.findFirst({
         where: { id: agreement.unitId },
         select: { id: true, unitCode: true, kind: true, status: true, driveUp: true, conditionState: true },
@@ -82,6 +83,18 @@ export class OperatorAgreementsService {
         where: { id: agreement.siteId },
         select: { id: true, name: true, slug: true, address: true, status: true, timezone: true, currency: true },
       }),
+      (this.prisma as any).document?.findMany?.({
+        where: { subjectType: 'Agreement', subjectId: agreementId },
+        orderBy: { createdAt: 'desc' },
+      }) ?? Promise.resolve([]),
+      (this.prisma as any).terminationRequest?.findMany?.({
+        where: { agreementId },
+        orderBy: { createdAt: 'desc' },
+      }) ?? Promise.resolve([]),
+      (this.prisma as any).inspectionRun?.findMany?.({
+        where: { contractId: agreementId },
+        orderBy: { createdAt: 'desc' },
+      }) ?? Promise.resolve([]),
     ]);
 
     const unitType = unit
@@ -91,7 +104,7 @@ export class OperatorAgreementsService {
         })
       : null;
 
-    return { ...agreement, unit, unitType, site };
+    return { ...agreement, unit, unitType, site, documents, terminationRequests, inspections };
   }
 
   async sendForSignature(organisationId: string, agreementId: string, personIds: string[], actorId: string) {
@@ -107,6 +120,19 @@ export class OperatorAgreementsService {
     const siteIds = await this.getSiteIds(organisationId);
     const agreement = await this.prisma.agreement.findFirstOrThrow({ where: { id: agreementId, siteId: { in: siteIds } } });
     const request = await this.prisma.terminationRequest.create({ data: { agreementId, requestedDate, operatorNote, status: 'pending' } });
+    await this.documents?.storeGeneratedDocument({
+      subjectType: 'Agreement',
+      subjectId: agreementId,
+      kind: 'termination_notice',
+      fileName: `termination-notice-${agreementId}.txt`,
+      contentType: 'text/plain',
+      buffer: Buffer.from([
+        'Termination Notice',
+        `Agreement: ${agreementId}`,
+        `Requested date: ${requestedDate.toISOString()}`,
+        operatorNote ? `Operator note: ${operatorNote}` : null,
+      ].filter(Boolean).join('\n'), 'utf-8'),
+    });
     await this.audit.record({ action: 'agreement.termination_requested', subjectType: 'Agreement', subjectId: agreementId, actorId, siteId: agreement.siteId });
     return request;
   }

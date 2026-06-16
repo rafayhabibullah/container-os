@@ -26,6 +26,8 @@ model Site {
   unitTypes      UnitType[]
   zones          Zone[]
   listings       Listing[]
+  marketplaceReviews MarketplaceReview[]
+  marketplaceEvents  MarketplaceEvent[]
 
   @@index([organisationId])
 }
@@ -194,14 +196,14 @@ model Customer {
 }
 
 model Contact {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   customerId String
-  role       String   @default("primary")
+  role       String    @default("primary")
   email      String
   phone      String?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
   deletedAt  DateTime?
-  customer   Customer @relation(fields: [customerId], references: [id])
+  customer   Customer  @relation(fields: [customerId], references: [id])
 
   @@index([customerId])
 }
@@ -308,15 +310,21 @@ model TerminationRequest {
 
 model Invoice {
   id                 String        @id @default(cuid())
+  invoiceNumber      String?       @unique
   agreementId        String
   siteId             String
   status             InvoiceStatus @default(pending)
   invoiceDate        DateTime
+  issuedAt           DateTime?
   dueDate            DateTime
   currency           String        @default("EUR")
+  locale             String        @default("de")
+  netMinor           Int           @default(0)
+  vatMinor           Int           @default(0)
   totalMinor         Int
   periodStart        DateTime
   periodEnd          DateTime
+  pdfStorageKey      String?
   einvoicePayload    Json?
   einvoiceStorageKey String?
   createdAt          DateTime      @default(now())
@@ -345,20 +353,23 @@ model InvoiceLine {
 }
 
 model Mandate {
-  id            String        @id @default(cuid())
-  customerId    String
-  scheme        MandateScheme @default(sepa_core)
-  reference     String        @unique
-  creditorId    String?
-  status        MandateStatus @default(pending)
-  ibanLast4     String?
-  consentSource String?
-  stripeSetupId String?
-  signedAt      DateTime?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  deletedAt     DateTime?
-  customer      Customer      @relation(fields: [customerId], references: [id])
+  id              String        @id @default(cuid())
+  customerId      String
+  scheme          MandateScheme @default(sepa_core)
+  reference       String        @unique
+  creditorId      String?
+  status          MandateStatus @default(pending)
+  ibanLast4       String?
+  consentSource   String?
+  consentEvidence Json?
+  provider        String?
+  providerRef     String?
+  stripeSetupId   String?
+  signedAt        DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+  customer        Customer      @relation(fields: [customerId], references: [id])
 
   @@index([customerId])
 }
@@ -452,6 +463,19 @@ model AccountingMapping {
   effectiveFrom  DateTime
 }
 
+model AccountingValidationRun {
+  id             String   @id @default(cuid())
+  organisationId String?
+  siteId         String?
+  kind           String
+  status         String   @default("passed")
+  issues         Json
+  createdAt      DateTime @default(now())
+
+  @@index([organisationId, createdAt])
+  @@index([siteId, createdAt])
+}
+
 model AccessVendor {
   id          String   @id @default(cuid())
   name        String
@@ -476,14 +500,21 @@ model AccessGroup {
 }
 
 model AccessCredential {
-  id             String   @id @default(cuid())
-  agreementId    String   @unique
-  credentialType String
-  externalRef    String?
-  maskedValue    String?
-  status         String   @default("active")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id               String    @id @default(cuid())
+  agreementId      String    @unique
+  credentialType   String
+  externalRef      String?
+  maskedValue      String?
+  encryptedValue   String?
+  keyVersion       String?
+  status           String    @default("active")
+  releasePolicy    String    @default("manual")
+  releasedAt       DateTime?
+  releasedToTenant Boolean   @default(false)
+  validFrom        DateTime?
+  validUntil       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
 model AccessEvent {
@@ -508,7 +539,7 @@ model LockoutState {
 }
 
 model Task {
-  id             String       @id @default(cuid())
+  id             String        @id @default(cuid())
   organisationId String?
   siteId         String
   unitId         String?
@@ -516,18 +547,32 @@ model Task {
   bookingId      String?
   assigneeId     String?
   type           TaskType?
-  priority       TaskPriority @default(normal)
-  status         TaskStatus   @default(open)
+  priority       TaskPriority  @default(normal)
+  status         TaskStatus    @default(open)
   title          String
   notes          String?
   subjectRef     String?
+  source         String        @default("manual")
+  completedAt    DateTime?
   dueAt          DateTime?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  comments       TaskComment[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@index([siteId])
   @@index([siteId, status])
   @@index([organisationId])
+}
+
+model TaskComment {
+  id        String   @id @default(cuid())
+  taskId    String
+  actorId   String?
+  body      String
+  createdAt DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id])
+
+  @@index([taskId, createdAt])
 }
 
 model InspectionTemplate {
@@ -548,6 +593,7 @@ model InspectionRun {
   notes            String?
   depositDeduction Float?
   photoIds         String[]
+  reportDocumentId String?
   completedAt      DateTime?
   createdAt        DateTime  @default(now())
 }
@@ -559,6 +605,10 @@ model Incident {
   tenantId            String?
   severity            String
   type                String
+  description         String?
+  source              String         @default("operator")
+  rootCause           String?
+  photoIds            String[]
   status              IncidentStatus @default(open)
   linkedAccessEventId String?
   resolutionNote      String?
@@ -587,20 +637,23 @@ model Transfer {
 }
 
 model Document {
-  id                String   @id @default(cuid())
+  id                String              @id @default(cuid())
   subjectType       String
   subjectId         String
   kind              String
   storageKey        String
   hash              String
   locale            String?
-  version           Int      @default(1)
+  version           Int                 @default(1)
   previousVersionId String?
-  previousVersion   Document?  @relation("DocumentVersions", fields: [previousVersionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  nextVersions      Document[] @relation("DocumentVersions")
-  scanStatus        String   @default("pending")
+  previousVersion   Document?           @relation("DocumentVersions", fields: [previousVersionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  nextVersions      Document[]          @relation("DocumentVersions")
+  scanStatus        String              @default("pending")
+  sensitivity       String              @default("normal")
+  retentionUntil    DateTime?
+  locked            Boolean             @default(false)
   accessLogs        DocumentAccessLog[]
-  createdAt         DateTime @default(now())
+  createdAt         DateTime            @default(now())
 }
 
 model DocumentAccessLog {
@@ -695,27 +748,164 @@ model OutboundMessage {
 }
 
 model Organisation {
-  id              String               @id @default(cuid())
+  id              String                     @id @default(cuid())
   legalName       String
   tradingName     String?
-  slug            String               @unique
-  countryCode     String               @default("DE")
-  defaultLanguage String               @default("de")
-  currency        String               @default("EUR")
+  slug            String                     @unique
+  countryCode     String                     @default("DE")
+  defaultLanguage String                     @default("de")
+  currency        String                     @default("EUR")
   vatId           String?
   taxNumber       String?
   billingEmail    String
   supportEmail    String?
   phone           String?
   website         String?
-  status          OrganisationStatus   @default(active)
-  plan            OrgPlan              @default(starter)
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
+  status          OrganisationStatus         @default(active)
+  plan            OrgPlan                    @default(free)
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime                   @updatedAt
   invitations     Invitation[]
   members         OrganisationMember[]
   sites           Site[]
   listings        Listing[]
+  marketplaceReviews MarketplaceReview[]
+  marketplaceEvents  MarketplaceEvent[]
+  subscriptions   OrganisationSubscription[]
+  paymentAccounts OrganisationPaymentAccount[]
+}
+
+model OrganisationPaymentAccount {
+  id                  String       @id @default(cuid())
+  organisationId      String
+  provider            String       @default("mollie")
+  status              String       @default("not_connected")
+  providerAccountId   String?
+  onboardingUrl       String?
+  onboardingStartedAt DateTime?
+  onboardingCompletedAt DateTime?
+  capabilities        Json?
+  metadata            Json?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  organisation        Organisation @relation(fields: [organisationId], references: [id])
+
+  @@unique([organisationId, provider])
+  @@index([status])
+}
+
+model OrganisationSubscription {
+  id                     String       @id @default(cuid())
+  organisationId         String
+  plan                   OrgPlan
+  status                 String       @default("trial")
+  billingInterval        String       @default("monthly")
+  basePriceMinor         Int
+  includedSites          Int
+  includedUnits          Int
+  extraUnitPriceMinor    Int          @default(0)
+  marketplaceRateBp      Int          @default(0)
+  provider               String?
+  providerCustomerId     String?
+  providerSubscriptionId String?
+  providerPaymentId      String?      @unique
+  checkoutUrl            String?
+  lastPaymentStatus      String?
+  trialEndsAt            DateTime?
+  currentPeriodStart     DateTime
+  currentPeriodEnd       DateTime
+  cancelAtPeriodEnd      Boolean      @default(false)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+  organisation           Organisation @relation(fields: [organisationId], references: [id])
+
+  @@index([organisationId, status])
+}
+
+model CommissionRecord {
+  id             String   @id @default(cuid())
+  organisationId String
+  reservationId  String?
+  agreementId    String?
+  invoiceId      String?
+  source         String
+  eligible       Boolean  @default(false)
+  rateBp         Int      @default(0)
+  baseMinor      Int      @default(0)
+  amountMinor    Int      @default(0)
+  currency       String   @default("EUR")
+  status         String   @default("not_applicable")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organisationId, status])
+  @@index([reservationId])
+}
+
+model InvoiceSequence {
+  id             String   @id @default(cuid())
+  organisationId String
+  year           Int
+  nextNumber     Int      @default(1)
+  prefix         String   @default("RE")
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organisationId, year])
+}
+
+model IdempotencyRecord {
+  id             String   @id @default(cuid())
+  key            String
+  method         String
+  path           String
+  requestHash    String
+  responseStatus Int?
+  responseBody   Json?
+  status         String   @default("started")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  expiresAt      DateTime
+
+  @@unique([key, method, path])
+  @@index([expiresAt])
+}
+
+model BackgroundJob {
+  id          String    @id @default(cuid())
+  kind        String
+  payload     Json
+  status      String    @default("queued")
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5)
+  runAt       DateTime  @default(now())
+  lockedAt    DateTime?
+  completedAt DateTime?
+  lastError   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status, runAt])
+}
+
+model PlatformFeatureFlag {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  enabled   Boolean  @default(false)
+  scope     Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PlatformSupportAccess {
+  id             String    @id @default(cuid())
+  actorId        String
+  organisationId String
+  reason         String
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([organisationId, createdAt])
 }
 
 model OrganisationMember {
@@ -723,6 +913,7 @@ model OrganisationMember {
   organisationId String
   userId         String
   role           MemberRole
+  siteIds        String[]     @default([])
   createdAt      DateTime     @default(now())
   deletedAt      DateTime?
   organisation   Organisation @relation(fields: [organisationId], references: [id])
@@ -1014,6 +1205,7 @@ enum OrganisationStatus {
 }
 
 enum OrgPlan {
+  free
   starter
   professional
   enterprise
@@ -1021,6 +1213,8 @@ enum OrgPlan {
 
 enum MemberRole {
   owner
+  billing_admin
+  site_manager
   operator
   tenant
 }
@@ -1066,8 +1260,8 @@ model Listing {
   availableFrom    DateTime?
   bookingMode      BookingMode   @default(approval_required)
   status           ListingStatus @default(draft)
-  requiredDocs     String[]  @default([])
-  images           String[]  @default([])
+  requiredDocs     String[]      @default([])
+  images           String[]      @default([])
   seoTitle         String?
   seoDescription   String?
   commissionRateBp Int           @default(0)
@@ -1077,7 +1271,67 @@ model Listing {
   organisation     Organisation  @relation(fields: [organisationId], references: [id])
   site             Site          @relation(fields: [siteId], references: [id])
   unit             Unit          @relation(fields: [unitId], references: [id])
+  marketplaceReviews MarketplaceReview[]
+  marketplaceEvents  MarketplaceEvent[]
 
   @@index([organisationId, status])
   @@index([siteId, status])
+}
+
+model MarketplaceReview {
+  id             String       @id @default(cuid())
+  listingId      String
+  organisationId String
+  siteId         String
+  rating         Int
+  title          String?
+  body           String?
+  reviewerName   String?
+  reviewerEmail  String?
+  status         String       @default("published")
+  source         String       @default("tenant")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  listing        Listing      @relation(fields: [listingId], references: [id])
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
+  site           Site         @relation(fields: [siteId], references: [id])
+
+  @@index([listingId, status])
+  @@index([organisationId, status])
+  @@index([siteId, status])
+}
+
+model SavedSearch {
+  id        String   @id @default(cuid())
+  email     String
+  locale    String   @default("de")
+  city      String?
+  query     String?
+  filters   Json
+  status    String   @default("active")
+  source    String   @default("marketplace")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email, status])
+  @@index([city, status])
+}
+
+model MarketplaceEvent {
+  id             String        @id @default(cuid())
+  listingId      String?
+  organisationId String?
+  siteId         String?
+  eventType      String
+  source         String        @default("web")
+  sessionId      String?
+  metadata       Json?
+  createdAt      DateTime      @default(now())
+  listing        Listing?      @relation(fields: [listingId], references: [id])
+  organisation   Organisation? @relation(fields: [organisationId], references: [id])
+  site           Site?         @relation(fields: [siteId], references: [id])
+
+  @@index([listingId, eventType, createdAt])
+  @@index([organisationId, eventType, createdAt])
+  @@index([siteId, eventType, createdAt])
 }

@@ -4,10 +4,13 @@ import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { OrganisationGuard } from '../../common/guards/organisation.guard';
 import { ApiKeyService } from './api-key.service';
 import { PrismaClient } from '@prisma/client';
+import { PlanFeatureGuard } from '../organisations/plan-feature.guard';
+import { RequirePlanFeature } from '../organisations/require-plan-feature.decorator';
 
 @ApiTags('admin')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, OrganisationGuard)
+@RequirePlanFeature('api_webhooks')
+@UseGuards(JwtAuthGuard, OrganisationGuard, PlanFeatureGuard)
 @Controller('v1/organisations/:organisationId')
 export class OrgWebhooksController {
   constructor(

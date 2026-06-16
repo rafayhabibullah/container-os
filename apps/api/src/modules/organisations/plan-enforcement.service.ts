@@ -2,6 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { DomainException, ErrorCodes, PLAN_LIMITS, OrgPlan } from '@sitelager/domain-types';
 
+export type PlanFeature = 'basic_agreements' | 'billing' | 'tenant_portal' | 'operations' | 'reporting' | 'api_webhooks' | 'priority_support';
+
+const PLAN_FEATURES: Record<OrgPlan, PlanFeature[]> = {
+  free: ['basic_agreements'],
+  starter: ['basic_agreements', 'billing', 'tenant_portal'],
+  professional: ['basic_agreements', 'billing', 'tenant_portal', 'operations', 'reporting', 'api_webhooks'],
+  enterprise: ['basic_agreements', 'billing', 'tenant_portal', 'operations', 'reporting', 'api_webhooks', 'priority_support'],
+};
+
 @Injectable()
 export class PlanEnforcementService {
   constructor(private readonly prisma: PrismaClient) {}
@@ -27,6 +36,19 @@ export class PlanEnforcementService {
       sites: { used: sitesUsed, limit: limits.maxSites },
       units: { used: unitsUsed, limit: limits.maxUnits },
     };
+  }
+
+  async getEntitlements(orgId: string) {
+    const org = await this.getOrg(orgId);
+    return { plan: org.plan, features: PLAN_FEATURES[org.plan as OrgPlan] };
+  }
+
+  async assertFeature(orgId: string, feature: PlanFeature) {
+    const org = await this.getOrg(orgId);
+    const plan = org.plan as OrgPlan;
+    if (!PLAN_FEATURES[plan].includes(feature)) {
+      throw new DomainException(ErrorCodes.PLAN_LIMIT_EXCEEDED, `Feature '${feature}' requires a paid plan`, { feature, plan });
+    }
   }
 
   async assertCanCreateSite(orgId: string) {

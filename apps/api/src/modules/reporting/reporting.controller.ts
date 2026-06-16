@@ -4,12 +4,20 @@ import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { OrganisationGuard } from '../../common/guards/organisation.guard';
 import { ReportingService } from './reporting.service';
 import { ReportQueryDto } from './dto/report-query.dto';
+import { PlanFeatureGuard } from '../organisations/plan-feature.guard';
+import { RequirePlanFeature } from '../organisations/require-plan-feature.decorator';
 
 @ApiTags('operator')
 @Controller('v1/organisations/:organisationId/reports')
-@UseGuards(JwtAuthGuard, OrganisationGuard)
+@RequirePlanFeature('reporting')
+@UseGuards(JwtAuthGuard, OrganisationGuard, PlanFeatureGuard)
 export class ReportingController {
   constructor(private reporting: ReportingService) {}
+
+  @Get('executive')
+  getExecutive(@Param('organisationId') orgId: string, @Query() query: ReportQueryDto) {
+    return this.reporting.getExecutiveReport(orgId, query.from, query.to, query.siteId);
+  }
 
   @Get('occupancy')
   getOccupancy(@Param('organisationId') orgId: string) {

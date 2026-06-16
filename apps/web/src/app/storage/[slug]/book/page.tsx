@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useT } from '@/lib/i18n';
+import { TrackMarketplaceEvent } from '../../MarketplaceActions';
 
 interface UnitType {
   id: string;
@@ -13,7 +14,7 @@ interface UnitType {
 
 interface BookingWizardProps {
   params: { slug: string };
-  searchParams: { siteId?: string; unitTypes?: string };
+  searchParams: { siteId?: string; listingId?: string; listingSlug?: string; unitTypes?: string };
 }
 
 type Step = 'unit' | 'contact' | 'confirm';
@@ -29,6 +30,8 @@ interface BookingResult {
   reservationId: string;
   status: string;
   expiresAt: string;
+  nextStep?: string;
+  pricingSnapshot?: { rentMinor?: number; depositMinor?: number } | null;
 }
 
 export default function BookPage({ params, searchParams }: BookingWizardProps) {
@@ -58,7 +61,7 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteId, unitTypeId: selectedUnitType.id, startDate: moveInDate }),
+        body: JSON.stringify({ siteId, listingId: searchParams.listingId, listingSlug: searchParams.listingSlug ?? params.slug, unitTypeId: selectedUnitType.id, startDate: moveInDate }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.message ?? t('storage.book.errors.checkoutFailed'));
@@ -105,6 +108,7 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <TrackMarketplaceEvent listingId={searchParams.listingId} eventType="booking_click" metadata={{ slug: params.slug }} />
       <header className="bg-white border-b border-slate-100 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
@@ -288,7 +292,9 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
                 </div>
               </div>
               <p className="text-xs text-slate-400">
-                {t('storage.book.confirm.operatorContact')}
+                {result.nextStep === 'operator_approval'
+                  ? 'Der Betreiber prüft Ihre Anfrage und bestätigt die Verfügbarkeit.'
+                  : 'Der nächste Schritt ist Vertrag/Unterschrift und Zahlung, sobald der Betreiber die Buchung vorbereitet hat.'}
               </p>
               <Link
                 href={`/storage/${params.slug}`}

@@ -7,6 +7,7 @@ import { TeamService } from './team.service';
 import { UnitTypeService } from './unit-type.service';
 import { PricingManagementService } from './pricing-management.service';
 import { PlanEnforcementService } from './plan-enforcement.service';
+import { PlanFeatureGuard } from './plan-feature.guard';
 import { OrganisationController } from './organisations.controller';
 
 @Module({
@@ -19,8 +20,9 @@ import { OrganisationController } from './organisations.controller';
     UnitTypeService,
     PricingManagementService,
     PlanEnforcementService,
+    PlanFeatureGuard,
   ],
   controllers: [OrganisationController],
-  exports: [OrganisationService, SiteService, TeamService, UnitTypeService, PricingManagementService, PlanEnforcementService],
+  exports: [OrganisationService, SiteService, TeamService, UnitTypeService, PricingManagementService, PlanEnforcementService, PlanFeatureGuard],
 })
 export class OrganisationModule {}

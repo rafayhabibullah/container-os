@@ -7,12 +7,14 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { idempotencyMiddleware } from './common/middleware/idempotency.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
   app.use(helmet());
   app.use(json({ limit: '20mb' }));
+  app.use(idempotencyMiddleware);
 
   app.useGlobalFilters(
     new HttpExceptionFilter(),

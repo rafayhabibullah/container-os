@@ -12,17 +12,22 @@ import { AuditModule } from '../audit/audit.module';
 import { MollieModule } from '../payments/mollie.module';
 import { DocumentsModule } from '../documents/documents.module';
 import { PrismaClient } from '@prisma/client';
+import { InvoiceNumberService } from './invoice-number.service';
+import { InvoiceDocumentService } from './invoice-document.service';
+import { OrganisationModule } from '../organisations/organisations.module';
 
 @Module({
-  imports: [AuthModule, AuditModule, MollieModule, DocumentsModule],
+  imports: [AuthModule, AuditModule, MollieModule, DocumentsModule, OrganisationModule],
   controllers: [BillingController, BillingOrgController, MandateOrgController, DelinquencyOrgController],
   providers: [
     BillingService,
     InvoiceRunService,
     DelinquencyService,
     MandateService,
+    InvoiceNumberService,
+    InvoiceDocumentService,
     { provide: PrismaClient, useValue: new PrismaClient() },
   ],
-  exports: [BillingService, InvoiceRunService, DelinquencyService, MandateService],
+  exports: [BillingService, InvoiceRunService, DelinquencyService, MandateService, InvoiceNumberService, InvoiceDocumentService],
 })
 export class BillingModule {}

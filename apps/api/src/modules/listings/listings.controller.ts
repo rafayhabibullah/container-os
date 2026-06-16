@@ -37,6 +37,11 @@ export class ListingsController {
     return this.listings.publishListing(orgId, listingId);
   }
 
+  @Get(':listingId/completeness')
+  completeness(@Param('organisationId') orgId: string, @Param('listingId') listingId: string) {
+    return this.listings.getListingCompleteness(orgId, listingId);
+  }
+
   @Post(':listingId/pause')
   pause(@Param('organisationId') orgId: string, @Param('listingId') listingId: string) {
     return this.listings.pauseListing(orgId, listingId);

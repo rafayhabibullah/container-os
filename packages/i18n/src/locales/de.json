@@ -108,6 +108,8 @@
       "colDueDate": "Fälligkeitsdatum",
       "colAmount": "Betrag",
       "colStatus": "Status",
+      "colAction": "Aktion",
+      "pay": "Bezahlen",
       "statusPending": "ausstehend",
       "statusSent": "gesendet",
       "statusPaid": "bezahlt",
@@ -1544,6 +1546,7 @@
       "sites_plural": "{{count}} Standorte",
       "units": "{{count}} Einheiten",
       "plans": {
+        "free": "Kostenlos",
         "starter": "Starter",
         "growth": "Growth",
         "pro": "Pro",
@@ -1553,6 +1556,7 @@
       "switchConfirm": "Plan zu {{plan}} wechseln?",
       "switchSuccess": "Plan erfolgreich geändert.",
       "switchFailed": "Planwechsel fehlgeschlagen.",
+      "paymentNotConfigured": "Der sichere Zahlungs-Checkout ist noch nicht konfiguriert. Hinterlege den Mollie-API-Schlüssel, um kostenpflichtige Upgrades zu aktivieren.",
       "switching": "Wird gewechselt…",
       "usage": {
         "title": "Plannutzung",
@@ -1633,6 +1637,21 @@
       "avgOccupancy": "Ø Auslastung",
       "revenueThisMonth": "Umsatz (dieser Monat)",
       "occupancyBySite": "Auslastung nach Standort",
+      "executive": {
+        "revenue": "Eingezogener Umsatz",
+        "occupancy": "Portfolio-Auslastung",
+        "collectionRate": "Einzugsquote",
+        "conversion": "Lead-Konversion",
+        "openWork": "Offene Aufgaben",
+        "openIncidents": "Offene Vorfälle",
+        "overdue": "Überfällig",
+        "bookings": "Buchungen",
+        "recommendations": "Empfohlene Maßnahmen",
+        "sitePerformance": "Standortleistung",
+        "unitsByStatus": "Einheiten nach Status",
+        "bookingSources": "Buchungsquellen",
+        "exportCsv": "CSV exportieren"
+      },
       "table": {
         "site": "Standort",
         "occupancy": "Auslastung",
@@ -1725,6 +1744,8 @@
         "email": "E-Mail",
         "role": "Rolle",
         "roleOwner": "Inhaber",
+        "roleBillingAdmin": "Abrechnung",
+        "roleSiteManager": "Standortleitung",
         "roleOperator": "Operator",
         "send": "Einladung senden",
         "sending": "Wird gesendet…",
@@ -1742,6 +1763,8 @@
       },
       "roles": {
         "owner": "Inhaber",
+        "billing_admin": "Abrechnung",
+        "site_manager": "Standortleitung",
         "operator": "Operator",
         "tenant": "Mieter"
       }

@@ -1,11 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { EventBusService } from '../../events/event-bus.service';
 import { Events } from '../../events/domain-events';
+import { InvoiceNumberService } from './invoice-number.service';
+import { InvoiceDocumentService } from './invoice-document.service';
 
 @Injectable()
 export class InvoiceRunService {
-  constructor(private prisma: PrismaClient, private eventBus: EventBusService) {}
+  constructor(
+    private prisma: PrismaClient,
+    private eventBus: EventBusService,
+    @Optional() private invoiceNumbers?: InvoiceNumberService,
+    @Optional() private invoiceDocuments?: InvoiceDocumentService,
+  ) {}
 
   calculateMonthlyPeriod(date: Date): { start: Date; end: Date } {
     const start = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -44,9 +51,13 @@ export class InvoiceRunService {
         const dueDate = new Date(period.start);
         dueDate.setDate(dueDate.getDate() + 14);
 
+        const site = this.invoiceNumbers
+          ? await this.prisma.site.findUnique({ where: { id: agreement.siteId }, select: { organisationId: true } })
+          : null;
+        const invoiceNumber = site?.organisationId && this.invoiceNumbers ? await this.invoiceNumbers.next(site.organisationId, period.start) : undefined;
         const invoice = await this.prisma.invoice.upsert({
           where: { agreementId_periodStart: { agreementId: agreement.id, periodStart: period.start } },
-          create: { agreementId: agreement.id, siteId: agreement.siteId, invoiceDate: period.start, dueDate, periodStart: period.start, periodEnd: period.end, totalMinor, currency: 'EUR' },
+          create: { agreementId: agreement.id, siteId: agreement.siteId, invoiceNumber, invoiceDate: period.start, issuedAt: new Date(), dueDate, periodStart: period.start, periodEnd: period.end, netMinor: amountMinor, vatMinor, totalMinor, locale: (agreement as any).language ?? 'de', currency: 'EUR' },
           update: {},
         });
 
@@ -57,6 +68,7 @@ export class InvoiceRunService {
           ],
           skipDuplicates: true,
         });
+        if (this.invoiceDocuments) await this.invoiceDocuments.generate(invoice.id);
 
         this.eventBus.emit({ type: Events.INVOICE_CREATED, payload: { invoiceId: invoice.id, agreementId: agreement.id, tenantId: (agreement as any).tenantId, totalMinor }, meta: { workspaceId: '', siteId: agreement.siteId, occurredAt: new Date() } });
         created++;

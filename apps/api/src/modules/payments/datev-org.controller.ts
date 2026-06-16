@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Optional, Post, Param, Body, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/auth.guard';
 import { OrganisationGuard } from '../../common/guards/organisation.guard';
 import { PrismaClient } from '@prisma/client';
 import { DatevExportService } from './datev-export.service';
+import { AccountingValidationService } from './accounting-validation.service';
 
 @ApiTags('billing')
 @ApiBearerAuth()
@@ -13,6 +14,7 @@ export class DatevOrgController {
   constructor(
     private readonly datevExport: DatevExportService,
     private readonly prisma: PrismaClient,
+    @Optional() private readonly accountingValidation?: AccountingValidationService,
   ) {}
 
   @Post('export/datev')
@@ -38,5 +40,29 @@ export class DatevOrgController {
     @Param('jobId') jobId: string,
   ) {
     return this.prisma.exportJob.findUniqueOrThrow({ where: { id: jobId } });
+  }
+
+  @Post('accounting/validate')
+  @ApiOperation({ summary: 'Validate German invoice/DATEV/ZUGFeRD readiness for an organisation' })
+  validateAccounting(
+    @Param('organisationId') orgId: string,
+    @Body() body: { from?: string; to?: string },
+  ) {
+    if (!this.accountingValidation) throw new Error('Accounting validation is not configured');
+    return this.accountingValidation.validateOrganisation(
+      orgId,
+      body.from ? new Date(body.from) : undefined,
+      body.to ? new Date(body.to) : undefined,
+    );
+  }
+
+  @Get('accounting/validation-runs')
+  @ApiOperation({ summary: 'List recent accounting validation runs' })
+  validationRuns(@Param('organisationId') orgId: string) {
+    return (this.prisma as any).accountingValidationRun.findMany({
+      where: { organisationId: orgId },
+      orderBy: { createdAt: 'desc' },
+      take: 25,
+    });
   }
 }

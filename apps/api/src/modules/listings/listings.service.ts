@@ -13,6 +13,44 @@ function slugify(text: string) {
 export class ListingsService {
   constructor(private prisma: PrismaClient, private storage: StorageService) {}
 
+  private listingQuality(listing: {
+    title?: string | null;
+    description?: string | null;
+    publicPriceMinor?: number | null;
+    showPrice?: boolean;
+    depositMinor?: number | null;
+    bookingMode?: string;
+    images?: string[];
+    seoTitle?: string | null;
+    seoDescription?: string | null;
+    requiredDocs?: string[];
+    site?: { address?: unknown } | null;
+    unit?: { status?: string; unitType?: { sizeSqm?: number | null; features?: string[] | null } | null } | null;
+  }) {
+    const address = (listing.site?.address ?? {}) as { city?: string; postalCode?: string; street?: string; country?: string };
+    const checks = [
+      { key: 'title', ok: Boolean(listing.title && listing.title.trim().length >= 8), points: 10, label: 'Title must be at least 8 characters' },
+      { key: 'description', ok: Boolean(listing.description && listing.description.trim().length >= 80), points: 15, label: 'Description must be at least 80 characters' },
+      { key: 'image', ok: Boolean(listing.images?.length), points: 15, label: 'At least one public photo is required' },
+      { key: 'price', ok: listing.bookingMode === 'request_price' || listing.showPrice === false || listing.publicPriceMinor != null, points: 15, label: 'Public monthly price is required unless price is on request' },
+      { key: 'deposit', ok: listing.depositMinor != null || listing.bookingMode === 'request_price', points: 5, label: 'Deposit must be set unless price is on request' },
+      { key: 'location', ok: Boolean(address.city && address.postalCode), points: 10, label: 'City and postal code are required' },
+      { key: 'unit', ok: Boolean(listing.unit?.status === 'available' && listing.unit?.unitType?.sizeSqm), points: 15, label: 'Listing must point to an available unit with a size' },
+      { key: 'features', ok: Boolean(listing.unit?.unitType?.features?.length), points: 5, label: 'At least one unit feature is recommended' },
+      { key: 'seo', ok: Boolean(listing.seoTitle && listing.seoDescription), points: 5, label: 'SEO title and description are recommended' },
+      { key: 'booking', ok: Boolean(listing.bookingMode), points: 5, label: 'Booking mode must be selected' },
+    ];
+    const score = checks.reduce((sum, check) => sum + (check.ok ? check.points : 0), 0);
+    return { score, missing: checks.filter((check) => !check.ok).map((check) => ({ key: check.key, label: check.label })) };
+  }
+
+  private attachMarketplaceStats<T extends { marketplaceReviews?: { rating: number; title?: string | null; body?: string | null; reviewerName?: string | null; createdAt?: Date }[] }>(listing: T) {
+    const reviews = listing.marketplaceReviews ?? [];
+    const reviewCount = reviews.length;
+    const ratingAverage = reviewCount ? Number((reviews.reduce((sum, review) => sum + review.rating, 0) / reviewCount).toFixed(1)) : null;
+    return { ...listing, reviewCount, ratingAverage };
+  }
+
   async addImage(organisationId: string, listingId: string, base64Data: string, contentType: string) {
     const listing = await this.prisma.listing.findFirst({ where: { id: listingId, organisationId } });
     if (!listing) throw new NotFoundException('Listing not found');
@@ -95,8 +133,31 @@ export class ListingsService {
   }
 
   async publishListing(organisationId: string, listingId: string) {
-    await this.assertOwnership(organisationId, listingId);
+    const listing = await this.prisma.listing.findFirst({
+      where: { id: listingId, organisationId },
+      include: {
+        site: { select: { address: true } },
+        unit: { select: { status: true, unitType: { select: { sizeSqm: true, features: true } } } },
+      },
+    });
+    if (!listing) throw new NotFoundException('Listing not found');
+    const quality = this.listingQuality(listing);
+    if (quality.score < 80 || quality.missing.some((item) => ['title', 'description', 'image', 'price', 'location', 'unit'].includes(item.key))) {
+      throw new BadRequestException({ message: 'Listing is not ready to publish', score: quality.score, missing: quality.missing });
+    }
     return this.prisma.listing.update({ where: { id: listingId }, data: { status: 'published' } });
+  }
+
+  async getListingCompleteness(organisationId: string, listingId: string) {
+    const listing = await this.prisma.listing.findFirst({
+      where: { id: listingId, organisationId },
+      include: {
+        site: { select: { address: true } },
+        unit: { select: { status: true, unitType: { select: { sizeSqm: true, features: true } } } },
+      },
+    });
+    if (!listing) throw new NotFoundException('Listing not found');
+    return this.listingQuality(listing);
   }
 
   async pauseListing(organisationId: string, listingId: string) {
@@ -109,13 +170,17 @@ export class ListingsService {
     return this.prisma.listing.update({ where: { id: listingId }, data: { status: 'archived' } });
   }
 
-  searchPublicListings(filters: {
+  async searchPublicListings(filters: {
     q?: string;
     city?: string;
     country?: string;
+    minPriceMinor?: string;
+    maxPriceMinor?: string;
     minSizeSqm?: string;
     maxSizeSqm?: string;
     bookingMode?: string;
+    feature?: string | string[];
+    sort?: string;
     limit?: string;
     offset?: string;
   }) {
@@ -129,39 +194,77 @@ export class ListingsService {
       throw new Error('Invalid bookingMode');
     }
 
-    return this.prisma.listing.findMany({
+    const orderBy =
+      filters.sort === 'price_asc' ? { publicPriceMinor: 'asc' as const } :
+      filters.sort === 'price_desc' ? { publicPriceMinor: 'desc' as const } :
+      { createdAt: 'desc' as const };
+    const featureValues = Array.isArray(filters.feature) ? filters.feature : filters.feature ? [filters.feature] : [];
+    const unitTypeFilter = {
+      ...(filters.minSizeSqm || filters.maxSizeSqm ? {
+        sizeSqm: {
+          ...(filters.minSizeSqm ? { gte: parseFloat(filters.minSizeSqm) } : {}),
+          ...(filters.maxSizeSqm ? { lte: parseFloat(filters.maxSizeSqm) } : {}),
+        },
+      } : {}),
+      ...(featureValues.length ? { features: { hasEvery: featureValues } } : {}),
+    };
+
+    const listings = await this.prisma.listing.findMany({
       where: {
         status: 'published',
+        unit: {
+          status: 'available',
+          deletedAt: null,
+          ...(Object.keys(unitTypeFilter).length ? { unitType: unitTypeFilter } : {}),
+        },
         ...(filters.q ? { OR: [
           { title: { contains: filters.q, mode: 'insensitive' } },
           { description: { contains: filters.q, mode: 'insensitive' } },
         ] } : {}),
         ...(filters.bookingMode ? { bookingMode: filters.bookingMode as 'approval_required' | 'instant_booking' | 'request_price' } : {}),
+        ...(filters.minPriceMinor || filters.maxPriceMinor ? {
+          publicPriceMinor: {
+            ...(filters.minPriceMinor ? { gte: parseInt(filters.minPriceMinor, 10) } : {}),
+            ...(filters.maxPriceMinor ? { lte: parseInt(filters.maxPriceMinor, 10) } : {}),
+          },
+        } : {}),
         ...(filters.city || filters.country ? {
           site: {
             ...(filters.city ? { address: { path: ['city'], equals: filters.city } } : {}),
             ...(filters.country ? { address: { path: ['country'], equals: filters.country } } : {}),
           },
         } : {}),
-        ...(filters.minSizeSqm || filters.maxSizeSqm ? {
-          unit: {
-            unitType: {
-              sizeSqm: {
-                ...(filters.minSizeSqm ? { gte: parseFloat(filters.minSizeSqm) } : {}),
-                ...(filters.maxSizeSqm ? { lte: parseFloat(filters.maxSizeSqm) } : {}),
-              },
-            },
-          },
-        } : {}),
       },
       include: {
-        site: { select: { name: true, slug: true, address: true } },
-        unit: { select: { unitCode: true, unitType: { select: { sizeSqm: true, name: true } } } },
+        organisation: { select: { legalName: true, tradingName: true, countryCode: true } },
+        site: { select: { id: true, name: true, slug: true, address: true, accessHours: true, timezone: true } },
+        unit: { select: { id: true, unitCode: true, kind: true, driveUp: true, status: true, unitType: { select: { id: true, sizeSqm: true, sizeCbm: true, name: true, doorType: true, features: true } } } },
+        marketplaceReviews: { where: { status: 'published' }, select: { rating: true } },
       },
       take,
       skip,
-      orderBy: { createdAt: 'desc' },
+      orderBy,
     });
+    return listings.map((listing) => this.attachMarketplaceStats(listing));
+  }
+
+  async getPublicListingBySlug(slug: string) {
+    const listing = await this.prisma.listing.findFirst({
+      where: { slug, status: 'published', unit: { status: 'available', deletedAt: null } },
+      include: {
+        organisation: { select: { legalName: true, tradingName: true, countryCode: true } },
+        site: { select: { id: true, name: true, slug: true, address: true, accessHours: true, timezone: true, currency: true } },
+        unit: { select: { id: true, unitCode: true, kind: true, driveUp: true, status: true, unitType: { select: { id: true, name: true, sizeSqm: true, sizeCbm: true, doorType: true, features: true } } } },
+        marketplaceReviews: {
+          where: { status: 'published' },
+          select: { id: true, rating: true, title: true, body: true, reviewerName: true, createdAt: true },
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+        },
+      },
+    });
+    if (!listing) throw new NotFoundException('Listing not found');
+    return this.attachMarketplaceStats(listing);
   }
 
   private async assertOwnership(organisationId: string, listingId: string) {

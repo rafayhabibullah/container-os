@@ -60,6 +60,12 @@ export class OrganisationController {
     return this.planEnforcement.getUsage(orgId);
   }
 
+  @Get('entitlements')
+  @ApiOperation({ summary: 'Get enabled features for the current plan' })
+  getEntitlements(@Param('organisationId') orgId: string) {
+    return this.planEnforcement.getEntitlements(orgId);
+  }
+
   @Get('customers')
   @ApiOperation({ summary: 'List customers for organisation' })
   listCustomers(@Param('organisationId') orgId: string) {
@@ -129,6 +135,17 @@ export class OrganisationController {
     @CurrentMember() member: MemberContext,
   ) {
     return this.team.removeMember(orgId, memberId, member.role, member.userId);
+  }
+
+  @Patch('members/:memberId/site-scope')
+  @ApiOperation({ summary: 'Set allowed sites for a member (owner only)' })
+  updateMemberSiteScope(
+    @Param('organisationId') orgId: string,
+    @Param('memberId') memberId: string,
+    @Body() body: { siteIds: string[] },
+    @CurrentMember() member: MemberContext,
+  ) {
+    return this.team.updateMemberSites(orgId, memberId, body.siteIds ?? [], member.role);
   }
 
   @Get('invitations')

@@ -12,6 +12,6 @@ import { PrismaClient } from '@prisma/client';
   imports: [AuditModule, AuthModule],
   controllers: [DocumentsController],
   providers: [DocumentsService, StorageService, EvidencePackService, DocumentScanService, { provide: PrismaClient, useValue: new PrismaClient() }],
-  exports: [DocumentsService, StorageService],
+  exports: [DocumentsService, StorageService, EvidencePackService],
 })
 export class DocumentsModule {}
