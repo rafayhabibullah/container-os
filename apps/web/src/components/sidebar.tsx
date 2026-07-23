@@ -16,7 +16,6 @@ import {
   Globe,
   CreditCard,
   ClipboardCheck,
-  Receipt,
   PanelLeftClose,
   PanelLeftOpen,
   LogOut,
@@ -27,13 +26,14 @@ import { useRouter } from 'next/navigation';
 import React from 'react';
 import { useT } from '@/lib/i18n';
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
+import { BrandLogo } from '@/components/brand-logo';
 
 const NAV_ITEMS: { href: string; labelKey: string; icon: React.ComponentType<{ className?: string }>; wip?: boolean }[] = [
   { href: '/dashboard', labelKey: 'dashboard.nav.dashboard', icon: LayoutGrid },
   { href: '/sites', labelKey: 'dashboard.nav.sites', icon: Building2 },
   { href: '/listings', labelKey: 'dashboard.nav.listings', icon: Globe },
   { href: '/reservations', labelKey: 'dashboard.nav.reservations', icon: CalendarCheck },
-  { href: '/customers', labelKey: 'dashboard.nav.customers', icon: Users },
+  { href: '/tenants', labelKey: 'dashboard.nav.customers', icon: Users },
   { href: '/agreements', labelKey: 'dashboard.nav.agreements', icon: BookOpen },
   { href: '/invoices', labelKey: 'dashboard.nav.invoices', icon: FileText },
   { href: '/payments', labelKey: 'dashboard.nav.payments', icon: CreditCard },
@@ -42,7 +42,6 @@ const NAV_ITEMS: { href: string; labelKey: string; icon: React.ComponentType<{ c
   { href: '/incidents', labelKey: 'dashboard.nav.incidents', icon: AlertTriangle },
   { href: '/reports', labelKey: 'dashboard.nav.reports', icon: BarChart2 },
   { href: '/team', labelKey: 'dashboard.nav.team', icon: Users },
-  { href: '/billing', labelKey: 'dashboard.nav.billing', icon: Receipt },
 ];
 
 export function Sidebar() {
@@ -65,9 +64,7 @@ export function Sidebar() {
     >
       {/* Toggle */}
       <div className="flex items-center h-[52px] px-3 border-b border-slate-100 shrink-0">
-        {open && (
-          <span className="flex-1 text-sm font-bold text-slate-800 truncate">{t('dashboard.nav.appName')}</span>
-        )}
+        {open && <BrandLogo href="/dashboard" compact className="mr-auto" />}
         <button
           onClick={() => setOpen((v) => !v)}
           className="w-7 h-7 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors shrink-0"

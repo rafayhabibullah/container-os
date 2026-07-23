@@ -448,7 +448,7 @@
       "sites": "Sites",
       "listings": "Listings",
       "reservations": "Reservations",
-      "customers": "Customers",
+      "customers": "Tenants",
       "agreements": "Agreements",
       "invoices": "Invoices",
       "payments": "Payments",
@@ -793,11 +793,11 @@
       "searchPlaceholder": "Search reservations…",
       "emptyTitleNone": "No reservations yet",
       "emptyTitleFiltered": "No results found",
-      "emptyBodyNone": "Reservations will appear here once customers make bookings.",
+      "emptyBodyNone": "Reservations will appear here once tenants make bookings.",
       "emptyBodyFiltered": "Try adjusting your search or filter.",
       "columns": {
         "id": "ID",
-        "customer": "Customer",
+        "customer": "Tenant",
         "site": "Site",
         "unit": "Unit",
         "moveIn": "Move-in",
@@ -812,7 +812,7 @@
       "drawer": {
         "title": "Reservation",
         "via": "via {{source}}",
-        "customer": "Customer",
+        "customer": "Tenant",
         "moveInDate": "Move-in date",
         "expires": "Expires",
         "created": "Created",
@@ -869,7 +869,7 @@
       "emptyDocumentsBodyFiltered": "Try adjusting your search.",
       "columns": {
         "id": "ID",
-        "customer": "Customer",
+        "customer": "Tenant",
         "site": "Site",
         "unit": "Unit",
         "billing": "Billing",
@@ -887,7 +887,7 @@
       },
       "drawer": {
         "title": "Agreement",
-        "customer": "Customer",
+        "customer": "Tenant",
         "billingCycle": "Billing cycle",
         "language": "Language",
         "effectiveFrom": "Effective from",
@@ -1028,7 +1028,7 @@
         "listingTitlePlaceholder": "e.g. 20ft Container — Drive-up access",
         "description": "DESCRIPTION",
         "optional": "(optional)",
-        "descriptionPlaceholder": "Additional details visible to customers…",
+        "descriptionPlaceholder": "Additional details visible to tenants…",
         "bookingMode": "BOOKING MODE",
         "pricePerMonth": "PRICE / MONTH (€)",
         "opt": "(opt)",
@@ -1351,18 +1351,21 @@
       }
     },
     "customers": {
-      "title": "Customers",
-      "count": "{{count}} customer",
-      "count_plural": "{{count}} customers",
+      "title": "Tenants",
+      "count": "{{count}} tenant",
+      "count_plural": "{{count}} tenants",
       "filters": {
         "all": "All",
         "person": "Person",
         "organisation": "Organisation"
       },
-      "searchPlaceholder": "Search customers…",
+      "searchPlaceholder": "Search tenants…",
       "table": {
         "name": "Name",
         "email": "Email",
+        "unit": "Unit",
+        "paidThrough": "Paid through",
+        "rent": "Monthly rent",
         "type": "Type",
         "since": "Since"
       },
@@ -1371,12 +1374,35 @@
         "organisation": "Organisation"
       },
       "empty": {
-        "noCustomers": "No customers yet",
+        "noCustomers": "No tenants yet",
         "noResults": "No results found"
       },
       "emptyHint": {
-        "noCustomers": "Customers will appear here once they have agreements.",
+        "noCustomers": "Tenants will appear here once they have agreements or are imported.",
         "noResults": "Try adjusting your search or filter."
+      },
+      "import": {
+        "open": "Add tenant",
+        "title": "Add existing tenant",
+        "subtitle": "Import a tenant from an old site, assign their unit, and mark rent already paid outside SiteLager.",
+        "type": "Tenant type",
+        "email": "Email",
+        "companyName": "Company name",
+        "firstName": "First name",
+        "lastName": "Last name",
+        "phone": "Phone",
+        "site": "Site",
+        "unit": "Unit",
+        "monthlyRent": "Monthly rent",
+        "moveInDate": "Move-in date",
+        "paidThroughDate": "Paid through date",
+        "paymentMethod": "Previous payment method",
+        "notes": "Notes",
+        "notesPlaceholder": "Optional legacy account reference",
+        "cancel": "Cancel",
+        "save": "Import tenant",
+        "saving": "Importing…",
+        "failed": "Could not import tenant."
       },
       "drawer": {
         "id": "ID",
@@ -1399,7 +1425,7 @@
       "mandates": {
         "backToDashboard": "← Dashboard",
         "title": "Payment mandates",
-        "customer": "Customer",
+        "customer": "Tenant",
         "loading": "Loading…",
         "noMandatesYet": "No mandates yet",
         "noMandatesHint": "Add a mandate below to get started.",
@@ -1480,7 +1506,7 @@
         "hint": "Invoices will appear here once generated."
       },
       "table": {
-        "customer": "Customer",
+        "customer": "Tenant",
         "invoiceDate": "Invoice date",
         "dueDate": "Due date",
         "amount": "Amount",
@@ -1497,7 +1523,7 @@
       "detail": {
         "backToInvoices": "← Invoices",
         "title": "Invoice",
-        "customer": "Customer",
+        "customer": "Tenant",
         "invoiceDate": "Invoice date",
         "dueDate": "Due date",
         "period": "Period",
@@ -1533,8 +1559,50 @@
     "billing": {
       "title": "SiteLager Billing",
       "subtitle": "Manage your SiteLager subscription",
+      "managePlan": "Manage plan",
       "currentPlan": "Current plan",
       "active": "Active",
+      "totalPaid": "Paid to SiteLager",
+      "paidInvoices": "Paid invoices",
+      "nextBilling": "Next billing date",
+      "nextCharge": "Next regular charge",
+      "noCharge": "No charge scheduled",
+      "perMonth": "/ month",
+      "perYear": "/ year",
+      "currentServicePeriod": "Current service period",
+      "billingPolicyTitle": "How monthly billing works",
+      "calendarPolicyBody": "A subscription started after the first day of a month receives a prorated first invoice for the remaining calendar days. Full monthly billing then starts on the first day of the next month.",
+      "anniversaryPolicyBody": "This existing subscription renews each month on its current anniversary date. A new plan selection moves it to calendar-month billing.",
+      "setupPolicyBody": "This organisation has a paid plan assigned but no active payment schedule. Select the plan below to create the first invoice and activate recurring billing.",
+      "annualPolicyBody": "Annual plans are charged for the full year on the subscription anniversary. The annual price includes two free months.",
+      "invoiceHistory": "SiteLager invoice history",
+      "invoiceHistorySubtitle": "Invoices issued by SiteLager to your organisation",
+      "noInvoices": "No SiteLager invoices have been issued yet.",
+      "invoice": "Invoice",
+      "servicePeriod": "Service period",
+      "amount": "Amount",
+      "status": "Status",
+      "document": "Document",
+      "download": "Download PDF",
+      "prorated": "Prorated",
+      "includingVat": "Including VAT",
+      "planPricesIncludeVat": "Prices shown include 19% VAT.",
+      "twoMonthsFree": "2 months free",
+      "interval": {
+        "monthly": "Monthly",
+        "yearly": "Yearly"
+      },
+      "statuses": {
+        "active": "Active",
+        "trial": "Trial",
+        "open": "Open",
+        "paid": "Paid",
+        "failed": "Failed",
+        "pending_payment": "Payment pending",
+        "payment_failed": "Payment failed",
+        "past_due": "Past due",
+        "billing_setup_required": "Billing setup required"
+      },
       "upgradePlan": "Upgrade plan",
       "sitesIncluded": "Sites included",
       "unitsIncluded": "Units included",
@@ -1568,8 +1636,17 @@
     },
     "settings": {
       "title": "Organisation settings",
+      "subtitle": "Manage organisation details, billing, payment setup and integrations.",
       "plan": "Plan",
       "status": "Status",
+      "tabs": {
+        "label": "Settings sections",
+        "general": "General",
+        "billing": "Billing",
+        "payments": "Payment setup",
+        "apiKeys": "API keys",
+        "webhooks": "Webhooks"
+      },
       "webhooks": {
         "backToSettings": "← Settings",
         "title": "Webhooks",
@@ -1659,7 +1736,7 @@
         "month": "Month",
         "amount": "Amount",
         "method": "Method",
-        "customer": "Customer",
+        "customer": "Tenant",
         "bucket0_30": "0-30 days",
         "bucket31_60": "31-60 days",
         "bucket61_90": "61-90 days",

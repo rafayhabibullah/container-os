@@ -12,7 +12,7 @@ export function CheckoutStarter({ plan, billingInterval }: { plan: string; billi
     fetch('/api/billing/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan, billingInterval, redirectUrl: `${window.location.origin}/billing?checkout=return` }),
+      body: JSON.stringify({ plan, billingInterval, redirectUrl: `${window.location.origin}/settings/billing?checkout=return` }),
     })
       .then(async (response) => {
         const data = await response.json().catch(() => ({}));

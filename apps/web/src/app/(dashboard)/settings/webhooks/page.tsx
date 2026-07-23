@@ -1,72 +1,54 @@
+import { redirect } from 'next/navigation';
 import { requireAuth } from '@/lib/auth';
 import { serverFetch } from '@/lib/server-api';
-import { redirect } from 'next/navigation';
-import WebhookActions from './WebhookActions';
-import Link from 'next/link';
 import { getT } from '@/lib/get-locale';
+import WebhookActions from './WebhookActions';
 
 interface Webhook { id: string; url: string; subscriptions: string[]; status: string; }
 
 export default async function WebhooksPage() {
   const user = await requireAuth();
   if (user.role !== 'owner') redirect('/dashboard');
-
   const webhooks = await serverFetch<Webhook[]>(`/v1/organisations/${user.organisationId}/webhooks`).catch(() => []);
-  const t = await getT();
+  const t = getT();
 
   return (
-    <>
-      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      <style>{`.tbl-row:hover { background: #f8fafc; }`}</style>
-      <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-          <div style={{ marginBottom: '28px' }}>
-            <Link
-              href="/settings"
-              style={{ display: 'inline-block', fontSize: '13px', fontWeight: 600, color: '#64748b', textDecoration: 'none', marginBottom: '20px' }}
-            >
-              {t('dashboard.settings.webhooks.backToSettings')}
-            </Link>
-            <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
-              {t('dashboard.settings.webhooks.title')}
-            </h1>
-          </div>
-
-          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', padding: '24px', marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', margin: '0 0 16px' }}>{t('dashboard.settings.webhooks.addEndpoint')}</h2>
-            <WebhookActions type="create" />
-          </div>
-
-          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(15,23,42,0.06)', overflow: 'hidden' }}>
-            {webhooks.length === 0 ? (
-              <p style={{ fontSize: '14px', color: '#94a3b8', textAlign: 'center', padding: '48px 24px', margin: 0 }}>
-                {t('dashboard.settings.webhooks.empty')}
-              </p>
-            ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{t('dashboard.settings.webhooks.table.url')}</th>
-                    <th style={{ textAlign: 'left', padding: '10px 16px', fontSize: '11px', fontWeight: 700, color: '#94a3b8', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{t('dashboard.settings.webhooks.table.events')}</th>
-                    <th style={{ padding: '10px 16px' }}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {webhooks.map((wh) => (
-                    <tr key={wh.id} className="tbl-row" style={{ borderBottom: '1px solid #f8fafc' }}>
-                      <td style={{ padding: '12px 16px', fontFamily: 'monospace', fontSize: '12px', color: '#0f172a' }}>{wh.url}</td>
-                      <td style={{ padding: '12px 16px', fontSize: '12px', color: '#94a3b8' }}>{wh.subscriptions.join(', ')}</td>
-                      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                        <WebhookActions type="delete" webhookId={wh.id} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
+    <div className="max-w-5xl">
+      <div className="mb-5">
+        <h2 className="text-xl font-extrabold text-slate-900">{t('dashboard.settings.webhooks.title')}</h2>
       </div>
-    </>
+
+      <section className="mb-5 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <h3 className="mb-4 text-sm font-extrabold text-slate-900">{t('dashboard.settings.webhooks.addEndpoint')}</h3>
+        <WebhookActions type="create" />
+      </section>
+
+      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        {webhooks.length === 0 ? (
+          <p className="px-6 py-12 text-center text-sm text-slate-400">{t('dashboard.settings.webhooks.empty')}</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] border-collapse text-left">
+              <thead className="bg-slate-50 text-xs font-bold uppercase text-slate-400">
+                <tr>
+                  <th className="px-4 py-3">{t('dashboard.settings.webhooks.table.url')}</th>
+                  <th className="px-4 py-3">{t('dashboard.settings.webhooks.table.events')}</th>
+                  <th className="px-4 py-3" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {webhooks.map((webhook) => (
+                  <tr key={webhook.id} className="hover:bg-slate-50">
+                    <td className="px-4 py-3 font-mono text-xs text-slate-900">{webhook.url}</td>
+                    <td className="px-4 py-3 text-xs text-slate-500">{webhook.subscriptions.join(', ')}</td>
+                    <td className="px-4 py-3 text-right"><WebhookActions type="delete" webhookId={webhook.id} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </div>
   );
 }

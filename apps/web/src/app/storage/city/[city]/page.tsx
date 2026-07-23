@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { MapPin, Ruler, Star, Zap } from 'lucide-react';
+import { backendApi } from '@/lib/backend-url';
 import { SavedSearchForm, TrackMarketplaceEvent } from '../../MarketplaceActions';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api';
 
 interface ListingSearchResult {
   id: string;
@@ -29,7 +28,7 @@ function money(minor: number | null | undefined) {
 
 async function getListings(city: string): Promise<ListingSearchResult[]> {
   const params = new URLSearchParams({ city, limit: '60' });
-  const res = await fetch(`${API_URL}/public/v1/listings?${params.toString()}`, { cache: 'no-store' });
+  const res = await fetch(backendApi(`/public/v1/listings?${params.toString()}`), { cache: 'no-store' });
   if (!res.ok) return [];
   const data = await res.json().catch(() => []);
   return Array.isArray(data) ? data : [];

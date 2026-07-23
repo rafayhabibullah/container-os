@@ -32,7 +32,7 @@ export default function PlanLockedNotice({
           {body}
         </p>
       </div>
-      <Link href="/billing?plan=professional&interval=monthly" style={{
+      <Link href="/settings/billing?plan=professional&interval=monthly" style={{
         background: '#0f172a',
         color: '#ffffff',
         borderRadius: '8px',

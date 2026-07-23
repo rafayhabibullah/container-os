@@ -2,9 +2,9 @@ import Link from 'next/link';
 import { Filter, MapPin, Ruler, Search, ShieldCheck, SlidersHorizontal, Star, Zap } from 'lucide-react';
 import { getT } from '@/lib/get-locale';
 import { getCurrentTenantUser, getCurrentUser } from '@/lib/auth';
+import { backendApi } from '@/lib/backend-url';
 import { SavedSearchForm, TrackMarketplaceEvent } from './MarketplaceActions';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api';
+import { BrandLogo } from '@/components/brand-logo';
 
 interface ListingSearchResult {
   id: string;
@@ -65,10 +65,10 @@ export default async function StoragePage({
   params.set('limit', '60');
 
   const [listings, allListings] = await Promise.all([
-    fetch(`${API_URL}/public/v1/listings?${params.toString()}`, { cache: 'no-store' })
+    fetch(backendApi(`/public/v1/listings?${params.toString()}`), { cache: 'no-store' })
       .then(async (r) => Array.isArray(await r.clone().json().catch(() => [])) ? r.json() as Promise<ListingSearchResult[]> : [])
       .catch(() => [] as ListingSearchResult[]),
-    fetch(`${API_URL}/public/v1/listings?limit=200`, { cache: 'no-store' })
+    fetch(backendApi('/public/v1/listings?limit=200'), { cache: 'no-store' })
       .then(async (r) => Array.isArray(await r.clone().json().catch(() => [])) ? r.json() as Promise<ListingSearchResult[]> : [])
       .catch(() => [] as ListingSearchResult[]),
   ]);
@@ -94,10 +94,7 @@ export default async function StoragePage({
       <TrackMarketplaceEvent eventType="search" metadata={{ q: searchParams.q, city: searchParams.city, filters: activeFilters }} />
       <header className="bg-white border-b border-slate-100 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-lg bg-blue-600 text-white text-sm font-bold flex items-center justify-center">S</span>
-            <span className="font-bold text-slate-950 text-sm">SiteLager</span>
-          </Link>
+          <BrandLogo href="/" compact markClassName="h-8 w-8" />
           <nav className="flex items-center gap-5 text-sm">
             <Link href="/for-operators" className="text-slate-500 hover:text-slate-900">Für Betreiber</Link>
             <Link href={accountHref} className="text-slate-600 hover:text-slate-900">{user || tenantUser ? t('storage.nav.myAccount') : t('storage.nav.signIn')}</Link>

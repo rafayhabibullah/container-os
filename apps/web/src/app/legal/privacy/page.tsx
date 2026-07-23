@@ -1,11 +1,12 @@
 import Link from 'next/link';
+import { BrandLogo } from '@/components/brand-logo';
 
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-white">
       <header className="border-b border-slate-100 py-4 px-6">
         <div className="max-w-3xl mx-auto flex justify-between items-center">
-          <Link href="/" className="font-bold text-slate-900">SiteLager</Link>
+          <BrandLogo href="/" compact markClassName="h-7 w-7" />
           <Link href="/legal/terms" className="text-sm text-slate-500 hover:text-slate-700">Terms of Service</Link>
         </div>
       </header>

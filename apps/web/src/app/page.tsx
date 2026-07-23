@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Search, MapPin, Zap, Shield } from 'lucide-react';
 import { getT } from '@/lib/get-locale';
+import { BrandLogo } from '@/components/brand-logo';
 
 export default function HomePage() {
   const t = getT();
@@ -25,12 +26,7 @@ export default function HomePage() {
       {/* Header */}
       <header className="bg-white border-b border-slate-100 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-              <span className="text-white text-sm font-bold">S</span>
-            </div>
-            <span className="font-bold text-slate-900">SiteLager</span>
-          </div>
+          <BrandLogo href="/" compact />
           <nav className="hidden md:flex items-center gap-6 text-sm">
             <Link href="/storage" className="text-slate-600 hover:text-slate-900">{t('home.nav.findStorage')}</Link>
             <Link href="/for-operators" className="text-slate-600 hover:text-slate-900">{t('home.nav.forOperators')}</Link>
@@ -130,12 +126,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t border-slate-100 py-10 px-6">
         <div className="max-w-6xl mx-auto flex flex-wrap gap-6 justify-between text-sm text-slate-400">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-blue-600 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">S</span>
-            </div>
-            <span className="font-semibold text-slate-900">SiteLager</span>
-          </div>
+          <BrandLogo href="/" compact markClassName="h-7 w-7" />
           <div className="flex gap-6">
             <Link href="/for-operators" className="hover:text-slate-700">{t('home.footer.forOperators')}</Link>
             <Link href="/pricing" className="hover:text-slate-700">{t('home.footer.pricing')}</Link>

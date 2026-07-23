@@ -3,6 +3,7 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { BrandLogo } from '@/components/brand-logo';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -33,7 +34,7 @@ export default function RegisterPage() {
       const params = new URLSearchParams(window.location.search);
       const plan = params.get('plan') ?? 'free';
       const interval = params.get('interval') ?? 'monthly';
-      router.push(plan === 'free' ? '/dashboard' : `/billing?plan=${plan}&interval=${interval}`);
+      router.push(plan === 'free' ? '/dashboard' : `/settings/billing?plan=${plan}&interval=${interval}`);
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Registration failed');
@@ -45,6 +46,9 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
       <div className="w-full max-w-md bg-white rounded-2xl shadow p-8">
+        <div className="mb-6">
+          <BrandLogo href="/" variant="stacked" />
+        </div>
         <h1 className="text-2xl font-bold text-slate-900 mb-2">List your storage business</h1>
         <p className="text-slate-500 mb-6 text-sm">
           Already registered?{' '}

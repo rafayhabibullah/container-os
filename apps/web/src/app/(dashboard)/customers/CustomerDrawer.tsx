@@ -5,7 +5,7 @@ import { useT } from '@/lib/i18n';
 
 interface CustomerSummary {
   id: string;
-  type: 'person' | 'organisation';
+  type: 'private' | 'business' | 'person' | 'organisation';
   personOrOrgData: { firstName?: string; lastName?: string; companyName?: string; name?: string };
   contacts: { email: string }[];
   createdAt: string;
@@ -43,6 +43,10 @@ function displayName(c: CustomerSummary): string {
   return [d.firstName, d.lastName].filter(Boolean).join(' ') || c.id;
 }
 
+function normalType(type: CustomerSummary['type']) {
+  return type === 'organisation' ? 'business' : type === 'person' ? 'private' : type;
+}
+
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
@@ -73,7 +77,7 @@ export default function CustomerDrawer({ customer, onClose }: { customer: Custom
 
   useEffect(() => {
     setFetching(true);
-    fetch(`/api/customers/${customer.id}`)
+    fetch(`/api/tenants/${customer.id}`)
       .then((r) => r.ok ? r.json() : Promise.reject(r.status))
       .then((d: CustomerDetails) => setDetails(d))
       .catch(() => setDetails(null))
@@ -123,7 +127,7 @@ export default function CustomerDrawer({ customer, onClose }: { customer: Custom
                 background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0',
                 borderRadius: '20px', padding: '3px 10px', fontSize: '12px', fontWeight: 600,
               }}>
-                {customer.type === 'organisation' ? t('dashboard.customers.type.organisation') : t('dashboard.customers.type.person')}
+                {normalType(customer.type) === 'business' ? t('dashboard.customers.type.organisation') : t('dashboard.customers.type.person')}
               </span>
             </div>
           </div>

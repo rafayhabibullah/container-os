@@ -21,14 +21,14 @@ export function PlanSwitchButton({
   const [error, setError] = useState('');
 
   const handleClick = async () => {
-    if (plan === 'free' && !window.confirm(t('dashboard.billing.switchConfirm', { plan: planLabel }))) return;
+    if (!window.confirm(t('dashboard.billing.switchConfirm', { plan: planLabel }))) return;
     setError('');
     setPending(true);
     try {
       const res = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, billingInterval, redirectUrl: `${window.location.origin}/billing?checkout=return` }),
+        body: JSON.stringify({ plan, billingInterval, redirectUrl: `${window.location.origin}/settings/billing?checkout=return` }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {

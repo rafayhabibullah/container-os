@@ -9,25 +9,25 @@ datasource db {
 }
 
 model Site {
-  id             String        @id @default(cuid())
-  name           String
-  slug           String        @unique
-  timezone       String        @default("Europe/Berlin")
-  currency       String        @default("EUR")
-  address        Json
-  latitude       Float?
-  longitude      Float?
-  accessHours    Json?
-  status         SiteStatus    @default(active)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  deletedAt      DateTime?
-  organisationId String?
-  organisation   Organisation? @relation(fields: [organisationId], references: [id])
-  units          Unit[]
-  unitTypes      UnitType[]
-  zones          Zone[]
-  listings       Listing[]
+  id                 String              @id @default(cuid())
+  name               String
+  slug               String              @unique
+  timezone           String              @default("Europe/Berlin")
+  currency           String              @default("EUR")
+  address            Json
+  latitude           Float?
+  longitude          Float?
+  accessHours        Json?
+  status             SiteStatus          @default(active)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  deletedAt          DateTime?
+  organisationId     String?
+  organisation       Organisation?       @relation(fields: [organisationId], references: [id])
+  units              Unit[]
+  unitTypes          UnitType[]
+  zones              Zone[]
+  listings           Listing[]
   marketplaceReviews MarketplaceReview[]
   marketplaceEvents  MarketplaceEvent[]
 
@@ -419,15 +419,15 @@ model Payment {
 }
 
 model PaymentAttempt {
-  id          String   @id @default(cuid())
-  paymentId   String
-  provider    String
-  status      String
-  providerRef String   @unique
-  errorCode   String?
+  id            String    @id @default(cuid())
+  paymentId     String
+  provider      String
+  status        String
+  providerRef   String    @unique
+  errorCode     String?
   lastCheckedAt DateTime?
-  createdAt   DateTime @default(now())
-  payment     Payment  @relation(fields: [paymentId], references: [id])
+  createdAt     DateTime  @default(now())
+  payment       Payment   @relation(fields: [paymentId], references: [id])
 
   @@index([paymentId])
 }
@@ -752,113 +752,121 @@ model OutboundMessage {
 }
 
 model Organisation {
-  id              String                     @id @default(cuid())
-  legalName       String
-  tradingName     String?
-  slug            String                     @unique
-  countryCode     String                     @default("DE")
-  defaultLanguage String                     @default("de")
-  currency        String                     @default("EUR")
-  vatId           String?
-  taxNumber       String?
-  billingEmail    String
-  supportEmail    String?
-  phone           String?
-  website         String?
-  status          OrganisationStatus         @default(active)
-  plan            OrgPlan                    @default(free)
-  createdAt       DateTime                   @default(now())
-  updatedAt       DateTime                   @updatedAt
-  invitations     Invitation[]
-  members         OrganisationMember[]
-  sites           Site[]
-  listings        Listing[]
-  marketplaceReviews MarketplaceReview[]
-  marketplaceEvents  MarketplaceEvent[]
-  subscriptions   OrganisationSubscription[]
+  id                   String                       @id @default(cuid())
+  legalName            String
+  tradingName          String?
+  slug                 String                       @unique
+  countryCode          String                       @default("DE")
+  defaultLanguage      String                       @default("de")
+  currency             String                       @default("EUR")
+  vatId                String?
+  taxNumber            String?
+  billingEmail         String
+  supportEmail         String?
+  phone                String?
+  website              String?
+  status               OrganisationStatus           @default(active)
+  plan                 OrgPlan                      @default(free)
+  createdAt            DateTime                     @default(now())
+  updatedAt            DateTime                     @updatedAt
+  invitations          Invitation[]
+  members              OrganisationMember[]
+  sites                Site[]
+  listings             Listing[]
+  marketplaceReviews   MarketplaceReview[]
+  marketplaceEvents    MarketplaceEvent[]
+  subscriptions        OrganisationSubscription[]
   subscriptionInvoices SubscriptionInvoice[]
-  paymentAccounts OrganisationPaymentAccount[]
+  paymentAccounts      OrganisationPaymentAccount[]
 }
 
 model OrganisationPaymentAccount {
-  id                  String       @id @default(cuid())
-  organisationId      String
-  provider            String       @default("mollie")
-  status              String       @default("not_connected")
-  providerAccountId   String?
-  onboardingUrl       String?
-  onboardingStartedAt DateTime?
+  id                    String       @id @default(cuid())
+  organisationId        String
+  provider              String       @default("mollie")
+  status                String       @default("not_connected")
+  providerAccountId     String?
+  onboardingUrl         String?
+  onboardingStartedAt   DateTime?
   onboardingCompletedAt DateTime?
-  capabilities        Json?
-  metadata            Json?
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
-  organisation        Organisation @relation(fields: [organisationId], references: [id])
+  capabilities          Json?
+  metadata              Json?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  organisation          Organisation @relation(fields: [organisationId], references: [id])
 
   @@unique([organisationId, provider])
   @@index([status])
 }
 
 model OrganisationSubscription {
-  id                     String       @id @default(cuid())
+  id                     String                @id @default(cuid())
   organisationId         String
   plan                   OrgPlan
-  status                 String       @default("trial")
-  billingInterval        String       @default("monthly")
+  status                 String                @default("trial")
+  billingInterval        String                @default("monthly")
   basePriceMinor         Int
   includedSites          Int
   includedUnits          Int
-  extraUnitPriceMinor    Int          @default(0)
-  marketplaceRateBp      Int          @default(0)
+  extraUnitPriceMinor    Int                   @default(0)
+  marketplaceRateBp      Int                   @default(0)
   provider               String?
   providerCustomerId     String?
   providerSubscriptionId String?
-  providerPaymentId      String?      @unique
+  providerPaymentId      String?               @unique
   checkoutUrl            String?
   lastPaymentStatus      String?
   trialEndsAt            DateTime?
   currentPeriodStart     DateTime
   currentPeriodEnd       DateTime
-  cancelAtPeriodEnd      Boolean      @default(false)
-  createdAt              DateTime     @default(now())
-  updatedAt              DateTime     @updatedAt
-  organisation           Organisation @relation(fields: [organisationId], references: [id])
+  cancelAtPeriodEnd      Boolean               @default(false)
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  organisation           Organisation          @relation(fields: [organisationId], references: [id])
   invoices               SubscriptionInvoice[]
 
   @@index([organisationId, status])
 }
 
 model SubscriptionInvoice {
-  id             String                   @id @default(cuid())
-  organisationId String
-  subscriptionId String?
-  invoiceNumber  String                   @unique
-  plan           OrgPlan
-  billingInterval String                  @default("monthly")
-  status         String                   @default("draft")
-  currency       String                   @default("EUR")
-  netMinor       Int
-  vatMinor       Int
-  totalMinor     Int
-  vatRate        Float                    @default(0.19)
-  periodStart    DateTime
-  periodEnd      DateTime
-  invoiceDate    DateTime                 @default(now())
-  dueDate        DateTime
-  paidAt         DateTime?
-  provider       String?
-  providerPaymentId String?               @unique
-  checkoutUrl    String?
-  lineItems      Json
-  sellerSnapshot Json
-  buyerSnapshot  Json
-  createdAt      DateTime                 @default(now())
-  updatedAt      DateTime                 @updatedAt
-  organisation   Organisation             @relation(fields: [organisationId], references: [id])
-  subscription   OrganisationSubscription? @relation(fields: [subscriptionId], references: [id])
+  id                String                    @id @default(cuid())
+  organisationId    String
+  subscriptionId    String?
+  invoiceNumber     String                    @unique
+  plan              OrgPlan
+  billingInterval   String                    @default("monthly")
+  billingReason     String                    @default("subscription_cycle")
+  status            String                    @default("draft")
+  currency          String                    @default("EUR")
+  netMinor          Int
+  vatMinor          Int
+  totalMinor        Int
+  vatRate           Float                     @default(0.19)
+  periodStart       DateTime
+  periodEnd         DateTime
+  invoiceDate       DateTime                  @default(now())
+  dueDate           DateTime
+  paidAt            DateTime?
+  provider          String?
+  providerPaymentId String?                   @unique
+  checkoutUrl       String?
+  lineItems         Json
+  sellerSnapshot    Json
+  buyerSnapshot     Json
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+  organisation      Organisation              @relation(fields: [organisationId], references: [id])
+  subscription      OrganisationSubscription? @relation(fields: [subscriptionId], references: [id])
 
   @@index([organisationId, status])
   @@index([subscriptionId])
+}
+
+model SubscriptionInvoiceSequence {
+  id         String   @id @default(cuid())
+  year       Int      @unique
+  nextNumber Int      @default(1)
+  updatedAt  DateTime @updatedAt
 }
 
 model CommissionRecord {
@@ -1286,30 +1294,30 @@ enum BookingMode {
 }
 
 model Listing {
-  id               String        @id @default(cuid())
-  organisationId   String
-  siteId           String
-  unitId           String        @unique
-  slug             String        @unique
-  title            String
-  description      String?
-  publicPriceMinor Int?
-  showPrice        Boolean       @default(true)
-  depositMinor     Int?
-  availableFrom    DateTime?
-  bookingMode      BookingMode   @default(approval_required)
-  status           ListingStatus @default(draft)
-  requiredDocs     String[]      @default([])
-  images           String[]      @default([])
-  seoTitle         String?
-  seoDescription   String?
-  commissionRateBp Int           @default(0)
-  source           String        @default("manual")
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  organisation     Organisation  @relation(fields: [organisationId], references: [id])
-  site             Site          @relation(fields: [siteId], references: [id])
-  unit             Unit          @relation(fields: [unitId], references: [id])
+  id                 String              @id @default(cuid())
+  organisationId     String
+  siteId             String
+  unitId             String              @unique
+  slug               String              @unique
+  title              String
+  description        String?
+  publicPriceMinor   Int?
+  showPrice          Boolean             @default(true)
+  depositMinor       Int?
+  availableFrom      DateTime?
+  bookingMode        BookingMode         @default(approval_required)
+  status             ListingStatus       @default(draft)
+  requiredDocs       String[]            @default([])
+  images             String[]            @default([])
+  seoTitle           String?
+  seoDescription     String?
+  commissionRateBp   Int                 @default(0)
+  source             String              @default("manual")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  organisation       Organisation        @relation(fields: [organisationId], references: [id])
+  site               Site                @relation(fields: [siteId], references: [id])
+  unit               Unit                @relation(fields: [unitId], references: [id])
   marketplaceReviews MarketplaceReview[]
   marketplaceEvents  MarketplaceEvent[]
 

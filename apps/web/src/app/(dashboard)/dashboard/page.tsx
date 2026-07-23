@@ -168,7 +168,7 @@ export default async function DashboardPage() {
     { label: 'Add unit inventory', done: (usage?.units.used ?? 0) > 0, href: sites[0] ? `/sites/${sites[0].id}#units` : '/sites' },
     { label: 'Publish marketplace listing', done: publishedListings > 0, href: '/listings' },
     { label: 'Invite team member', done: members.length > 1, href: '/team' },
-    { label: 'Configure billing', done: invoices.length > 0, href: '/billing' },
+    { label: 'Configure billing', done: org?.plan !== 'free', href: '/settings/billing' },
   ];
   const setupDone = setupSteps.filter((step) => step.done).length;
   const usageText = (value?: { used: number; limit: number }) => {
@@ -375,7 +375,7 @@ export default async function DashboardPage() {
                   {org?.legalName ?? 'Your organisation'} is on the <strong style={{ color: '#0f172a' }}>{org?.plan ?? usage?.plan ?? 'free'}</strong> plan.
                 </p>
               </div>
-              <Link href="/billing" style={{ background: '#0f172a', color: '#ffffff', borderRadius: '8px', padding: '9px 14px', fontSize: '13px', fontWeight: 800, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+              <Link href="/settings/billing" style={{ background: '#0f172a', color: '#ffffff', borderRadius: '8px', padding: '9px 14px', fontSize: '13px', fontWeight: 800, textDecoration: 'none', whiteSpace: 'nowrap' }}>
                 Plan & usage
               </Link>
             </div>

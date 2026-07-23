@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useT } from '@/lib/i18n';
 import { TrackMarketplaceEvent } from '../../MarketplaceActions';
+import { BrandLogo } from '@/components/brand-logo';
 
 interface UnitType {
   id: string;
@@ -111,12 +112,7 @@ export default function BookPage({ params, searchParams }: BookingWizardProps) {
       <TrackMarketplaceEvent listingId={searchParams.listingId} eventType="booking_click" metadata={{ slug: params.slug }} />
       <header className="bg-white border-b border-slate-100 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
-              <span className="text-white text-xs font-bold">S</span>
-            </div>
-            <span className="font-bold text-slate-900 text-sm">SiteLager</span>
-          </Link>
+          <BrandLogo href="/" compact markClassName="h-7 w-7" />
           <Link href="/login" className="text-sm text-slate-600 hover:text-slate-900">{t('storage.book.nav.signIn')}</Link>
         </div>
       </header>

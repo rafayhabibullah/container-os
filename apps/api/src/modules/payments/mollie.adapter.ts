@@ -66,11 +66,12 @@ export class MollieAdapter implements PaymentAdapter {
     return { onboardingUrl: url.toString(), mode: 'oauth' };
   }
 
-  async createRecurringSubscription(params: { customerId: string; amountMinor: number; currency: string; interval: string; description: string; webhookUrl?: string; metadata?: object }) {
+  async createRecurringSubscription(params: { customerId: string; amountMinor: number; currency: string; interval: string; startDate?: string; description: string; webhookUrl?: string; metadata?: object }) {
     const subscription = await (this.client as any).customerSubscriptions.create({
       customerId: params.customerId,
       amount: { value: (params.amountMinor / 100).toFixed(2), currency: params.currency },
       interval: params.interval,
+      startDate: params.startDate,
       description: params.description,
       webhookUrl: params.webhookUrl,
       metadata: params.metadata,
@@ -82,9 +83,14 @@ export class MollieAdapter implements PaymentAdapter {
     await (this.client as any).customerSubscriptions.cancel(subscriptionId, { customerId });
   }
 
-  async getPayment(molliePaymentId: string): Promise<{ status: string; metadata?: Record<string, string>; customerId?: string }> {
+  async getPayment(molliePaymentId: string): Promise<{ status: string; metadata?: Record<string, string>; customerId?: string; subscriptionId?: string }> {
     const payment = await this.client.payments.get(molliePaymentId);
-    return { status: payment.status, metadata: (payment as any).metadata, customerId: (payment as any).customerId };
+    return {
+      status: payment.status,
+      metadata: (payment as any).metadata,
+      customerId: (payment as any).customerId,
+      subscriptionId: (payment as any).subscriptionId,
+    };
   }
 
   /**

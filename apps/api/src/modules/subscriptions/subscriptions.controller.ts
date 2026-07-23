@@ -45,6 +45,11 @@ export class SubscriptionsController {
     return this.subscriptions.listInvoices(organisationId);
   }
 
+  @Get('overview')
+  overview(@Param('organisationId') organisationId: string) {
+    return this.subscriptions.getBillingOverview(organisationId);
+  }
+
   @Get('invoices/:invoiceId')
   invoice(@Param('organisationId') organisationId: string, @Param('invoiceId') invoiceId: string) {
     return this.subscriptions.getInvoice(organisationId, invoiceId);

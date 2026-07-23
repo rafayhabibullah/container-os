@@ -1,8 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { decodeJwt } from './auth';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+import { backendApi } from './backend-url';
 
 export function getAuthContext() {
   const token = cookies().get('sl_access')?.value;
@@ -30,7 +29,7 @@ export async function proxyToBackend(
   if (!['GET', 'HEAD', 'OPTIONS'].includes(method.toUpperCase())) {
     headers['Idempotency-Key'] = crypto.randomUUID();
   }
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(backendApi(path), {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,

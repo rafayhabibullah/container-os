@@ -16,6 +16,7 @@ import { CreateUnitTypeDto } from './dto/create-unit-type.dto';
 import { UpdateUnitTypeDto } from './dto/update-unit-type.dto';
 import { CreatePriceBookDto } from './dto/create-price-book.dto';
 import { CreateRateRuleDto } from './dto/create-rate-rule.dto';
+import { ImportExistingTenantDto } from './dto/import-existing-tenant.dto';
 
 interface MemberContext {
   id: string;
@@ -76,6 +77,28 @@ export class OrganisationController {
   @ApiOperation({ summary: 'Get a single customer' })
   getCustomer(@Param('organisationId') orgId: string, @Param('customerId') customerId: string) {
     return this.organisations.getCustomer(orgId, customerId);
+  }
+
+  @Get('tenants')
+  @ApiOperation({ summary: 'List tenants for organisation' })
+  listTenants(@Param('organisationId') orgId: string) {
+    return this.organisations.listTenants(orgId);
+  }
+
+  @Post('tenants/import-existing')
+  @ApiOperation({ summary: 'Import an existing tenant, assign a unit, and mark historical paid-through rent' })
+  importExistingTenant(
+    @Param('organisationId') orgId: string,
+    @Body() dto: ImportExistingTenantDto,
+    @CurrentMember() member: MemberContext,
+  ) {
+    return this.organisations.importExistingTenant(orgId, dto, member.userId);
+  }
+
+  @Get('tenants/:tenantId')
+  @ApiOperation({ summary: 'Get a single tenant' })
+  getTenant(@Param('organisationId') orgId: string, @Param('tenantId') tenantId: string) {
+    return this.organisations.getTenant(orgId, tenantId);
   }
 
   @Get('sites')

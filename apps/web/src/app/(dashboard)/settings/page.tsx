@@ -21,29 +21,25 @@ interface Organisation {
 
 export default async function SettingsPage() {
   const user = await requireAuth();
+  if (user.role === 'billing_admin') redirect('/settings/billing');
   if (user.role !== 'owner') redirect('/dashboard');
 
   const org = await serverFetch<Organisation>(`/v1/organisations/${user.organisationId}`);
   const t = await getT();
 
   return (
-    <>
-      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-      <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '36px 40px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <div style={{ marginBottom: '24px' }}>
-            <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
-              {t('dashboard.settings.title')}
-            </h1>
-            <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>
-              {t('dashboard.settings.plan')}: <span style={{ fontWeight: 600, color: '#475569', textTransform: 'capitalize' }}>{org.plan}</span>
-              {' · '}
-              {t('dashboard.settings.status')}: <span style={{ fontWeight: 600, color: '#475569', textTransform: 'capitalize' }}>{org.status}</span>
-            </p>
-          </div>
-          <OrgSettingsForm org={org} />
+    <div className="max-w-4xl">
+      <div className="mb-5 flex flex-wrap gap-3">
+        <div className="rounded-md border border-slate-200 bg-white px-4 py-3">
+          <p className="text-xs font-bold uppercase text-slate-400">{t('dashboard.settings.plan')}</p>
+          <p className="mt-1 text-sm font-bold capitalize text-slate-800">{org.plan}</p>
+        </div>
+        <div className="rounded-md border border-slate-200 bg-white px-4 py-3">
+          <p className="text-xs font-bold uppercase text-slate-400">{t('dashboard.settings.status')}</p>
+          <p className="mt-1 text-sm font-bold capitalize text-slate-800">{org.status}</p>
         </div>
       </div>
-    </>
+      <OrgSettingsForm org={org} />
+    </div>
   );
 }

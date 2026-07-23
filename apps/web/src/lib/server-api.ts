@@ -1,6 +1,5 @@
 import { getAccessToken, getTenantAccessToken } from './auth';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+import { backendApi } from './backend-url';
 
 async function apiFetch<T>(token: string | undefined, path: string, init?: RequestInit): Promise<T> {
   const method = init?.method?.toUpperCase() ?? 'GET';
@@ -8,7 +7,7 @@ async function apiFetch<T>(token: string | undefined, path: string, init?: Reque
   headers.set('Content-Type', 'application/json');
   if (token) headers.set('Authorization', `Bearer ${token}`);
   if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) headers.set('Idempotency-Key', crypto.randomUUID());
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(backendApi(path), {
     ...init,
     headers,
     cache: 'no-store',

@@ -4,6 +4,7 @@ import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useT } from '@/lib/i18n';
+import { BrandLogo } from '@/components/brand-logo';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -41,9 +42,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo + title */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center mb-4">
-            <span className="text-white font-bold text-base">S</span>
-          </div>
+          <BrandLogo href="/" variant="stacked" className="mb-4" />
           <h1 className="text-xl font-bold text-slate-900">{t('auth.login.title')}</h1>
           <p className="text-sm text-slate-400 mt-1">{t('auth.login.subtitle')}</p>
         </div>

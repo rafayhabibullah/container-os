@@ -448,7 +448,7 @@
       "sites": "Standorte",
       "listings": "Inserate",
       "reservations": "Reservierungen",
-      "customers": "Kunden",
+      "customers": "Mieter",
       "agreements": "Verträge",
       "invoices": "Rechnungen",
       "payments": "Zahlungen",
@@ -793,11 +793,11 @@
       "searchPlaceholder": "Reservierungen suchen…",
       "emptyTitleNone": "Noch keine Reservierungen",
       "emptyTitleFiltered": "Keine Ergebnisse gefunden",
-      "emptyBodyNone": "Reservierungen erscheinen hier, sobald Kunden buchen.",
+      "emptyBodyNone": "Reservierungen erscheinen hier, sobald Mieter buchen.",
       "emptyBodyFiltered": "Suche oder Filter anpassen.",
       "columns": {
         "id": "ID",
-        "customer": "Kunde",
+        "customer": "Mieter",
         "site": "Standort",
         "unit": "Einheit",
         "moveIn": "Einzug",
@@ -812,7 +812,7 @@
       "drawer": {
         "title": "Reservierung",
         "via": "via {{source}}",
-        "customer": "Kunde",
+        "customer": "Mieter",
         "moveInDate": "Einzugsdatum",
         "expires": "Läuft ab",
         "created": "Erstellt",
@@ -869,7 +869,7 @@
       "emptyDocumentsBodyFiltered": "Suche anpassen.",
       "columns": {
         "id": "ID",
-        "customer": "Kunde",
+        "customer": "Mieter",
         "site": "Standort",
         "unit": "Einheit",
         "billing": "Abrechnung",
@@ -887,7 +887,7 @@
       },
       "drawer": {
         "title": "Vertrag",
-        "customer": "Kunde",
+        "customer": "Mieter",
         "billingCycle": "Abrechnungszyklus",
         "language": "Sprache",
         "effectiveFrom": "Gültig ab",
@@ -1028,7 +1028,7 @@
         "listingTitlePlaceholder": "z. B. 20-Fuß-Container — Drive-up-Zugang",
         "description": "BESCHREIBUNG",
         "optional": "(optional)",
-        "descriptionPlaceholder": "Weitere Details, die für Kunden sichtbar sind…",
+        "descriptionPlaceholder": "Weitere Details, die für Mieter sichtbar sind…",
         "bookingMode": "BUCHUNGSMODUS",
         "pricePerMonth": "PREIS / MONAT (€)",
         "opt": "(opt)",
@@ -1351,18 +1351,21 @@
       }
     },
     "customers": {
-      "title": "Kunden",
-      "count": "{{count}} Kunde",
-      "count_plural": "{{count}} Kunden",
+      "title": "Mieter",
+      "count": "{{count}} Mieter",
+      "count_plural": "{{count}} Mieter",
       "filters": {
         "all": "Alle",
         "person": "Person",
         "organisation": "Organisation"
       },
-      "searchPlaceholder": "Kunden suchen…",
+      "searchPlaceholder": "Mieter suchen…",
       "table": {
         "name": "Name",
         "email": "E-Mail",
+        "unit": "Einheit",
+        "paidThrough": "Bezahlt bis",
+        "rent": "Monatsmiete",
         "type": "Typ",
         "since": "Seit"
       },
@@ -1371,12 +1374,35 @@
         "organisation": "Organisation"
       },
       "empty": {
-        "noCustomers": "Noch keine Kunden",
+        "noCustomers": "Noch keine Mieter",
         "noResults": "Keine Ergebnisse gefunden"
       },
       "emptyHint": {
-        "noCustomers": "Kunden werden hier angezeigt, sobald sie Verträge haben.",
+        "noCustomers": "Mieter werden hier angezeigt, sobald sie Verträge haben oder importiert wurden.",
         "noResults": "Passe deine Suche oder den Filter an."
+      },
+      "import": {
+        "open": "Mieter hinzufügen",
+        "title": "Bestehenden Mieter hinzufügen",
+        "subtitle": "Importiere einen Mieter aus einem alten Standort, weise die Einheit zu und markiere bereits bezahlte Miete.",
+        "type": "Mietertyp",
+        "email": "E-Mail",
+        "companyName": "Firmenname",
+        "firstName": "Vorname",
+        "lastName": "Nachname",
+        "phone": "Telefon",
+        "site": "Standort",
+        "unit": "Einheit",
+        "monthlyRent": "Monatsmiete",
+        "moveInDate": "Einzugsdatum",
+        "paidThroughDate": "Bezahlt bis",
+        "paymentMethod": "Bisherige Zahlungsart",
+        "notes": "Notizen",
+        "notesPlaceholder": "Optionale Referenz aus Altsystem",
+        "cancel": "Abbrechen",
+        "save": "Mieter importieren",
+        "saving": "Import läuft…",
+        "failed": "Mieter konnte nicht importiert werden."
       },
       "drawer": {
         "id": "ID",
@@ -1399,7 +1425,7 @@
       "mandates": {
         "backToDashboard": "← Dashboard",
         "title": "Zahlungsmandate",
-        "customer": "Kunde",
+        "customer": "Mieter",
         "loading": "Lädt…",
         "noMandatesYet": "Noch keine Mandate",
         "noMandatesHint": "Füge unten ein Mandat hinzu, um zu beginnen.",
@@ -1480,7 +1506,7 @@
         "hint": "Rechnungen werden hier angezeigt, sobald sie erstellt wurden."
       },
       "table": {
-        "customer": "Kunde",
+        "customer": "Mieter",
         "invoiceDate": "Rechnungsdatum",
         "dueDate": "Fälligkeitsdatum",
         "amount": "Betrag",
@@ -1497,7 +1523,7 @@
       "detail": {
         "backToInvoices": "← Rechnungen",
         "title": "Rechnung",
-        "customer": "Kunde",
+        "customer": "Mieter",
         "invoiceDate": "Rechnungsdatum",
         "dueDate": "Fälligkeitsdatum",
         "period": "Zeitraum",
@@ -1533,8 +1559,50 @@
     "billing": {
       "title": "SiteLager Abrechnung",
       "subtitle": "Verwalte dein SiteLager-Abonnement",
+      "managePlan": "Plan verwalten",
       "currentPlan": "Aktueller Plan",
       "active": "Aktiv",
+      "totalPaid": "An SiteLager bezahlt",
+      "paidInvoices": "Bezahlte Rechnungen",
+      "nextBilling": "Nächstes Abrechnungsdatum",
+      "nextCharge": "Nächste reguläre Abbuchung",
+      "noCharge": "Keine Abbuchung geplant",
+      "perMonth": "/ Monat",
+      "perYear": "/ Jahr",
+      "currentServicePeriod": "Aktueller Leistungszeitraum",
+      "billingPolicyTitle": "So funktioniert die monatliche Abrechnung",
+      "calendarPolicyBody": "Beginnt das Abonnement nach dem ersten Tag eines Monats, wird die erste Rechnung anteilig für die verbleibenden Kalendertage berechnet. Die volle monatliche Abrechnung beginnt am ersten Tag des Folgemonats.",
+      "anniversaryPolicyBody": "Dieses bestehende Abonnement verlängert sich monatlich am bisherigen Stichtag. Mit einer neuen Planauswahl wird es auf Kalendermonatsabrechnung umgestellt.",
+      "setupPolicyBody": "Dieser Organisation ist ein kostenpflichtiger Plan zugewiesen, aber es gibt noch keinen aktiven Zahlungsplan. Wähle den Plan unten aus, um die erste Rechnung zu erstellen und die wiederkehrende Abrechnung zu aktivieren.",
+      "annualPolicyBody": "Jahrespläne werden am Jahrestag des Abonnementbeginns für das volle Jahr berechnet. Der Jahrespreis enthält zwei kostenlose Monate.",
+      "invoiceHistory": "SiteLager-Rechnungsverlauf",
+      "invoiceHistorySubtitle": "Von SiteLager an deine Organisation ausgestellte Rechnungen",
+      "noInvoices": "Es wurden noch keine SiteLager-Rechnungen ausgestellt.",
+      "invoice": "Rechnung",
+      "servicePeriod": "Leistungszeitraum",
+      "amount": "Betrag",
+      "status": "Status",
+      "document": "Dokument",
+      "download": "PDF herunterladen",
+      "prorated": "Anteilig",
+      "includingVat": "Inklusive MwSt.",
+      "planPricesIncludeVat": "Alle Preise enthalten 19 % MwSt.",
+      "twoMonthsFree": "2 Monate kostenlos",
+      "interval": {
+        "monthly": "Monatlich",
+        "yearly": "Jährlich"
+      },
+      "statuses": {
+        "active": "Aktiv",
+        "trial": "Testphase",
+        "open": "Offen",
+        "paid": "Bezahlt",
+        "failed": "Fehlgeschlagen",
+        "pending_payment": "Zahlung ausstehend",
+        "payment_failed": "Zahlung fehlgeschlagen",
+        "past_due": "Überfällig",
+        "billing_setup_required": "Abrechnung einrichten"
+      },
       "upgradePlan": "Plan upgraden",
       "sitesIncluded": "Standorte inklusive",
       "unitsIncluded": "Einheiten inklusive",
@@ -1568,8 +1636,17 @@
     },
     "settings": {
       "title": "Organisationseinstellungen",
+      "subtitle": "Organisationsdaten, Abrechnung, Zahlungseinrichtung und Integrationen verwalten.",
       "plan": "Plan",
       "status": "Status",
+      "tabs": {
+        "label": "Einstellungsbereiche",
+        "general": "Allgemein",
+        "billing": "Abrechnung",
+        "payments": "Zahlungseinrichtung",
+        "apiKeys": "API-Schlüssel",
+        "webhooks": "Webhooks"
+      },
       "webhooks": {
         "backToSettings": "← Einstellungen",
         "title": "Webhooks",
@@ -1659,7 +1736,7 @@
         "month": "Monat",
         "amount": "Betrag",
         "method": "Zahlungsart",
-        "customer": "Kunde",
+        "customer": "Mieter",
         "bucket0_30": "0-30 Tage",
         "bucket31_60": "31-60 Tage",
         "bucket61_90": "61-90 Tage",

@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+import { backendApi } from './backend-url';
 
 interface RegisterBody {
   organisationName: string;
@@ -21,7 +21,7 @@ interface AcceptInviteBody {
 }
 
 async function apiFetch(path: string, init?: RequestInit) {
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(backendApi(path), {
     headers: { 'Content-Type': 'application/json', ...init?.headers },
     ...init,
   });

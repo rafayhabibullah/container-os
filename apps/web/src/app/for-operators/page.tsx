@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { BarChart2, FileText, Users, Globe, Zap, Shield } from 'lucide-react';
 import { getT } from '@/lib/get-locale';
+import { BrandLogo } from '@/components/brand-logo';
 
 export default function ForOperatorsPage() {
   const t = getT();
@@ -18,12 +19,7 @@ export default function ForOperatorsPage() {
     <div className="min-h-screen bg-white">
       <header className="bg-white border-b border-slate-100 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-              <span className="text-white text-sm font-bold">S</span>
-            </div>
-            <span className="font-bold text-slate-900">SiteLager</span>
-          </Link>
+          <BrandLogo href="/" compact />
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm text-slate-600 hover:text-slate-900">{t('forOperators.nav.signIn')}</Link>
             <Link href="/register" className="text-sm bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700">
@@ -80,7 +76,7 @@ export default function ForOperatorsPage() {
 
       <footer className="border-t border-slate-100 py-10 px-6">
         <div className="max-w-6xl mx-auto flex flex-wrap gap-6 justify-between text-sm text-slate-400">
-          <Link href="/" className="font-semibold text-slate-900">{t('forOperators.footer.back')}</Link>
+          <BrandLogo href="/" compact markClassName="h-7 w-7" />
           <div className="flex gap-6">
             <Link href="/pricing" className="hover:text-slate-700">{t('forOperators.footer.pricing')}</Link>
             <Link href="/legal/privacy" className="hover:text-slate-700">{t('forOperators.footer.privacy')}</Link>

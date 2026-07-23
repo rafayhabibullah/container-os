@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Bell, Send, Star } from 'lucide-react';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api';
+import { backendApi } from '@/lib/backend-url';
 
 export function SavedSearchForm({ city, query, filters }: { city?: string; query?: string; filters?: Record<string, unknown> }) {
   const [email, setEmail] = useState('');
@@ -12,7 +11,7 @@ export function SavedSearchForm({ city, query, filters }: { city?: string; query
   async function submit(formData: FormData) {
     const nextEmail = String(formData.get('email') ?? '');
     setState('saving');
-    const res = await fetch(`${API_URL}/public/v1/saved-searches`, {
+    const res = await fetch(backendApi('/public/v1/saved-searches'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: nextEmail, city, query, filters }),
@@ -58,7 +57,7 @@ export function ReviewForm({ listingId }: { listingId: string }) {
 
   async function submit(formData: FormData) {
     setState('saving');
-    const res = await fetch(`${API_URL}/public/v1/marketplace/reviews`, {
+    const res = await fetch(backendApi('/public/v1/marketplace/reviews'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -98,7 +97,7 @@ export function ReviewForm({ listingId }: { listingId: string }) {
 
 export function TrackMarketplaceEvent({ listingId, eventType, metadata }: { listingId?: string; eventType: string; metadata?: Record<string, unknown> }) {
   useEffect(() => {
-    fetch(`${API_URL}/public/v1/marketplace/events`, {
+    fetch(backendApi('/public/v1/marketplace/events'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ listingId, eventType, metadata }),

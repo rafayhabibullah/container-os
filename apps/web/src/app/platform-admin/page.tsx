@@ -1,4 +1,6 @@
 import { platformFetch } from '@/lib/platform-api';
+import { configuredPlatformToken, hasPlatformAdminSession } from '@/lib/platform-session';
+import { BrandLogo } from '@/components/brand-logo';
 import PlatformAdminActions from './platform-admin-actions';
 
 export const dynamic = 'force-dynamic';
@@ -39,6 +41,43 @@ export default async function PlatformAdminPage() {
   let organisations: OrganisationRow[] = [];
   let failedJobs: FailedJob[] = [];
   let flags: { key: string; enabled: boolean }[] = [];
+
+  if (!configuredPlatformToken()) {
+    return (
+      <main style={{ minHeight: '100vh', background: '#f8fafc', padding: 32, fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ maxWidth: 520, margin: '0 auto', ...card }}>
+          <div style={{ marginBottom: 18 }}><BrandLogo href="/" /></div>
+          <h1 style={{ marginTop: 0 }}>Platform Admin</h1>
+          <p style={{ color: '#64748b' }}>PLATFORM_ADMIN_TOKEN is not configured on the web service.</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!hasPlatformAdminSession()) {
+    return (
+      <main style={{ minHeight: '100vh', background: '#f8fafc', padding: 32, fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ maxWidth: 520, margin: '0 auto', ...card }}>
+          <div style={{ marginBottom: 18 }}><BrandLogo href="/" /></div>
+          <h1 style={{ marginTop: 0 }}>Platform Admin</h1>
+          <p style={{ color: '#64748b' }}>Enter the platform admin token to continue.</p>
+          <form method="post" action="/api/platform-admin/session" style={{ display: 'grid', gap: 12, marginTop: 18 }}>
+            <input
+              name="token"
+              type="password"
+              autoComplete="current-password"
+              placeholder="Platform admin token"
+              style={{ padding: 12, border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 14 }}
+            />
+            <button style={{ padding: '10px 14px', border: 0, borderRadius: 8, background: '#0f172a', color: '#fff', fontWeight: 700 }}>
+              Open platform admin
+            </button>
+          </form>
+        </div>
+      </main>
+    );
+  }
+
   try {
     [dashboard, organisations, failedJobs, flags] = await Promise.all([
       platformFetch<Dashboard>('/platform/v1/dashboard'),
@@ -50,6 +89,7 @@ export default async function PlatformAdminPage() {
     return (
       <main style={{ minHeight: '100vh', background: '#f8fafc', padding: 32, fontFamily: 'system-ui, sans-serif' }}>
         <div style={{ maxWidth: 760, margin: '0 auto', ...card }}>
+          <div style={{ marginBottom: 18 }}><BrandLogo href="/" /></div>
           <h1 style={{ marginTop: 0 }}>Platform Admin</h1>
           <p style={{ color: '#64748b' }}>{error instanceof Error ? error.message : 'Platform admin is not configured.'}</p>
         </div>
@@ -60,7 +100,16 @@ export default async function PlatformAdminPage() {
   return (
     <main style={{ minHeight: '100vh', background: '#f8fafc', padding: 32, fontFamily: 'system-ui, sans-serif' }}>
       <div style={{ maxWidth: 1180, margin: '0 auto' }}>
-        <h1 style={{ margin: '0 0 20px', fontSize: 28 }}>Platform Admin</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'center', marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <BrandLogo href="/" />
+            <h1 style={{ margin: 0, fontSize: 28 }}>Platform Admin</h1>
+          </div>
+          <form method="post" action="/api/platform-admin/session">
+            <input type="hidden" name="action" value="logout" />
+            <button style={{ padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: 8, background: '#fff' }}>Sign out</button>
+          </form>
+        </div>
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 12, marginBottom: 20 }}>
           {[
             ['Organisations', dashboard.organisations],

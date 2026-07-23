@@ -14,17 +14,21 @@ export default async function PaymentSettingsPage() {
   const account = await serverFetch<PaymentAccount>(`/v1/organisations/${user.organisationId}/payment-account`).catch(() => null);
 
   return (
-    <main style={{ minHeight: '100vh', background: '#f8fafc', padding: 32, fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ maxWidth: 760, margin: '0 auto', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, padding: 24 }}>
-        <h1 style={{ marginTop: 0 }}>Zahlungen</h1>
-        <p style={{ color: '#64748b' }}>Verbinden Sie das Mollie-Konto der Organisation, damit Mietzahlungen direkt dem Betreiber zugeordnet werden.</p>
-        <dl style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 10, fontSize: 14 }}>
-          <dt>Status</dt><dd>{account?.status ?? 'not_connected'}</dd>
-          <dt>Mollie Konto</dt><dd>{account?.providerAccountId ?? '-'}</dd>
-          <dt>Verbunden am</dt><dd>{account?.onboardingCompletedAt ? new Date(account.onboardingCompletedAt).toLocaleString('de-DE') : '-'}</dd>
-        </dl>
-        <PaymentAccountActions onboardingUrl={account?.onboardingUrl ?? null} />
+    <div className="max-w-4xl">
+      <div className="mb-5">
+        <h2 className="text-xl font-extrabold text-slate-900">Zahlungseinrichtung</h2>
+        <p className="mt-1 text-sm text-slate-500">Verbinde das Mollie-Konto der Organisation, damit Mietzahlungen direkt dem Betreiber zugeordnet werden.</p>
       </div>
-    </main>
+      <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <dl className="grid gap-4 text-sm sm:grid-cols-[180px_1fr]">
+          <dt className="font-bold text-slate-500">Status</dt><dd className="font-semibold text-slate-900">{account?.status ?? 'not_connected'}</dd>
+          <dt className="font-bold text-slate-500">Mollie-Konto</dt><dd className="font-semibold text-slate-900">{account?.providerAccountId ?? '-'}</dd>
+          <dt className="font-bold text-slate-500">Verbunden am</dt><dd className="font-semibold text-slate-900">{account?.onboardingCompletedAt ? new Date(account.onboardingCompletedAt).toLocaleString('de-DE') : '-'}</dd>
+        </dl>
+        <div className="mt-6 border-t border-slate-100 pt-5">
+          <PaymentAccountActions onboardingUrl={account?.onboardingUrl ?? null} />
+        </div>
+      </div>
+    </div>
   );
 }

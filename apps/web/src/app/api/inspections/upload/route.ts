@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthContext } from '@/lib/api-route-helpers';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+import { backendApi } from '@/lib/backend-url';
 
 export async function POST(request: NextRequest) {
   const auth = getAuthContext();
@@ -15,7 +14,7 @@ export async function POST(request: NextRequest) {
   backendForm.append('file', file, file.name);
 
   const res = await fetch(
-    `${API_URL}/v1/organisations/${auth.payload.organisationId}/inspection-photos`,
+    backendApi(`/v1/organisations/${auth.payload.organisationId}/inspection-photos`),
     { method: 'POST', headers: { Authorization: `Bearer ${auth.token}` }, body: backendForm },
   );
   const data = await res.json().catch(() => ({}));

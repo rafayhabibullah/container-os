@@ -3,10 +3,10 @@ import { notFound } from 'next/navigation';
 import { Clock, FileText, MapPin, Ruler, ShieldCheck, Star, Truck, Zap } from 'lucide-react';
 import { getCurrentTenantUser, getCurrentUser } from '@/lib/auth';
 import { getT } from '@/lib/get-locale';
+import { backendApi } from '@/lib/backend-url';
 import { ImageCarousel } from './ImageCarousel';
 import { ReviewForm, TrackMarketplaceEvent } from '../MarketplaceActions';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api';
+import { BrandLogo } from '@/components/brand-logo';
 
 interface ListingDetail {
   id: string;
@@ -35,13 +35,13 @@ function money(minor: number | null | undefined) {
 }
 
 async function getListing(slug: string): Promise<ListingDetail | null> {
-  const res = await fetch(`${API_URL}/public/v1/listings/${encodeURIComponent(slug)}`, { cache: 'no-store' });
+  const res = await fetch(backendApi(`/public/v1/listings/${encodeURIComponent(slug)}`), { cache: 'no-store' });
   if (!res.ok) return null;
   return res.json();
 }
 
 async function fallbackListingForSite(slug: string): Promise<ListingDetail | null> {
-  const res = await fetch(`${API_URL}/public/v1/listings?limit=200`, { cache: 'no-store' });
+  const res = await fetch(backendApi('/public/v1/listings?limit=200'), { cache: 'no-store' });
   if (!res.ok) return null;
   const listings = await res.json().catch(() => []);
   return Array.isArray(listings) ? listings.find((listing) => listing.site?.slug === slug) ?? null : null;
@@ -96,10 +96,7 @@ export default async function StorageListingDetailPage({ params }: { params: { s
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <header className="bg-white border-b border-slate-100 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="w-8 h-8 rounded-lg bg-blue-600 text-white text-sm font-bold flex items-center justify-center">S</span>
-            <span className="font-bold text-slate-950 text-sm">SiteLager</span>
-          </Link>
+          <BrandLogo href="/" compact markClassName="h-8 w-8" />
           <Link href={accountHref} className="text-sm text-slate-600 hover:text-slate-900">{user || tenantUser ? t('storage.nav.myAccount') : t('storage.nav.signIn')}</Link>
         </div>
       </header>
